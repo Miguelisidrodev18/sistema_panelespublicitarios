@@ -33,6 +33,15 @@ class AuthController extends Controller
         return back()->withErrors(['username' => 'Credenciales incorrectas.'])->onlyInput('username');
     }
 
+    public function verificarClaveMaestra(Request $request)
+    {
+        $ok = $request->clave_maestra !== null
+            && config('app.master_password') !== null
+            && $request->clave_maestra === config('app.master_password');
+
+        return response()->json(['ok' => $ok]);
+    }
+
     public function registroMaestro(Request $request)
     {
         $request->validate([

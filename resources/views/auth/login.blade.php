@@ -302,57 +302,78 @@
         </div>
 
         <div class="registro-panel" id="registroPanel">
-            <div class="registro-titulo"><i class="bi bi-person-plus"></i> Nuevo usuario administrador</div>
+            <div class="registro-titulo"><i class="bi bi-shield-lock"></i> Acceso con clave maestra</div>
 
-            @if($errors->has('clave_maestra'))
-            <div class="alert-error">
-                <i class="bi bi-exclamation-circle-fill"></i>
-                <span>{{ $errors->first('clave_maestra') }}</span>
-            </div>
-            @endif
-
-            <form action="{{ route('registro.maestro') }}" method="POST" autocomplete="off">
-                @csrf
+            {{-- Paso 1: verificar clave maestra --}}
+            <div id="paso1">
                 <div class="form-group">
                     <label class="form-label">Clave maestra</label>
-                    <div class="input-wrap">
-                        <input name="clave_maestra" type="password" class="form-input" placeholder="••••••••" required>
-                        <i class="bi bi-shield-fill input-icon"></i>
+                    <div class="input-wrap" style="display:flex; gap:8px;">
+                        <div style="position:relative; flex:1;">
+                            <input id="clave_maestra_input" type="password" class="form-input" placeholder="••••••••" style="padding-right:46px;">
+                            <i class="bi bi-shield-fill input-icon"></i>
+                        </div>
+                        <button type="button" id="btnVerClave" onclick="toggleVerClave()"
+                            style="background:rgba(0,0,0,.3); border:1.5px solid rgba(220,30,46,.25); border-radius:12px; padding:0 14px; color:rgba(255,255,255,.4); cursor:pointer; transition:color .15s;">
+                            <i class="bi bi-eye-fill" id="iconOjo"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Nombre completo</label>
-                    <div class="input-wrap">
-                        <input name="nombre_completo" type="text" class="form-input" placeholder="Nombre y apellido" value="{{ old('nombre_completo') }}" required>
-                        <i class="bi bi-person-badge-fill input-icon"></i>
-                    </div>
+                <div id="errorClave" style="display:none;" class="alert-error">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span>Contraseña maestra incorrecta.</span>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Usuario</label>
-                    <div class="input-wrap">
-                        <input name="username" type="text" class="form-input" placeholder="nombre_usuario" value="{{ old('username') }}" required>
-                        <i class="bi bi-person-fill input-icon"></i>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Contraseña</label>
-                    <div class="input-wrap">
-                        <input name="password" type="password" class="form-input" placeholder="Mínimo 6 caracteres" required>
-                        <i class="bi bi-lock-fill input-icon"></i>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Repetir contraseña</label>
-                    <div class="input-wrap">
-                        <input name="password_confirmation" type="password" class="form-input" placeholder="••••••••" required>
-                        <i class="bi bi-lock-fill input-icon"></i>
-                    </div>
-                </div>
-                <button type="submit" class="btn-submit">
-                    <i class="bi bi-person-check-fill"></i>
-                    Crear usuario administrador
+                <button type="button" class="btn-submit" onclick="verificarClave()">
+                    <i class="bi bi-shield-check"></i>
+                    Verificar clave
                 </button>
-            </form>
+            </div>
+
+            {{-- Paso 2: formulario de nuevo usuario --}}
+            <div id="paso2" style="display:none;">
+                @if($errors->has('username') || $errors->has('nombre_completo') || $errors->has('password'))
+                <div class="alert-error">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span>{{ $errors->first() }}</span>
+                </div>
+                @endif
+                <form action="{{ route('registro.maestro') }}" method="POST" autocomplete="off">
+                    @csrf
+                    <input type="hidden" name="clave_maestra" id="clave_maestra_hidden">
+                    <div class="form-group">
+                        <label class="form-label">Nombre completo</label>
+                        <div class="input-wrap">
+                            <input name="nombre_completo" type="text" class="form-input" placeholder="Nombre y apellido" value="{{ old('nombre_completo') }}" required>
+                            <i class="bi bi-person-badge-fill input-icon"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Usuario</label>
+                        <div class="input-wrap">
+                            <input name="username" type="text" class="form-input" placeholder="nombre_usuario" value="{{ old('username') }}" required>
+                            <i class="bi bi-person-fill input-icon"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contraseña</label>
+                        <div class="input-wrap">
+                            <input name="password" type="password" class="form-input" placeholder="Mínimo 6 caracteres" required>
+                            <i class="bi bi-lock-fill input-icon"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Repetir contraseña</label>
+                        <div class="input-wrap">
+                            <input name="password_confirmation" type="password" class="form-input" placeholder="••••••••" required>
+                            <i class="bi bi-lock-fill input-icon"></i>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-person-check-fill"></i>
+                        Crear usuario administrador
+                    </button>
+                </form>
+            </div>
         </div>
 
         <div class="login-footer">
@@ -362,11 +383,49 @@
 
     <script>
         function toggleRegistro() {
-            const panel = document.getElementById('registroPanel');
-            panel.classList.toggle('visible');
+            document.getElementById('registroPanel').classList.toggle('visible');
         }
-        @if($errors->has('clave_maestra') || $errors->has('username') || $errors->has('nombre_completo'))
+
+        function toggleVerClave() {
+            const input = document.getElementById('clave_maestra_input');
+            const icon  = document.getElementById('iconOjo');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash-fill';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye-fill';
+            }
+        }
+
+        async function verificarClave() {
+            const clave = document.getElementById('clave_maestra_input').value;
+            const error = document.getElementById('errorClave');
+            error.style.display = 'none';
+
+            const res  = await fetch('{{ route('registro.verificar') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ clave_maestra: clave })
+            });
+            const data = await res.json();
+
+            if (data.ok) {
+                document.getElementById('clave_maestra_hidden').value = clave;
+                document.getElementById('paso1').style.display = 'none';
+                document.getElementById('paso2').style.display = 'block';
+            } else {
+                error.style.display = 'flex';
+            }
+        }
+
+        @if($errors->has('username') || $errors->has('nombre_completo') || $errors->has('password'))
         document.getElementById('registroPanel').classList.add('visible');
+        document.getElementById('paso1').style.display = 'none';
+        document.getElementById('paso2').style.display = 'block';
         @endif
     </script>
 </body>

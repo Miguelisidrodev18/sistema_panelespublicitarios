@@ -24,6 +24,7 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middl
 Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/registro-maestro', [AuthController::class, 'registroMaestro'])->name('registro.maestro')->middleware('guest');
+Route::post('/registro-maestro/verificar', [AuthController::class, 'verificarClaveMaestra'])->name('registro.verificar')->middleware('guest');
 
 // Authenticated routes
 Route::middleware(['auth'])->group(function () {
