@@ -232,7 +232,9 @@
 
     <div class="login-card">
         <div class="login-logo-wrap">
-            <div class="login-logo"><i class="bi bi-eye-fill"></i></div>
+            <div class="login-logo" style="background:none; box-shadow:none; padding:0;">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="width:76px; height:76px; object-fit:contain; border-radius:20px;">
+            </div>
             <div class="login-brand">BÚ<span>HO</span></div>
             <div class="login-tagline">Publicidad con Calle</div>
         </div>
