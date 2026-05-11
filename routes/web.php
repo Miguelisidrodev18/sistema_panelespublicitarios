@@ -23,6 +23,7 @@ use App\Http\Controllers\SunatController;
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/registro-maestro', [AuthController::class, 'registroMaestro'])->name('registro.maestro')->middleware('guest');
 
 // Authenticated routes
 Route::middleware(['auth'])->group(function () {

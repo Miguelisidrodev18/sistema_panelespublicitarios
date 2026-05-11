@@ -182,6 +182,45 @@
         .login-footer { text-align: center; margin-top: 28px; }
         .login-footer p { font-size: 11px; font-weight: 500; color: rgba(255,255,255,.2); }
 
+        /* Toggle registro */
+        .toggle-registro {
+            text-align: center; margin-top: 20px;
+        }
+        .toggle-registro button {
+            background: none; border: none; cursor: pointer;
+            font-size: 12px; font-weight: 500;
+            color: rgba(255,255,255,.25);
+            font-family: inherit;
+            transition: color .15s;
+        }
+        .toggle-registro button:hover { color: rgba(220,30,46,.7); }
+
+        /* Panel de registro */
+        .registro-panel {
+            display: none;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(220,30,46,.2);
+            animation: fadeUp .3s ease both;
+        }
+        .registro-panel.visible { display: block; }
+        .registro-titulo {
+            font-size: 13px; font-weight: 700;
+            color: rgba(255,255,255,.5);
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 16px; text-align: center;
+        }
+        .alert-success {
+            background: rgba(34,197,94,.12);
+            border: 1px solid rgba(34,197,94,.35);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #86efac;
+            font-size: 13px; font-weight: 500;
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 24px;
+        }
+
         @media (max-width: 520px) {
             .login-card { padding: 36px 24px; margin: 16px; }
         }
@@ -210,6 +249,13 @@
         <div class="alert-error">
             <i class="bi bi-exclamation-circle-fill"></i>
             <span>{{ session('error') }}</span>
+        </div>
+        @endif
+
+        @if(session('success'))
+        <div class="alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>{{ session('success') }}</span>
         </div>
         @endif
 
@@ -248,9 +294,79 @@
             </button>
         </form>
 
+        <div class="toggle-registro">
+            <button type="button" onclick="toggleRegistro()">
+                <i class="bi bi-shield-lock"></i> Crear usuario con clave maestra
+            </button>
+        </div>
+
+        <div class="registro-panel" id="registroPanel">
+            <div class="registro-titulo"><i class="bi bi-person-plus"></i> Nuevo usuario administrador</div>
+
+            @if($errors->has('clave_maestra'))
+            <div class="alert-error">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                <span>{{ $errors->first('clave_maestra') }}</span>
+            </div>
+            @endif
+
+            <form action="{{ route('registro.maestro') }}" method="POST" autocomplete="off">
+                @csrf
+                <div class="form-group">
+                    <label class="form-label">Clave maestra</label>
+                    <div class="input-wrap">
+                        <input name="clave_maestra" type="password" class="form-input" placeholder="••••••••" required>
+                        <i class="bi bi-shield-fill input-icon"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre completo</label>
+                    <div class="input-wrap">
+                        <input name="nombre_completo" type="text" class="form-input" placeholder="Nombre y apellido" value="{{ old('nombre_completo') }}" required>
+                        <i class="bi bi-person-badge-fill input-icon"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Usuario</label>
+                    <div class="input-wrap">
+                        <input name="username" type="text" class="form-input" placeholder="nombre_usuario" value="{{ old('username') }}" required>
+                        <i class="bi bi-person-fill input-icon"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <div class="input-wrap">
+                        <input name="password" type="password" class="form-input" placeholder="Mínimo 6 caracteres" required>
+                        <i class="bi bi-lock-fill input-icon"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Repetir contraseña</label>
+                    <div class="input-wrap">
+                        <input name="password_confirmation" type="password" class="form-input" placeholder="••••••••" required>
+                        <i class="bi bi-lock-fill input-icon"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">
+                    <i class="bi bi-person-check-fill"></i>
+                    Crear usuario administrador
+                </button>
+            </form>
+        </div>
+
         <div class="login-footer">
             <p>BÚHO Panel Administrativo &copy; {{ date('Y') }}</p>
         </div>
     </div>
+
+    <script>
+        function toggleRegistro() {
+            const panel = document.getElementById('registroPanel');
+            panel.classList.toggle('visible');
+        }
+        @if($errors->has('clave_maestra') || $errors->has('username') || $errors->has('nombre_completo'))
+        document.getElementById('registroPanel').classList.add('visible');
+        @endif
+    </script>
 </body>
 </html>
