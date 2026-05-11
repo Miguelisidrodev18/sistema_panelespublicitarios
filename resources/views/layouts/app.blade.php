@@ -71,13 +71,11 @@
         }
         .sidebar-logo {
             width: 46px; height: 46px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             border-radius: 12px;
-            box-shadow: 0 4px 14px rgba(220,30,46,.45);
-            display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
+            overflow: hidden;
         }
-        .sidebar-logo i { font-size: 22px; color: #fff; }
+        .sidebar-logo img { width: 46px; height: 46px; object-fit: contain; border-radius: 12px; }
         .sidebar-brand-text h2 {
             font-size: 18px; font-weight: 800;
             color: #fff; letter-spacing: -.3px;
@@ -584,7 +582,7 @@
 {{-- ─── Sidebar ─────────────────────────────────────────────── --}}
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <div class="sidebar-logo"><i class="bi bi-eye-fill"></i></div>
+        <div class="sidebar-logo"><img src="{{ asset('images/logo.png') }}" alt="Logo"></div>
         <div class="sidebar-brand-text">
             <h2>BÚHO</h2>
             <span>Publicidad con Calle</span>
