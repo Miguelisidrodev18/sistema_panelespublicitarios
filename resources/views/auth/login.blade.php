@@ -21,13 +21,12 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #1A1D29 0%, #2D1B1F 50%, #1A1D29 100%);
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-            position: relative;
+            padding: 32px 16px;
         }
 
         /* Animated background circles */
         .bg-circle {
-            position: absolute; border-radius: 50%;
+            position: fixed; border-radius: 50%;
             pointer-events: none;
         }
         .bg-circle-1 {
