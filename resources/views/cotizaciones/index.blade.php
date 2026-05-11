@@ -1,0 +1,439 @@
+@extends('layouts.app')
+
+@section('title', 'Cotizaciones')
+
+@section('content')
+
+{{-- Stats --}}
+<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+    <div class="stat-card">
+        <div class="stat-icon dark"><i class="bi bi-file-invoice-dollar"></i></div>
+        <div>
+            <div class="stat-value">{{ $stats_cot['total'] }}</div>
+            <div class="stat-label">Total</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+        <div>
+            <div class="stat-value">{{ $stats_cot['pendientes'] }}</div>
+            <div class="stat-label">Pendientes</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+        <div>
+            <div class="stat-value">{{ $stats_cot['aprobadas'] }}</div>
+            <div class="stat-label">Aprobadas</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="bi bi-currency-dollar"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:18px">S/. {{ number_format($stats_cot['monto'], 0, ',', '.') }}</div>
+            <div class="stat-label">Monto activo</div>
+        </div>
+    </div>
+</div>
+
+{{-- Filtros + botón --}}
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form class="d-flex flex-wrap gap-2 align-items-center" method="GET">
+            <input type="text" name="buscar" value="{{ request('buscar') }}" class="form-control"
+                style="max-width:260px" placeholder="Buscar cliente, empresa, N°...">
+            <select name="empresa_id" class="form-select" style="max-width:220px">
+                <option value="">Todas las empresas</option>
+                @foreach($empresas as $emp)
+                    <option value="{{ $emp->id }}" {{ request('empresa_id') == $emp->id ? 'selected' : '' }}>
+                        {{ $emp->nombre }}
+                    </option>
+                @endforeach
+            </select>
+            <div class="d-flex gap-1">
+                @foreach(['' => 'Todos', 'pendiente' => 'Pendiente', 'aprobada' => 'Aprobada', 'rechazada' => 'Rechazada', 'convertida' => 'Convertida'] as $val => $label)
+                <a href="{{ route('cotizaciones.index', array_merge(request()->except('estado','page'), $val ? ['estado'=>$val] : [])) }}"
+                   class="btn btn-sm {{ request('estado', '') === $val ? 'btn-danger' : 'btn-outline-secondary' }}">
+                    {{ $label }}
+                </a>
+                @endforeach
+            </div>
+            @if(request()->hasAny(['buscar','empresa_id','estado']))
+            <a href="{{ route('cotizaciones.index') }}" class="btn btn-sm btn-outline-secondary">Limpiar</a>
+            @endif
+            <div class="ms-auto">
+                @if(auth()->user()->esAdmin())
+                <button type="button" class="btn btn-danger" onclick="abrirModal('modalNuevaCot')">
+                    <i class="bi bi-plus-lg me-1"></i>Nueva Cotización
+                </button>
+                @endif
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Tabla --}}
+<div class="card border-0 shadow-sm">
+    <div class="card-header">
+        <span><i class="bi bi-list-ul" style="color:var(--primary);margin-right:8px"></i>Lista de Cotizaciones</span>
+        <span class="text-muted small">{{ $cotizaciones->total() }} cotización(es)</span>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th>Monto</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($cotizaciones as $cot)
+                <tr>
+                    <td>
+                        <span class="badge bg-light border text-dark fw-600">{{ $cot->numero ?? '-' }}</span>
+                    </td>
+                    <td>
+                        <div class="fw-600">
+                            @if($cot->empresa)
+                                <a href="{{ route('empresas.show', $cot->empresa) }}" class="text-decoration-none">
+                                    {{ $cot->empresa->nombre }}
+                                </a>
+                            @else
+                                {{ $cot->cliente_nombre ?? $cot->cliente_empresa ?? '—' }}
+                            @endif
+                        </div>
+                        @if($cot->cliente_nombre && $cot->empresa)
+                            <div class="text-muted" style="font-size:12px">{{ $cot->cliente_nombre }}</div>
+                        @endif
+                        @if($cot->cliente_telefono)
+                            <div class="text-muted" style="font-size:12px"><i class="bi bi-telephone me-1"></i>{{ $cot->cliente_telefono }}</div>
+                        @endif
+                    </td>
+                    <td>
+                        @if($cot->tipo_contrato)
+                            <span class="badge badge-info" style="background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE">
+                                {{ $cot->tipo_contrato }}
+                            </span>
+                        @else <span class="text-muted">—</span> @endif
+                    </td>
+                    <td class="fw-700" style="color:#059669">S/. {{ number_format($cot->monto_propuesto, 0, ',', '.') }}</td>
+                    <td>
+                        <div style="font-size:13px">{{ $cot->fecha_cotizacion?->format('d/m/Y') ?? '-' }}</div>
+                        @if($cot->fecha_vencimiento)
+                            <div class="text-muted" style="font-size:11px">
+                                vence {{ $cot->fecha_vencimiento->format('d/m/Y') }}
+                                @if($cot->estado === 'pendiente' && $cot->fecha_vencimiento->isPast())
+                                    <span class="badge badge-danger ms-1" style="font-size:10px">Vencida</span>
+                                @endif
+                            </div>
+                        @endif
+                    </td>
+                    <td>
+                        @php $estadoMap = ['pendiente'=>['warning','Pendiente'],'aprobada'=>['success','Aprobada'],'rechazada'=>['danger','Rechazada'],'convertida'=>['primary','Convertida']]; @endphp
+                        @php [$bc, $bl] = $estadoMap[$cot->estado] ?? ['secondary', ucfirst($cot->estado)]; @endphp
+                        <span class="badge badge-{{ $bc }}">{{ $bl }}</span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ route('cotizaciones.show', $cot) }}" class="btn btn-sm btn-secondary" title="Ver">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        @if(auth()->user()->esAdmin())
+                        <a href="{{ route('cotizaciones.edit', $cot) }}" class="btn btn-sm btn-secondary ms-1" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        @if(in_array($cot->estado, ['pendiente', 'aprobada']))
+                        <a href="{{ route('cotizaciones.convertir', $cot) }}" class="btn btn-sm btn-secondary ms-1" title="Convertir a Contrato">
+                            <i class="bi bi-arrow-right-circle"></i>
+                        </a>
+                        @endif
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state" style="padding:40px">
+                            <i class="bi bi-file-invoice-dollar"></i>
+                            <p>No hay cotizaciones registradas</p>
+                            @if(auth()->user()->esAdmin())
+                            <button class="btn btn-danger btn-sm" onclick="abrirModal('modalNuevaCot')">
+                                <i class="bi bi-plus-lg me-1"></i>Crear primera cotización
+                            </button>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    @if($cotizaciones->hasPages())
+    <div class="card-footer bg-white">{{ $cotizaciones->withQueryString()->links() }}</div>
+    @endif
+</div>
+
+
+{{-- ============================================================
+     MODAL NUEVA COTIZACIÓN — usa el sistema custom del layout
+     ============================================================ --}}
+@if(auth()->user()->esAdmin())
+<div class="modal-backdrop" id="modalNuevaCot" onclick="if(event.target===this)cerrarModal('modalNuevaCot')">
+<div class="modal-box" style="max-width:900px;width:95%">
+
+    <div class="modal-header">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-file-invoice-dollar" style="color:#FCD34D;font-size:22px"></i>
+            <div>
+                <h5 class="mb-0">Nueva Cotización</h5>
+                <div style="font-size:12px;opacity:.7;margin-top:2px">
+                    Número asignado: <strong>{{ $numero }}</strong>
+                </div>
+            </div>
+        </div>
+        <button class="modal-close" onclick="cerrarModal('modalNuevaCot')">×</button>
+    </div>
+
+    <form action="{{ route('cotizaciones.store') }}" method="POST" id="formNuevaCot">
+    @csrf
+    <input type="hidden" name="numero" value="{{ $numero }}">
+
+    <div class="modal-body" style="padding:0;max-height:70vh;overflow-y:auto">
+
+        {{-- Sección 1 --}}
+        <div class="cot-sec-title"><i class="bi bi-person-fill"></i> Datos del Cliente</div>
+        <div style="padding:20px 28px;border-bottom:1px solid var(--border)">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-medium" style="font-size:13px">Empresa registrada en el sistema</label>
+                    <select name="empresa_id" id="modal_empresa_id" class="form-select form-select-sm">
+                        <option value="">— Cliente externo (no registrado) —</option>
+                        @foreach($empresas as $emp)
+                            <option value="{{ $emp->id }}"
+                                data-nombre="{{ $emp->nombre }}"
+                                data-encargado="{{ $emp->encargado ?? '' }}">
+                                {{ $emp->nombre }}{{ $emp->encargado ? ' — '.$emp->encargado : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" style="font-size:13px">Nombre del contacto</label>
+                    <input type="text" name="cliente_nombre" id="modal_cliente_nombre"
+                        class="form-control form-control-sm" placeholder="Nombre completo">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" style="font-size:13px">Empresa / Negocio</label>
+                    <input type="text" name="cliente_empresa" id="modal_cliente_empresa"
+                        class="form-control form-control-sm" placeholder="Razón social">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" style="font-size:13px">Teléfono</label>
+                    <input type="text" name="cliente_telefono" class="form-control form-control-sm" placeholder="999 999 999">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" style="font-size:13px">Email</label>
+                    <input type="email" name="cliente_email" class="form-control form-control-sm" placeholder="correo@ejemplo.com">
+                </div>
+            </div>
+        </div>
+
+        {{-- Sección 2 --}}
+        <div class="cot-sec-title"><i class="bi bi-file-invoice-dollar"></i> Datos de la Cotización</div>
+        <div style="padding:20px 28px;border-bottom:1px solid var(--border)">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label" style="font-size:13px">Tipo de servicio</label>
+                    <input type="text" name="tipo_contrato" class="form-control form-control-sm"
+                        list="modal_tipos" placeholder="Panel Digital, Tradicional...">
+                    <datalist id="modal_tipos">
+                        <option value="Panel Digital">
+                        <option value="Panel Tradicional">
+                        <option value="Marketing Digital">
+                        <option value="Mixto">
+                    </datalist>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" style="font-size:13px">Monto propuesto (S/.)</label>
+                    <input type="number" name="monto_propuesto" value="0"
+                        class="form-control form-control-sm" step="1" min="0">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" style="font-size:13px">Válida hasta</label>
+                    <input type="date" name="fecha_vencimiento" class="form-control form-control-sm">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" style="font-size:13px">Notas / Descripción</label>
+                    <textarea name="notas" class="form-control form-control-sm" rows="2"
+                        placeholder="Detalles del servicio, condiciones..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        {{-- Sección 3 --}}
+        <div class="cot-sec-title"><i class="bi bi-geo-alt-fill"></i> Paneles de Interés</div>
+        <div style="padding:20px 28px">
+
+            <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px">
+                        <i class="bi bi-display" style="color:#2563EB"></i> Digital Outdoor
+                        <span id="m-cnt-digital" style="background:#EFF6FF;color:#2563EB;padding:1px 8px;border-radius:20px;font-size:11px">0</span>
+                    </div>
+                    <button type="button" class="cot-add-btn" onclick="mAddPanel('digital')">
+                        <i class="bi bi-plus-lg"></i> Agregar
+                    </button>
+                </div>
+                <div id="m-cont-digital">
+                    <div class="cot-empty" id="m-empty-digital">
+                        <i class="bi bi-display me-1" style="opacity:.4"></i>Sin paneles digitales
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px">
+                        <i class="bi bi-signpost-2" style="color:#EA580C"></i> Tradicional Outdoor
+                        <span id="m-cnt-tradicional" style="background:#FFF7ED;color:#EA580C;padding:1px 8px;border-radius:20px;font-size:11px">0</span>
+                    </div>
+                    <button type="button" class="cot-add-btn" onclick="mAddPanel('tradicional')">
+                        <i class="bi bi-plus-lg"></i> Agregar
+                    </button>
+                </div>
+                <div id="m-cont-tradicional">
+                    <div class="cot-empty" id="m-empty-tradicional">
+                        <i class="bi bi-signpost-2 me-1" style="opacity:.4"></i>Sin paneles tradicionales
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>{{-- /modal-body --}}
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" onclick="cerrarModal('modalNuevaCot')">
+            <i class="bi bi-x-lg me-1"></i>Cancelar
+        </button>
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-check-lg me-1"></i>Guardar Cotización
+        </button>
+    </div>
+
+    </form>
+</div>
+</div>
+@endif
+
+@endsection
+
+@push('styles')
+<style>
+.cot-sec-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: var(--primary);
+    padding: 10px 28px;
+    background: #FEF2F2;
+    border-top: 1px solid #FECACA;
+    border-bottom: 1px solid #FECACA;
+}
+.cot-add-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border: 1px solid var(--primary);
+    color: var(--primary); background: transparent;
+    border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;
+}
+.cot-add-btn:hover { background: #FEF2F2; }
+.cot-empty {
+    padding: 10px; text-align: center; font-size: 12px;
+    color: #9CA3AF; border: 1px dashed #D1D5DB; border-radius: 8px;
+}
+.cot-panel-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; background: #F8FAFC;
+    border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 6px;
+}
+.cot-panel-row select { flex: 2; min-width: 0; }
+.cot-panel-row .f-cod { width: 80px; flex-shrink: 0; }
+.cot-panel-row .f-mes { width: 72px; flex-shrink: 0; }
+.cot-panel-row .f-pre { width: 100px; flex-shrink: 0; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+function abrirModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function cerrarModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+var mPaneles = {
+    digital:     @json($paneles_digitales->map(fn($p) => ['id'=>$p->id,'codigo'=>$p->codigo,'nombre'=>$p->nombre])),
+    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id'=>$p->id,'codigo'=>$p->codigo,'nombre'=>$p->nombre]))
+};
+var mCounters = { digital: 0, tradicional: 0 };
+
+function mUpdateCount(tipo) {
+    document.getElementById('m-cnt-' + tipo).textContent =
+        document.getElementById('m-cont-' + tipo).querySelectorAll('.cot-panel-row').length;
+}
+
+function mAddPanel(tipo) {
+    var cont  = document.getElementById('m-cont-' + tipo);
+    var empty = document.getElementById('m-empty-' + tipo);
+    if (empty) empty.style.display = 'none';
+    var idx  = mCounters[tipo]++;
+    var opts = '<option value="">Seleccionar panel...</option>' +
+        mPaneles[tipo].map(function(p) {
+            return '<option value="'+p.id+'" data-codigo="'+p.codigo+'">'+p.codigo+' — '+p.nombre+'</option>';
+        }).join('');
+    var row = document.createElement('div');
+    row.className = 'cot-panel-row';
+    row.id = 'm-row-'+tipo+'-'+idx;
+    row.innerHTML =
+        '<select name="elemento_panel_id[]" class="form-select form-select-sm" onchange="mOnSelect(this,\''+tipo+'\','+idx+')">'+opts+'</select>'+
+        '<input type="hidden" name="elemento_tipo[]" value="'+tipo+'">'+
+        '<input type="text"   name="elemento_codigo[]" class="form-control form-control-sm f-cod" placeholder="Código" readonly>'+
+        '<input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" placeholder="Meses" min="1">'+
+        '<input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="1">'+
+        '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="mRemovePanel(\''+tipo+'\','+idx+')"><i class="bi bi-trash"></i></button>';
+    cont.appendChild(row);
+    mUpdateCount(tipo);
+}
+
+function mOnSelect(sel, tipo, idx) {
+    var opt = sel.options[sel.selectedIndex];
+    var row = document.getElementById('m-row-'+tipo+'-'+idx);
+    if (row) row.querySelector('.f-cod').value = opt.dataset.codigo || '';
+}
+
+function mRemovePanel(tipo, idx) {
+    var row = document.getElementById('m-row-'+tipo+'-'+idx);
+    if (row) row.remove();
+    var cont = document.getElementById('m-cont-'+tipo);
+    if (!cont.querySelector('.cot-panel-row'))
+        document.getElementById('m-empty-'+tipo).style.display = '';
+    mUpdateCount(tipo);
+}
+
+document.getElementById('modal_empresa_id').addEventListener('change', function () {
+    var opt = this.options[this.selectedIndex];
+    document.getElementById('modal_cliente_nombre').value  = opt.dataset.encargado || '';
+    document.getElementById('modal_cliente_empresa').value = opt.dataset.nombre    || '';
+});
+</script>
+@endpush

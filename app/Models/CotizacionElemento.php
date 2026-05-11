@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class CotizacionElemento extends Model
+{
+    protected $table = 'cotizacion_elementos';
+
+    protected $fillable = [
+        'cotizacion_id', 'tipo_elemento', 'panel_id', 'codigo',
+        'tiempo_contrato', 'precio_unitario', 'observaciones',
+    ];
+
+    protected $casts = [
+        'precio_unitario' => 'decimal:2',
+    ];
+
+    public function cotizacion(): BelongsTo
+    {
+        return $this->belongsTo(Cotizacion::class);
+    }
+}

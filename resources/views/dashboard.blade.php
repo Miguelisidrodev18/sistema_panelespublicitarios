@@ -1,0 +1,240 @@
+@extends('layouts.app')
+
+@section('title', 'Dashboard')
+@section('subtitle', 'Resumen general del sistema')
+
+@section('content')
+
+{{-- Alertas del sistema --}}
+@if(isset($alertas) && $alertas->count() > 0)
+<div class="mb-3">
+    @foreach($alertas as $alerta)
+    <div class="alert alert-{{ $alerta['tipo'] }} alert-dismissible d-flex align-items-center gap-2 py-2 mb-2" role="alert">
+        <i class="bi bi-{{ $alerta['icono'] }} fs-5 flex-shrink-0"></i>
+        <div class="flex-grow-1">{!! $alerta['mensaje'] !!}</div>
+        <a href="{{ $alerta['url'] }}" class="btn btn-sm btn-{{ $alerta['tipo'] }} ms-2">Ver</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endforeach
+</div>
+@endif
+
+@if(auth()->user()->esAdmin())
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon dark"><i class="bi bi-building"></i></div>
+        <div>
+            <div class="stat-value">{{ $stats['total_empresas'] }}</div>
+            <div class="stat-label">Empresas activas</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="bi bi-arrow-down-circle"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:20px">{{ number_format($stats['ingresos_mes'], 0, ',', '.') }}</div>
+            <div class="stat-label">Ingresos del mes (S/.)</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red"><i class="bi bi-arrow-up-circle"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:20px">{{ number_format($stats['egresos_mes'], 0, ',', '.') }}</div>
+            <div class="stat-label">Egresos del mes (S/.)</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon amber"><i class="bi bi-exclamation-triangle"></i></div>
+        <div>
+            <div class="stat-value" style="color:var(--primary)">{{ $stats['cuotas_vencidas'] }}</div>
+            <div class="stat-label">Cuotas vencidas</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="bi bi-display"></i></div>
+        <div>
+            <div class="stat-value">{{ $ocupacion_pct }}%</div>
+            <div class="stat-label">Ocupación paneles ({{ $paneles_activos }}/{{ $total_paneles }})</div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:24px">
+    <div class="card-header">
+        <span><i class="bi bi-bar-chart-line" style="color:var(--primary);margin-right:8px"></i>Ingresos últimos 6 meses</span>
+    </div>
+    <div class="card-body" style="height:240px;position:relative">
+        <canvas id="chartIngresos"></canvas>
+    </div>
+</div>
+@else
+<div class="stats-grid" style="grid-template-columns: repeat(3,1fr); margin-bottom:28px">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="bi bi-cash-coin"></i></div>
+        <div>
+            <div class="stat-value">{{ $stats['cuotas_pendientes'] }}</div>
+            <div class="stat-label">Cuotas pendientes</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red"><i class="bi bi-exclamation-circle"></i></div>
+        <div>
+            <div class="stat-value" style="color:var(--primary)">{{ $stats['cuotas_vencidas'] }}</div>
+            <div class="stat-label">Cuotas vencidas</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:18px">{{ number_format($stats['total_pagado'], 0, ',', '.') }}</div>
+            <div class="stat-label">Total pagado (S/.)</div>
+        </div>
+    </div>
+</div>
+@endif
+
+@if(auth()->user()->esAdmin() && $contratos_morosos->count() > 0)
+<div class="card" style="margin-bottom:24px">
+    <div class="card-header">
+        <span><i class="bi bi-exclamation-circle" style="color:var(--primary);margin-right:8px"></i>Contratos morosos</span>
+        <a href="{{ route('contratos.index') }}" class="btn btn-sm btn-secondary">Ver todos</a>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Contrato</th>
+                    <th>Contratante / Empresa</th>
+                    <th>Saldo pendiente</th>
+                    <th>Ultimo cobro</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($contratos_morosos as $cm)
+                <tr>
+                    <td class="fw-600">{{ $cm->numero_contrato }}</td>
+                    <td>
+                        <div>{{ $cm->contratante }}</div>
+                        @if($cm->empresa)<div class="text-muted" style="font-size:12px">{{ $cm->empresa->nombre }}</div>@endif
+                    </td>
+                    <td class="fw-700" style="color:var(--primary)">S/. {{ number_format($cm->saldo_pendiente, 0, ',', '.') }}</td>
+                    <td class="text-muted" style="font-size:12px">
+                        {{ $cm->cobros->sortByDesc('fecha_cobro')->first()?->fecha_cobro?->format('d/m/Y') ?? '—' }}
+                    </td>
+                    <td>
+                        <a href="{{ route('contratos.show', $cm) }}" class="btn btn-sm btn-secondary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+<div class="card">
+    <div class="card-header">
+        <span><i class="bi bi-calendar-event" style="color:var(--primary);margin-right:8px"></i>Proximas cuotas a vencer</span>
+        <a href="{{ route('cobranzas.index') }}?estado=pendiente" class="btn btn-sm btn-secondary">Ver todas</a>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    @if(auth()->user()->esAdmin())<th>Empresa</th>@endif
+                    <th>N° Cuota</th>
+                    <th>Concepto</th>
+                    <th>Monto</th>
+                    <th>Vencimiento</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($proximas_cuotas as $cuota)
+                <tr>
+                    @if(auth()->user()->esAdmin())
+                    <td class="fw-600">{{ $cuota->empresa->nombre ?? '—' }}</td>
+                    @endif
+                    <td>N° {{ $cuota->numero_cuota }}</td>
+                    <td class="text-muted">{{ $cuota->concepto ?? '—' }}</td>
+                    <td class="fw-700">S/. {{ number_format($cuota->monto, 0, ',', '.') }}</td>
+                    <td>
+                        {{ $cuota->fecha_vencimiento->format('d/m/Y') }}
+                        @if($cuota->fecha_vencimiento->isPast())
+                            <span class="badge badge-danger" style="margin-left:6px">Vencida</span>
+                        @elseif($cuota->fecha_vencimiento->diffInDays(now()) <= 7)
+                            <span class="badge badge-warning" style="margin-left:6px">Próxima</span>
+                        @endif
+                    </td>
+                    <td><span class="badge badge-warning">Pendiente</span></td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state" style="padding:40px 24px">
+                            <i class="bi bi-check2-circle" style="color:#10B981"></i>
+                            <p>No hay cuotas pendientes</p>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@endsection
+
+@if(auth()->user()->esAdmin())
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var labels = @json($ingresos6meses->pluck('label'));
+    var data   = @json($ingresos6meses->pluck('monto'));
+    var ctx    = document.getElementById('chartIngresos');
+    if (!ctx) return;
+    new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ingresos',
+                data: data,
+                backgroundColor: 'rgba(220,30,46,0.15)',
+                borderColor: '#DC1E2E',
+                borderWidth: 2,
+                borderRadius: 6,
+                hoverBackgroundColor: 'rgba(220,30,46,0.28)',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return 'S/. ' + ctx.raw.toLocaleString('es'); }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(v) { return 'S/. ' + v.toLocaleString('es'); },
+                        font: { size: 11 }
+                    },
+                    grid: { color: '#F1F5F9' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+})();
+</script>
+@endpush
+@endif
