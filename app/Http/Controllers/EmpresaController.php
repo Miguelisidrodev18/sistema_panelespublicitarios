@@ -89,6 +89,8 @@ class EmpresaController extends Controller
     {
         $rules = [
             'nombre' => 'required|string|max:200',
+            'correo' => 'nullable|email|max:150',
+            'celular' => 'nullable|string|max:20',
             'panel_digital' => 'boolean',
             'panel_tradicional' => 'boolean',
             'marketing_digital' => 'boolean',

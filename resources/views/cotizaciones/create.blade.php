@@ -168,6 +168,37 @@
             </div>
         </div>
 
+        {{-- Servicios adicionales --}}
+        <div class="cot-panel-group mt-4">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-2" style="font-weight:600;font-size:13px">
+                    <i class="bi bi-box-seam" style="color:#7C3AED;font-size:16px"></i>
+                    Servicios Adicionales
+                    <span class="badge rounded-pill" style="background:#EDE9FE;color:#7C3AED" id="cnt-servicio">0</span>
+                </div>
+                <button type="button" class="cot-add-btn" style="border-color:#7C3AED;color:#7C3AED" onclick="addServicio()">
+                    <i class="bi bi-plus-lg"></i> Agregar servicio
+                </button>
+            </div>
+            <div id="cont-servicio">
+                <div class="cot-empty" id="empty-servicio">
+                    <i class="bi bi-box-seam me-1 opacity-50"></i>Sin servicios — hacé clic en "Agregar servicio"
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{{-- Modal foto panel --}}
+<div id="modalFotoPanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:12px;max-width:520px;width:90%;padding:20px;position:relative">
+        <button type="button" onclick="cerrarFotoPanel()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:20px;cursor:pointer">&times;</button>
+        <div class="fw-700 mb-3" id="fotoNombrePanel">Panel</div>
+        <img id="fotoPanelImg" src="" style="width:100%;border-radius:8px;object-fit:cover;max-height:320px" alt="Foto del panel">
+        <div id="fotoPanelNoImg" style="display:none;padding:30px;text-align:center;color:#9CA3AF;border:1px dashed #D1D5DB;border-radius:8px">
+            <i class="bi bi-image" style="font-size:32px"></i><div>Sin foto disponible</div>
+        </div>
     </div>
 </div>
 

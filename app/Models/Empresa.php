@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Empresa extends Model
 {
     protected $fillable = [
-        'nombre', 'panel_digital', 'panel_tradicional', 'marketing_digital',
+        'nombre', 'correo', 'celular', 'panel_digital', 'panel_tradicional', 'marketing_digital',
         'otros_servicios', 'tipo_contrato', 'detalles_convenio', 'bonificacion',
         'adendas_pagos', 'comentario_bonificacion', 'comentario_adendas',
         'encargado', 'monto', 'dias_duracion', 'fecha_inicio', 'fecha_fin',

@@ -10,7 +10,7 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || !auth()->user()->esAdmin()) {
+        if (!auth()->check() || (!auth()->user()->esAdmin() && !auth()->user()->esGerencia())) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Acceso denegado'], 403);
             }

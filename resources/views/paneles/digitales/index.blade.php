@@ -1,75 +1,69 @@
 @extends('layouts.app')
 
 @section('title', 'Paneles Digitales')
+@section('subtitle', 'Gestión de paneles digitales')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div></div>
+<div class="page-header">
+    <div class="page-header-left">
+        <span style="font-size:13px;color:var(--text-light);font-weight:500">{{ $paneles->total() }} panel(es)</span>
+    </div>
     @if(auth()->user()->esAdmin())
     <a href="{{ route('paneles-digitales.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Nuevo Panel
+        <i class="bi bi-plus-lg"></i>Nuevo Panel
     </a>
     @endif
 </div>
 
-<div class="row g-3">
+<div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
     @forelse($paneles as $panel)
-    <div class="col-md-4 col-lg-3">
-        <div class="card border-0 shadow-sm h-100">
-            @if($panel->foto)
-                <img src="{{ Storage::url($panel->foto) }}" class="card-img-top" style="height:160px;object-fit:cover">
-            @else
-                <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px">
-                    <i class="bi bi-display fs-1 text-secondary"></i>
-                </div>
-            @endif
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                    <h6 class="fw-semibold mb-0">{{ $panel->nombre }}</h6>
-                    @if($panel->activo)
-                        <span class="badge bg-success">Activo</span>
-                    @else
-                        <span class="badge bg-secondary">Inactivo</span>
-                    @endif
-                </div>
-                @if($panel->codigo)<div class="text-muted small"><code>{{ $panel->codigo }}</code></div>@endif
-                @if($panel->direccion)<div class="text-muted small mt-1"><i class="bi bi-geo-alt me-1"></i>{{ Str::limit($panel->direccion, 40) }}</div>@endif
-                @if($panel->medidas || $panel->tandas)
-                <div class="mt-2 small">
-                    @if($panel->medidas)<span class="badge bg-light text-dark border me-1">{{ $panel->medidas }}</span>@endif
-                    @if($panel->tandas)<span class="badge bg-light text-dark border">{{ $panel->tandas }} tandas</span>@endif
-                </div>
+    <div class="warehouse-card hover-lift">
+        @if($panel->foto)
+            <img src="{{ Storage::url($panel->foto) }}" style="width:100%;height:160px;object-fit:cover;display:block" alt="{{ $panel->nombre }}">
+        @else
+            <div style="height:140px;background:linear-gradient(135deg,#1E293B 0%,#334155 100%);display:flex;align-items:center;justify-content:center">
+                <i class="bi bi-display" style="font-size:40px;color:rgba(255,255,255,.25)"></i>
+            </div>
+        @endif
+        <div class="wh-body">
+            <div class="flex flex-between" style="align-items:flex-start;margin-bottom:6px">
+                <div class="fw-700" style="font-size:14px;color:var(--text-dark)">{{ $panel->nombre }}</div>
+                @if($panel->activo)
+                    <span class="badge badge-success"><i class="bi bi-circle-fill dot"></i>Activo</span>
+                @else
+                    <span class="badge badge-gray">Inactivo</span>
                 @endif
-                <div class="mt-2 small text-muted">
-                    <i class="bi bi-building me-1"></i>{{ $panel->empresas->count() }} empresa(s)
-                </div>
             </div>
-            @if(auth()->user()->esAdmin())
-            <div class="card-footer bg-white d-flex gap-2">
-                <a href="{{ route('paneles-digitales.edit', $panel) }}" class="btn btn-sm btn-outline-warning flex-fill">
-                    <i class="bi bi-pencil"></i> Editar
-                </a>
-                <form action="{{ route('paneles-digitales.destroy', $panel) }}" method="POST"
-                    onsubmit="return confirm('¿Desactivar este panel?')">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg"></i></button>
-                </form>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+                @if($panel->codigo)<code>{{ $panel->codigo }}</code>@endif
+                @if($panel->direccion)<span style="font-size:12px;color:var(--text-light)"><i class="bi bi-geo-alt" style="color:var(--primary)"></i>{{ Str::limit($panel->direccion, 35) }}</span>@endif
             </div>
-            @endif
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px">
+                @if($panel->medidas)<span class="badge badge-gray">{{ $panel->medidas }}</span>@endif
+                @if($panel->tandas)<span class="badge badge-gray">{{ $panel->tandas }} tandas</span>@endif
+            </div>
+            <div style="font-size:12px;color:var(--text-light);margin-top:6px">
+                <i class="bi bi-building" style="margin-right:4px"></i>{{ $panel->empresas->count() }} empresa(s)
+            </div>
         </div>
+        @if(auth()->user()->esAdmin())
+        <div class="wh-footer">
+            <a href="{{ route('paneles-digitales.edit', $panel) }}" class="btn btn-sm btn-warning" style="flex:1"><i class="bi bi-pencil"></i>Editar</a>
+            <form action="{{ route('paneles-digitales.destroy', $panel) }}" method="POST" onsubmit="return confirm('¿Desactivar este panel?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-danger btn-icon"><i class="bi bi-x-lg"></i></button>
+            </form>
+        </div>
+        @endif
     </div>
     @empty
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center text-muted py-5">
-                <i class="bi bi-display fs-1 d-block mb-3"></i>No hay paneles digitales registrados.
-            </div>
-        </div>
+    <div style="grid-column:1/-1">
+        <div class="card"><div class="empty-state"><i class="bi bi-display"></i><p>No hay paneles digitales registrados</p></div></div>
     </div>
     @endforelse
 </div>
 
 @if($paneles->hasPages())
-<div class="mt-3">{{ $paneles->links() }}</div>
+<div style="margin-top:16px">{{ $paneles->links() }}</div>
 @endif
 @endsection

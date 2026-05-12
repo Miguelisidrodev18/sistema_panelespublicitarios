@@ -8,7 +8,9 @@ use App\Models\Contrato;
 use App\Models\Empresa;
 use App\Models\PanelDigital;
 use App\Models\PanelUbicacion;
+use App\Models\Servicio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CotizacionController extends Controller
 {
@@ -57,7 +59,8 @@ class CotizacionController extends Controller
         $empresas           = Empresa::activas()->orderBy('nombre')->get();
         $paneles_digitales  = PanelDigital::where('activo', true)->orderBy('codigo')->get();
         $paneles_tradicionales = PanelUbicacion::where('activo', true)->orderBy('codigo')->get();
-        return view('cotizaciones.create', compact('numero', 'empresas', 'paneles_digitales', 'paneles_tradicionales'));
+        $servicios          = Servicio::activos()->orderBy('nombre')->get();
+        return view('cotizaciones.create', compact('numero', 'empresas', 'paneles_digitales', 'paneles_tradicionales', 'servicios'));
     }
 
     public function store(Request $request)
@@ -97,12 +100,29 @@ class CotizacionController extends Controller
         foreach ($panelIds as $i => $panelId) {
             if (!$panelId) continue;
             CotizacionElemento::create([
-                'cotizacion_id'  => $cotizacion->id,
-                'tipo_elemento'  => $tipos[$i] ?? 'digital',
-                'panel_id'       => $panelId,
-                'codigo'         => $codigos[$i] ?? '',
+                'cotizacion_id'   => $cotizacion->id,
+                'tipo_elemento'   => $tipos[$i] ?? 'digital',
+                'panel_id'        => $panelId,
+                'codigo'          => $codigos[$i] ?? '',
                 'tiempo_contrato' => $tiempos[$i] ?? null,
                 'precio_unitario' => $precios[$i] ?? 0,
+            ]);
+        }
+
+        // Guardar servicios adicionales
+        $servicioIds    = $request->input('srv_id', []);
+        $servicioPrecios = $request->input('srv_precio', []);
+        $servicioObs    = $request->input('srv_obs', []);
+        foreach ($servicioIds as $j => $srvId) {
+            if (!$srvId) continue;
+            $srv = Servicio::find($srvId);
+            CotizacionElemento::create([
+                'cotizacion_id'   => $cotizacion->id,
+                'tipo_elemento'   => 'servicio',
+                'servicio_id'     => $srvId,
+                'codigo'          => $srv->nombre ?? '',
+                'precio_unitario' => $servicioPrecios[$j] ?? 0,
+                'observaciones'   => $servicioObs[$j] ?? null,
             ]);
         }
 
@@ -117,8 +137,12 @@ class CotizacionController extends Controller
 
     public function edit(Cotizacion $cotizacion)
     {
-        $empresas = Empresa::activas()->orderBy('nombre')->get();
-        return view('cotizaciones.edit', compact('cotizacion', 'empresas'));
+        $cotizacion->load('elementos');
+        $empresas              = Empresa::activas()->orderBy('nombre')->get();
+        $paneles_digitales     = PanelDigital::where('activo', true)->orderBy('codigo')->get();
+        $paneles_tradicionales = PanelUbicacion::where('activo', true)->orderBy('codigo')->get();
+        $servicios             = Servicio::activos()->orderBy('nombre')->get();
+        return view('cotizaciones.edit', compact('cotizacion', 'empresas', 'paneles_digitales', 'paneles_tradicionales', 'servicios'));
     }
 
     public function update(Request $request, Cotizacion $cotizacion)
@@ -139,6 +163,43 @@ class CotizacionController extends Controller
 
         $cotizacion->update($validated);
 
+        // Sincronizar elementos de paneles
+        $cotizacion->elementos()->whereIn('tipo_elemento', ['digital', 'tradicional'])->delete();
+        $panelIds = $request->input('elemento_panel_id', []);
+        $tipos    = $request->input('elemento_tipo', []);
+        $codigos  = $request->input('elemento_codigo', []);
+        $tiempos  = $request->input('elemento_tiempo', []);
+        $precios  = $request->input('elemento_precio', []);
+        foreach ($panelIds as $i => $panelId) {
+            if (!$panelId) continue;
+            CotizacionElemento::create([
+                'cotizacion_id'   => $cotizacion->id,
+                'tipo_elemento'   => $tipos[$i] ?? 'digital',
+                'panel_id'        => $panelId,
+                'codigo'          => $codigos[$i] ?? '',
+                'tiempo_contrato' => $tiempos[$i] ?? null,
+                'precio_unitario' => $precios[$i] ?? 0,
+            ]);
+        }
+
+        // Sincronizar servicios adicionales
+        $cotizacion->elementos()->where('tipo_elemento', 'servicio')->delete();
+        $servicioIds     = $request->input('srv_id', []);
+        $servicioPrecios = $request->input('srv_precio', []);
+        $servicioObs     = $request->input('srv_obs', []);
+        foreach ($servicioIds as $j => $srvId) {
+            if (!$srvId) continue;
+            $srv = Servicio::find($srvId);
+            CotizacionElemento::create([
+                'cotizacion_id'   => $cotizacion->id,
+                'tipo_elemento'   => 'servicio',
+                'servicio_id'     => $srvId,
+                'codigo'          => $srv->nombre ?? '',
+                'precio_unitario' => $servicioPrecios[$j] ?? 0,
+                'observaciones'   => $servicioObs[$j] ?? null,
+            ]);
+        }
+
         return redirect()->route('cotizaciones.show', $cotizacion)->with('success', 'Cotización actualizada.');
     }
 
@@ -153,6 +214,24 @@ class CotizacionController extends Controller
         $numero = 'CONT-' . date('Y') . '-' . str_pad(Contrato::whereYear('created_at', date('Y'))->count() + 1, 4, '0', STR_PAD_LEFT);
         $empresas = Empresa::activas()->orderBy('nombre')->get();
         return view('cotizaciones.convertir', compact('cotizacion', 'numero', 'empresas'));
+    }
+
+    public function getPanelFoto(string $tipo, int $id)
+    {
+        if ($tipo === 'digital') {
+            $panel = PanelDigital::find($id);
+        } else {
+            $panel = PanelUbicacion::find($id);
+        }
+
+        if (!$panel || !$panel->foto) {
+            return response()->json(['foto' => null, 'nombre' => $panel->nombre ?? '']);
+        }
+
+        return response()->json([
+            'foto'   => Storage::url($panel->foto),
+            'nombre' => $panel->nombre,
+        ]);
     }
 
     public function guardarContrato(Request $request, Cotizacion $cotizacion)

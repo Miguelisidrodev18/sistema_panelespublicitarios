@@ -1,17 +1,16 @@
 @extends('layouts.app')
 
 @section('title', 'Flujo Mensual ' . $año)
+@section('subtitle', 'Ingresos vs Egresos')
 
 @section('content')
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('reportes.index') }}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-        <h5 class="mb-0 fw-semibold">Flujo Mensual {{ $año }}</h5>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="{{ route('reportes.index') }}" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <div class="page-title">Flujo Mensual {{ $año }}</div>
     </div>
-    <form method="GET" class="d-flex gap-2">
-        <select name="año" class="form-select form-select-sm" onchange="this.form.submit()">
+    <form method="GET">
+        <select name="año" class="form-select" style="width:auto" onchange="this.form.submit()">
             @for($y = now()->year; $y >= now()->year - 4; $y--)
             <option value="{{ $y }}" {{ $año == $y ? 'selected' : '' }}>{{ $y }}</option>
             @endfor
@@ -19,47 +18,43 @@
     </form>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead class="table-light">
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
                 <tr>
                     <th>Mes</th>
-                    <th class="text-success">Ingresos</th>
-                    <th class="text-danger">Egresos</th>
+                    <th style="color:#10B981">Ingresos</th>
+                    <th style="color:var(--primary)">Egresos</th>
                     <th>Balance</th>
-                    <th style="width: 30%">Barra</th>
+                    <th style="width:30%">Barra</th>
                 </tr>
             </thead>
             <tbody>
                 @php $maxVal = $meses->max(fn($m) => max($m['ingresos'], $m['egresos'])) ?: 1; @endphp
                 @foreach($meses as $mes)
                 <tr>
-                    <td class="fw-medium">{{ ucfirst($mes['nombre']) }}</td>
-                    <td class="text-success">S/. {{ number_format($mes['ingresos'], 0, ',', '.') }}</td>
-                    <td class="text-danger">S/. {{ number_format($mes['egresos'], 0, ',', '.') }}</td>
-                    <td class="{{ $mes['balance'] >= 0 ? 'text-success' : 'text-danger' }} fw-medium">
+                    <td class="fw-600">{{ ucfirst($mes['nombre']) }}</td>
+                    <td style="color:#10B981">S/. {{ number_format($mes['ingresos'], 0, ',', '.') }}</td>
+                    <td style="color:var(--primary)">S/. {{ number_format($mes['egresos'], 0, ',', '.') }}</td>
+                    <td class="fw-700" style="color:{{ $mes['balance'] >= 0 ? '#10B981' : 'var(--primary)' }}">
                         S/. {{ number_format($mes['balance'], 0, ',', '.') }}
                     </td>
                     <td>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="progress" style="height:8px">
-                                <div class="progress-bar bg-success" style="width:{{ ($mes['ingresos'] / $maxVal) * 100 }}%"></div>
-                            </div>
-                            <div class="progress" style="height:8px">
-                                <div class="progress-bar bg-danger" style="width:{{ ($mes['egresos'] / $maxVal) * 100 }}%"></div>
-                            </div>
+                        <div style="display:flex;flex-direction:column;gap:3px">
+                            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:{{ ($mes['ingresos'] / $maxVal) * 100 }}%;background:#10B981"></div></div>
+                            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:{{ ($mes['egresos'] / $maxVal) * 100 }}%"></div></div>
                         </div>
                     </td>
                 </tr>
                 @endforeach
             </tbody>
-            <tfoot class="table-light fw-bold">
-                <tr>
+            <tfoot>
+                <tr style="font-weight:700;border-top:2px solid var(--border)">
                     <td>Total</td>
-                    <td class="text-success">S/. {{ number_format($meses->sum('ingresos'), 0, ',', '.') }}</td>
-                    <td class="text-danger">S/. {{ number_format($meses->sum('egresos'), 0, ',', '.') }}</td>
-                    <td class="{{ $meses->sum('balance') >= 0 ? 'text-success' : 'text-danger' }}">
+                    <td style="color:#10B981">S/. {{ number_format($meses->sum('ingresos'), 0, ',', '.') }}</td>
+                    <td style="color:var(--primary)">S/. {{ number_format($meses->sum('egresos'), 0, ',', '.') }}</td>
+                    <td style="color:{{ $meses->sum('balance') >= 0 ? '#10B981' : 'var(--primary)' }}">
                         S/. {{ number_format($meses->sum('balance'), 0, ',', '.') }}
                     </td>
                     <td></td>

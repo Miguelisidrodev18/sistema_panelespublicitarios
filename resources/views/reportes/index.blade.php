@@ -1,41 +1,24 @@
 @extends('layouts.app')
 
 @section('title', 'Reportes')
+@section('subtitle', 'Análisis y estadísticas del sistema')
 
 @section('content')
-<div class="row g-3">
-    <div class="col-md-4">
-        <a href="{{ route('reportes.flujo_mensual') }}" class="text-decoration-none">
-            <div class="card border-0 shadow-sm h-100 hover-shadow">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-bar-chart-line fs-1 text-primary d-block mb-3"></i>
-                    <h6 class="fw-semibold">Flujo Mensual</h6>
-                    <p class="text-muted small mb-0">Ingresos y egresos por mes del año</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="{{ route('reportes.cobranzas_pendientes') }}" class="text-decoration-none">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-exclamation-circle fs-1 text-warning d-block mb-3"></i>
-                    <h6 class="fw-semibold">Cobranzas Pendientes</h6>
-                    <p class="text-muted small mb-0">Cuotas pendientes agrupadas por empresa</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="{{ route('reportes.ingresos_por_empresa') }}" class="text-decoration-none">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-building fs-1 text-success d-block mb-3"></i>
-                    <h6 class="fw-semibold">Ingresos por Empresa</h6>
-                    <p class="text-muted small mb-0">Ranking de ingresos por empresa en el año</p>
-                </div>
-            </div>
-        </a>
-    </div>
+<div class="stats-grid stagger" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+    <a href="{{ route('reportes.flujo_mensual') }}" class="report-card">
+        <i class="bi bi-bar-chart-line" style="color:#2563EB"></i>
+        <h6>Flujo Mensual</h6>
+        <p>Ingresos y egresos por mes del año</p>
+    </a>
+    <a href="{{ route('reportes.cobranzas_pendientes') }}" class="report-card">
+        <i class="bi bi-exclamation-circle" style="color:#F59E0B"></i>
+        <h6>Cobranzas Pendientes</h6>
+        <p>Cuotas pendientes agrupadas por empresa</p>
+    </a>
+    <a href="{{ route('reportes.ingresos_por_empresa') }}" class="report-card">
+        <i class="bi bi-building" style="color:#10B981"></i>
+        <h6>Ingresos por Empresa</h6>
+        <p>Ranking de ingresos por empresa en el año</p>
+    </a>
 </div>
 @endsection

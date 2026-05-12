@@ -421,6 +421,63 @@
         .fs-12 { font-size: 12px; } .fs-13 { font-size: 13px; }
         .w-100 { width: 100%; }
 
+        /* ─── Required asterisk ─────────────────────────────────── */
+        .req { color: var(--primary); font-weight: 700; }
+
+        /* ─── Form hint (small note below input) ────────────────── */
+        .form-hint { font-size: 11.5px; color: var(--text-lighter); margin-top: 4px; }
+
+        /* ─── Icon-only button ──────────────────────────────────── */
+        .btn-icon { padding: 6px 10px !important; }
+
+        /* ─── Outline button ────────────────────────────────────── */
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text-medium);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 500;
+            cursor: pointer;
+            display: inline-flex; align-items: center; gap: 5px;
+            text-decoration: none;
+            transition: all .15s;
+        }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ─── Table td-end (right-aligned actions) ──────────────── */
+        .td-end { text-align: right; }
+
+        /* ─── Alert boxes ───────────────────────────────────────── */
+        .alert {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 18px; border-radius: var(--radius-md);
+            font-size: 13px; font-weight: 500;
+            margin-bottom: 16px;
+        }
+        .alert-success { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+        .alert-danger  { background: #FEF2F2; color: var(--primary-dark); border: 1px solid #FECACA; }
+        .alert-warning { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+        .alert-info    { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
+        .alert i { font-size: 18px; flex-shrink: 0; }
+
+        /* ─── Invalid feedback (form errors) ────────────────────── */
+        .invalid-feedback { display: block; font-size: 12px; color: var(--primary); margin-top: 4px; font-weight: 500; }
+        .is-invalid { border-color: var(--primary) !important; }
+
+        /* ─── Card footer ───────────────────────────────────────── */
+        .card-footer {
+            padding: 14px 24px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        }
+
+        /* ─── Form check (checkbox) ─────────────────────────────── */
+        .form-check { display: flex; align-items: center; gap: 8px; }
+        .form-check-input { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
+        .form-check-label { font-size: 13px; font-weight: 500; color: var(--text-medium); cursor: pointer; }
+
         /* ─── Page header bar ────────────────────────────────────── */
         .page-header {
             display: flex; align-items: center; justify-content: space-between;
@@ -571,6 +628,226 @@
             padding: 2px 7px; border-radius: 5px;
             font-size: 12.5px; font-family: 'SFMono-Regular', Consolas, monospace;
         }
+
+        /* ─── Bootstrap-replacement Grid ────────────────────────── */
+        .row { display: flex; flex-wrap: wrap; margin: -10px; }
+        .row > [class*="col-"] { padding: 10px; box-sizing: border-box; }
+        .row.g-3 { margin: -10px; }
+        .row.g-3 > [class*="col-"] { padding: 10px; }
+        .row.g-2 { margin: -6px; }
+        .row.g-2 > [class*="col-"] { padding: 6px; }
+        .col-12  { width: 100%; }
+        .col-6   { width: 50%; }
+        .col-auto { width: auto; }
+        .col-md-2 { width: 16.66%; } .col-md-3 { width: 25%; }
+        .col-md-4 { width: 33.33%; } .col-md-5 { width: 41.66%; }
+        .col-md-6 { width: 50%; } .col-md-7 { width: 58.33%; }
+        .col-md-8 { width: 66.66%; }
+        .col-sm-6 { width: 50%; }
+        .col-lg-4 { width: 33.33%; } .col-lg-6 { width: 50%; } .col-lg-7 { width: 58.33%; } .col-lg-8 { width: 66.66%; }
+        @media (max-width: 1024px) {
+            .col-lg-4, .col-lg-6, .col-lg-7, .col-lg-8 { width: 100%; }
+        }
+        @media (max-width: 768px) {
+            .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-sm-6 { width: 100%; }
+        }
+
+        /* ─── Detail Grid (show pages) ──────────────────────────── */
+        .detail-grid {
+            display: grid; gap: 0;
+        }
+        .detail-row {
+            display: flex; align-items: baseline;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label {
+            width: 140px; flex-shrink: 0;
+            font-size: 12px; font-weight: 600;
+            color: var(--text-lighter);
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+        .detail-value {
+            font-size: 13.5px; font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        /* ─── Chip (toggle filter) ──────────────────────────────── */
+        .chip {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 12px; font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            color: var(--text-medium);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all .15s ease;
+            white-space: nowrap;
+        }
+        .chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-lighter); }
+        .chip.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #fff; border-color: var(--primary);
+            box-shadow: var(--shadow-red);
+        }
+        .chip i { font-size: 12px; }
+        .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        /* ─── Info Card (compact stat) ──────────────────────────── */
+        .info-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            text-align: center;
+            transition: all .25s cubic-bezier(.4,0,.2,1);
+        }
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .info-card-value {
+            font-size: 28px; font-weight: 800;
+            line-height: 1;
+        }
+        .info-card-label {
+            font-size: 11.5px; font-weight: 600;
+            color: var(--text-light);
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+
+        /* ─── Form card (create/edit pages) ─────────────────────── */
+        .form-card { max-width: 800px; margin: 0 auto; }
+        .form-card .card { margin-bottom: 20px; }
+        .form-card .card-header {
+            background: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--sidebar-bg2) 100%);
+            color: #fff;
+            border-bottom: none;
+        }
+        .form-card .card-header i { color: var(--primary-light); margin-right: 8px; }
+
+        /* ─── Action bar (form bottom) ──────────────────────────── */
+        .action-bar {
+            display: flex; gap: 10px; justify-content: flex-end;
+            padding-top: 8px;
+        }
+
+        /* ─── Hover card effect ─────────────────────────────────── */
+        .hover-lift { transition: all .25s cubic-bezier(.4,0,.2,1); }
+        .hover-lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+        /* ─── Responsive table scroll ───────────────────────────── */
+        .table-responsive { overflow-x: auto; }
+
+        /* ─── Link reset ────────────────────────────────────────── */
+        a.card-link { text-decoration: none; color: inherit; display: block; }
+        a.card-link:hover .card { border-color: var(--primary-lighter); }
+
+        /* ─── Inline badge with dot ─────────────────────────────── */
+        .badge i.dot { font-size: 7px; }
+
+        /* ─── Switch toggle styled ──────────────────────────────── */
+        .toggle-switch {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 10px 18px;
+            background: #F8FAFC;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .toggle-switch:has(input:checked) {
+            background: var(--primary-lighter);
+            border-color: rgba(220,30,46,.3);
+        }
+        .toggle-switch input { accent-color: var(--primary); width: 18px; height: 18px; cursor: pointer; }
+        .toggle-switch span { font-size: 13.5px; font-weight: 500; color: var(--text-medium); }
+
+        /* ─── Permission chips ──────────────────────────────────── */
+        .perm-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .perm-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all .15s;
+            font-size: 13px; font-weight: 500;
+        }
+        .perm-chip:has(input:checked) {
+            background: var(--primary-lighter);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+        .perm-chip input { accent-color: var(--primary); width: 15px; height: 15px; cursor: pointer; }
+
+        /* ─── Card with accent border ───────────────────────────── */
+        .card-accent { border-left: 3px solid var(--primary) !important; }
+
+        /* ─── Report card ───────────────────────────────────────── */
+        .report-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px 24px;
+            text-align: center;
+            transition: all .3s cubic-bezier(.4,0,.2,1);
+            text-decoration: none; display: block; color: inherit;
+        }
+        .report-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-lighter);
+        }
+        .report-card i {
+            font-size: 40px; display: block; margin-bottom: 14px;
+        }
+        .report-card h6 { font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+        .report-card p { font-size: 12.5px; color: var(--text-light); margin: 0; }
+
+        /* ─── Warehouse card ────────────────────────────────────── */
+        .warehouse-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all .25s cubic-bezier(.4,0,.2,1);
+        }
+        .warehouse-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .warehouse-card.is-primary { border-color: var(--primary); border-width: 2px; }
+        .warehouse-card .wh-body { padding: 20px 22px; }
+        .warehouse-card .wh-footer {
+            padding: 12px 22px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            display: flex; gap: 8px;
+        }
+
+        /* ─── User avatar ───────────────────────────────────────── */
+        .user-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: 13px; font-weight: 700; color: #fff;
+        }
+
+        /* ─── Stagger animation ─────────────────────────────────── */
+        .stagger > * {
+            animation: slideDown .3s ease both;
+        }
+        .stagger > *:nth-child(1) { animation-delay: 0s; }
+        .stagger > *:nth-child(2) { animation-delay: .05s; }
+        .stagger > *:nth-child(3) { animation-delay: .1s; }
+        .stagger > *:nth-child(4) { animation-delay: .15s; }
     </style>
     @stack('styles')
 </head>
@@ -695,6 +972,12 @@
         <div class="nav-section-label">Sistema</div>
         <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
             <i class="bi bi-people"></i>Usuarios
+        </a>
+        <a href="{{ route('servicios.index') }}" class="nav-link {{ request()->routeIs('servicios.*') ? 'active' : '' }}">
+            <i class="bi bi-box-seam"></i>Servicios
+        </a>
+        <a href="{{ route('auditoria.index') }}" class="nav-link {{ request()->routeIs('auditoria.*') ? 'active' : '' }}">
+            <i class="bi bi-shield-check"></i>Auditoría
         </a>
         @endif
 

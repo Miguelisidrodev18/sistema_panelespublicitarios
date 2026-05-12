@@ -1,17 +1,16 @@
 @extends('layouts.app')
 
 @section('title', 'Ingresos por Empresa ' . $año)
+@section('subtitle', 'Ranking de ingresos')
 
 @section('content')
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('reportes.index') }}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-        <h5 class="mb-0 fw-semibold">Ingresos por Empresa — {{ $año }}</h5>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="{{ route('reportes.index') }}" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <div class="page-title">Ingresos por Empresa — {{ $año }}</div>
     </div>
-    <form method="GET" class="d-flex gap-2">
-        <select name="año" class="form-select form-select-sm" onchange="this.form.submit()">
+    <form method="GET">
+        <select name="año" class="form-select" style="width:auto" onchange="this.form.submit()">
             @for($y = now()->year; $y >= now()->year - 4; $y--)
             <option value="{{ $y }}" {{ $año == $y ? 'selected' : '' }}>{{ $y }}</option>
             @endfor
@@ -19,28 +18,25 @@
     </form>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr><th>#</th><th>Empresa</th><th>Total ingresos</th><th style="width:35%">Barra</th></tr>
-            </thead>
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead><tr><th>#</th><th>Empresa</th><th>Total ingresos</th><th style="width:35%">Barra</th></tr></thead>
             <tbody>
                 @php $max = $datos->max('total_ingresos') ?: 1; @endphp
                 @forelse($datos as $i => $empresa)
                 <tr>
                     <td class="text-muted">{{ $i + 1 }}</td>
-                    <td class="fw-medium">{{ $empresa->nombre }}</td>
-                    <td class="text-success fw-medium">S/. {{ number_format($empresa->total_ingresos, 0, ',', '.') }}</td>
+                    <td class="fw-700" style="color:var(--text-dark)">{{ $empresa->nombre }}</td>
+                    <td class="fw-700" style="color:#10B981">S/. {{ number_format($empresa->total_ingresos, 0, ',', '.') }}</td>
                     <td>
-                        <div class="progress" style="height:12px">
-                            <div class="progress-bar bg-success"
-                                style="width:{{ ($empresa->total_ingresos / $max) * 100 }}%"></div>
+                        <div class="progress-bar-wrap" style="height:12px">
+                            <div class="progress-bar-fill" style="width:{{ ($empresa->total_ingresos / $max) * 100 }}%;background:#10B981"></div>
                         </div>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="4" class="text-center text-muted py-4">Sin datos para el año seleccionado</td></tr>
+                <tr><td colspan="4"><div class="empty-state" style="padding:32px"><i class="bi bi-building"></i><p>Sin datos para el año seleccionado</p></div></td></tr>
                 @endforelse
             </tbody>
         </table>

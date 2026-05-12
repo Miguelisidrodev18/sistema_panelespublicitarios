@@ -1,73 +1,70 @@
 @extends('layouts.app')
 
 @section('title', 'Almacenes')
+@section('subtitle', 'Gestión de almacenes')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div></div>
-    <a href="{{ route('almacenes.create') }}" class="btn btn-danger">
-        <i class="bi bi-plus-lg me-1"></i>Nuevo Almacén
-    </a>
+<div class="page-header">
+    <div class="page-header-left">
+        <span style="font-size:13px;color:var(--text-light);font-weight:500">{{ $almacenes->count() }} almacén(es)</span>
+    </div>
+    <a href="{{ route('almacenes.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i>Nuevo Almacén</a>
 </div>
 
-<div class="row g-3">
+<div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
     @forelse($almacenes as $almacen)
-    <div class="col-md-6 col-lg-4">
-        <div class="card border-0 shadow-sm h-100 {{ $almacen->es_principal ? 'border-danger border-2' : '' }}">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <h6 class="fw-semibold mb-0">{{ $almacen->nombre }}</h6>
-                        @if($almacen->codigo)
-                            <div class="small text-muted"><code>{{ $almacen->codigo }}</code></div>
-                        @endif
-                    </div>
-                    <div class="d-flex flex-column align-items-end gap-1">
-                        @if($almacen->es_principal)
-                            <span class="badge bg-danger">Principal</span>
-                        @endif
-                        <span class="badge bg-{{ $almacen->estado === 'activo' ? 'success' : 'secondary' }}">
-                            {{ ucfirst($almacen->estado) }}
-                        </span>
-                    </div>
+    <div class="warehouse-card {{ $almacen->es_principal ? 'is-primary' : '' }}">
+        <div class="wh-body">
+            <div class="flex flex-between" style="align-items:flex-start;margin-bottom:10px">
+                <div>
+                    <div class="fw-700" style="font-size:15px;color:var(--text-dark)">{{ $almacen->nombre }}</div>
+                    @if($almacen->codigo)
+                        <code style="margin-top:2px;display:inline-block">{{ $almacen->codigo }}</code>
+                    @endif
                 </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                    @if($almacen->es_principal)
+                        <span class="badge badge-primary"><i class="bi bi-star-fill" style="font-size:9px"></i>Principal</span>
+                    @endif
+                    <span class="badge badge-{{ $almacen->estado === 'activo' ? 'success' : 'gray' }}">
+                        <i class="bi bi-circle-fill dot"></i>{{ ucfirst($almacen->estado) }}
+                    </span>
+                </div>
+            </div>
 
-                @if($almacen->direccion)
-                <div class="small text-muted mb-1">
-                    <i class="bi bi-geo-alt me-1"></i>{{ $almacen->direccion }}
-                </div>
-                @endif
-                @if($almacen->telefono)
-                <div class="small text-muted mb-1">
-                    <i class="bi bi-telephone me-1"></i>{{ $almacen->telefono }}
-                </div>
-                @endif
-                @if($almacen->responsable)
-                <div class="small text-muted">
-                    <i class="bi bi-person me-1"></i>{{ $almacen->responsable }}
-                </div>
-                @endif
+            @if($almacen->direccion)
+            <div style="font-size:12.5px;color:var(--text-light);margin-bottom:4px">
+                <i class="bi bi-geo-alt" style="margin-right:4px;color:var(--primary)"></i>{{ $almacen->direccion }}
             </div>
-            <div class="card-footer bg-white d-flex gap-2">
-                <a href="{{ route('almacenes.edit', $almacen) }}" class="btn btn-sm btn-outline-warning flex-fill">
-                    <i class="bi bi-pencil"></i> Editar
-                </a>
-                @if($almacen->estado === 'activo')
-                <form action="{{ route('almacenes.destroy', $almacen) }}" method="POST"
-                    onsubmit="return confirm('¿Desactivar este almacén?')">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg"></i></button>
-                </form>
-                @endif
+            @endif
+            @if($almacen->telefono)
+            <div style="font-size:12.5px;color:var(--text-light);margin-bottom:4px">
+                <i class="bi bi-telephone" style="margin-right:4px;color:var(--primary)"></i>{{ $almacen->telefono }}
             </div>
+            @endif
+            @if($almacen->responsable)
+            <div style="font-size:12.5px;color:var(--text-light)">
+                <i class="bi bi-person" style="margin-right:4px;color:var(--primary)"></i>{{ $almacen->responsable }}
+            </div>
+            @endif
+        </div>
+        <div class="wh-footer">
+            <a href="{{ route('almacenes.edit', $almacen) }}" class="btn btn-sm btn-warning" style="flex:1">
+                <i class="bi bi-pencil"></i>Editar
+            </a>
+            @if($almacen->estado === 'activo')
+            <form action="{{ route('almacenes.destroy', $almacen) }}" method="POST"
+                onsubmit="return confirm('¿Desactivar este almacén?')">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-danger btn-icon"><i class="bi bi-x-lg"></i></button>
+            </form>
+            @endif
         </div>
     </div>
     @empty
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center text-muted py-5">
-                <i class="bi bi-building fs-1 d-block mb-3"></i>No hay almacenes registrados.
-            </div>
+    <div style="grid-column:1/-1">
+        <div class="card">
+            <div class="empty-state"><i class="bi bi-building"></i><p>No hay almacenes registrados</p></div>
         </div>
     </div>
     @endforelse

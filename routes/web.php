@@ -18,6 +18,8 @@ use App\Http\Controllers\CotizacionController;
 use App\Http\Controllers\AlmacenController;
 use App\Http\Controllers\ParrillaController;
 use App\Http\Controllers\SunatController;
+use App\Http\Controllers\ServicioController;
+use App\Http\Controllers\AuditoriaController;
 
 // Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
@@ -125,4 +127,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Usuarios (solo admin)
     Route::resource('usuarios', UsuarioController::class)->middleware('admin');
+
+    // Servicios (solo admin)
+    Route::resource('servicios', ServicioController::class)->middleware('admin');
+
+    // Auditoría (solo admin/gerencia)
+    Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index')->middleware('admin');
+
+    // API: foto de panel para cotizaciones
+    Route::get('/panel-foto/{tipo}/{id}', [CotizacionController::class, 'getPanelFoto'])->name('panel.foto');
 });

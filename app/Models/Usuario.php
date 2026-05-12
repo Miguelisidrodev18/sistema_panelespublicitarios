@@ -33,6 +33,11 @@ class Usuario extends Authenticatable
         return $this->rol === 'admin';
     }
 
+    public function esGerencia(): bool
+    {
+        return $this->rol === 'gerencia';
+    }
+
     public function esEmpresa(): bool
     {
         return $this->rol === 'empresa';
@@ -40,7 +45,7 @@ class Usuario extends Authenticatable
 
     public function tienePermiso(string $permiso): bool
     {
-        if ($this->esAdmin()) {
+        if ($this->esAdmin() || $this->esGerencia()) {
             return true;
         }
 

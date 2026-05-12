@@ -1,135 +1,110 @@
 @extends('layouts.app')
 
 @section('title', 'Cotización ' . ($cotizacion->numero ?? $cotizacion->id))
+@section('subtitle', 'Detalle de la cotización')
 
 @section('content')
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('cotizaciones.index') }}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-        <h5 class="mb-0 fw-semibold">{{ $cotizacion->numero ?? 'Cotización #' . $cotizacion->id }}</h5>
-        @php $estadoColors = ['pendiente'=>'warning text-dark','aprobada'=>'success','rechazada'=>'danger','convertida'=>'primary']; @endphp
-        <span class="badge bg-{{ $estadoColors[$cotizacion->estado] ?? 'secondary' }}">
-            {{ ucfirst($cotizacion->estado) }}
-        </span>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="{{ route('cotizaciones.index') }}" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <div class="page-title">{{ $cotizacion->numero ?? 'Cotización #' . $cotizacion->id }}</div>
+            <div style="margin-top:4px">
+                @php $estadoMap = ['pendiente'=>['warning','Pendiente'],'aprobada'=>['success','Aprobada'],'rechazada'=>['danger','Rechazada'],'convertida'=>['primary','Convertida']]; @endphp
+                @php [$bc, $bl] = $estadoMap[$cotizacion->estado] ?? ['gray', ucfirst($cotizacion->estado)]; @endphp
+                <span class="badge badge-{{ $bc }}">{{ $bl }}</span>
+            </div>
+        </div>
     </div>
     @if(auth()->user()->esAdmin())
-    <div class="d-flex gap-2">
+    <div class="flex gap-8">
         @if(in_array($cotizacion->estado, ['pendiente', 'aprobada']))
-        <a href="{{ route('cotizaciones.convertir', $cotizacion) }}" class="btn btn-success">
-            <i class="bi bi-arrow-right-circle me-1"></i>Convertir a Contrato
-        </a>
+        <a href="{{ route('cotizaciones.convertir', $cotizacion) }}" class="btn btn-success"><i class="bi bi-arrow-right-circle"></i>Convertir a Contrato</a>
         @endif
-        <a href="{{ route('cotizaciones.edit', $cotizacion) }}" class="btn btn-warning">
-            <i class="bi bi-pencil me-1"></i>Editar
-        </a>
+        <a href="{{ route('cotizaciones.edit', $cotizacion) }}" class="btn btn-warning"><i class="bi bi-pencil"></i>Editar</a>
     </div>
     @endif
 </div>
 
 <div class="row g-3">
-    <div class="col-lg-5">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white fw-medium py-3">Datos del cliente</div>
+    <div class="col-lg-4">
+        <div class="card" style="margin-bottom:20px">
+            <div class="card-header"><span><i class="bi bi-person" style="color:var(--primary);margin-right:8px"></i>Datos del cliente</span></div>
             <div class="card-body">
-                <table class="table table-sm table-borderless mb-0">
+                <div class="detail-grid">
                     @if($cotizacion->empresa)
-                    <tr>
-                        <th class="text-muted small">Empresa</th>
-                        <td>
-                            <a href="{{ route('empresas.show', $cotizacion->empresa) }}" class="text-decoration-none fw-medium">
-                                <i class="bi bi-building me-1"></i>{{ $cotizacion->empresa->nombre }}
-                            </a>
-                        </td>
-                    </tr>
+                    <div class="detail-row"><div class="detail-label">Empresa</div><div class="detail-value">
+                        <a href="{{ route('empresas.show', $cotizacion->empresa) }}" style="color:var(--primary);text-decoration:none;font-weight:600">
+                            <i class="bi bi-building" style="margin-right:4px"></i>{{ $cotizacion->empresa->nombre }}
+                        </a>
+                    </div></div>
                     @endif
                     @if($cotizacion->cliente_nombre)
-                    <tr><th class="text-muted small">Contacto</th><td class="fw-medium">{{ $cotizacion->cliente_nombre }}</td></tr>
+                    <div class="detail-row"><div class="detail-label">Contacto</div><div class="detail-value fw-600">{{ $cotizacion->cliente_nombre }}</div></div>
                     @endif
                     @if($cotizacion->cliente_empresa && !$cotizacion->empresa)
-                    <tr><th class="text-muted small">Empresa</th><td>{{ $cotizacion->cliente_empresa }}</td></tr>
+                    <div class="detail-row"><div class="detail-label">Empresa</div><div class="detail-value">{{ $cotizacion->cliente_empresa }}</div></div>
                     @endif
                     @if($cotizacion->cliente_telefono)
-                    <tr><th class="text-muted small">Teléfono</th>
-                        <td><a href="tel:{{ $cotizacion->cliente_telefono }}">{{ $cotizacion->cliente_telefono }}</a></td>
-                    </tr>
+                    <div class="detail-row"><div class="detail-label">Teléfono</div><div class="detail-value"><a href="tel:{{ $cotizacion->cliente_telefono }}" style="color:var(--text-dark);text-decoration:none">{{ $cotizacion->cliente_telefono }}</a></div></div>
                     @endif
                     @if($cotizacion->cliente_email)
-                    <tr><th class="text-muted small">Email</th>
-                        <td><a href="mailto:{{ $cotizacion->cliente_email }}">{{ $cotizacion->cliente_email }}</a></td>
-                    </tr>
+                    <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value"><a href="mailto:{{ $cotizacion->cliente_email }}" style="color:var(--primary);text-decoration:none">{{ $cotizacion->cliente_email }}</a></div></div>
                     @endif
-                </table>
+                </div>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-medium py-3">Propuesta</div>
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-file-invoice-dollar" style="color:var(--primary);margin-right:8px"></i>Propuesta</span></div>
             <div class="card-body">
-                <table class="table table-sm table-borderless mb-0">
-                    <tr><th class="text-muted small">Tipo</th><td>{{ $cotizacion->tipo_contrato ?? '-' }}</td></tr>
-                    <tr><th class="text-muted small">Monto</th>
-                        <td class="fw-bold fs-5">S/. {{ number_format($cotizacion->monto_propuesto, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr><th class="text-muted small">Fecha</th>
-                        <td>{{ $cotizacion->fecha_cotizacion?->format('d/m/Y') ?? '-' }}</td>
-                    </tr>
-                    <tr><th class="text-muted small">Vence</th>
-                        <td>
-                            {{ $cotizacion->fecha_vencimiento?->format('d/m/Y') ?? '-' }}
-                            @if($cotizacion->estado === 'pendiente' && $cotizacion->fecha_vencimiento?->isPast())
-                                <span class="badge bg-danger ms-1">Vencida</span>
-                            @endif
-                        </td>
-                    </tr>
-                </table>
+                <div class="detail-grid">
+                    <div class="detail-row"><div class="detail-label">Tipo</div><div class="detail-value"><span class="badge badge-info">{{ $cotizacion->tipo_contrato ?? '—' }}</span></div></div>
+                    <div class="detail-row"><div class="detail-label">Monto</div><div class="detail-value fw-800" style="font-size:18px;color:#059669">S/. {{ number_format($cotizacion->monto_propuesto, 0, ',', '.') }}</div></div>
+                    <div class="detail-row"><div class="detail-label">Fecha</div><div class="detail-value">{{ $cotizacion->fecha_cotizacion?->format('d/m/Y') ?? '—' }}</div></div>
+                    <div class="detail-row"><div class="detail-label">Vence</div><div class="detail-value">
+                        {{ $cotizacion->fecha_vencimiento?->format('d/m/Y') ?? '—' }}
+                        @if($cotizacion->estado === 'pendiente' && $cotizacion->fecha_vencimiento?->isPast())
+                            <span class="badge badge-danger" style="margin-left:4px">Vencida</span>
+                        @endif
+                    </div></div>
+                </div>
                 @if($cotizacion->notas)
-                    <div class="mt-3 small text-muted border-top pt-2">{{ $cotizacion->notas }}</div>
+                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--text-light)">{{ $cotizacion->notas }}</div>
                 @endif
             </div>
         </div>
     </div>
 
-    <div class="col-lg-7">
+    <div class="col-lg-8">
         @if($cotizacion->estado === 'convertida')
-        <div class="alert alert-success d-flex align-items-center gap-2">
-            <i class="bi bi-check-circle-fill fs-5"></i>
-            <div>Esta cotización ya fue <strong>convertida a contrato</strong>.</div>
+        <div class="card card-accent" style="border-color:#10B981;margin-bottom:20px">
+            <div class="card-body" style="background:#ECFDF5;display:flex;align-items:center;gap:10px">
+                <i class="bi bi-check-circle-fill" style="font-size:20px;color:#10B981"></i>
+                <div style="font-size:13.5px;color:#065F46;font-weight:500">Esta cotización ya fue <strong>convertida a contrato</strong>.</div>
+            </div>
         </div>
         @endif
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-medium py-3 d-flex justify-content-between align-items-center">
-                <span>Paneles / Servicios cotizados</span>
-                <span class="badge bg-secondary">{{ $cotizacion->elementos->count() }}</span>
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-grid-3x3" style="color:var(--primary);margin-right:8px"></i>Paneles / Servicios cotizados</span>
+                <span class="badge badge-gray">{{ $cotizacion->elementos->count() }}</span>
             </div>
-            <div class="table-responsive">
-                <table class="table table-sm table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Tipo</th>
-                            <th>Código</th>
-                            <th>Meses</th>
-                            <th>Precio unitario</th>
-                            <th>Observaciones</th>
-                        </tr>
-                    </thead>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Tipo</th><th>Código</th><th>Meses</th><th>Precio unitario</th><th>Observaciones</th></tr></thead>
                     <tbody>
                         @forelse($cotizacion->elementos as $elem)
                         <tr>
-                            <td>
-                                <span class="badge bg-{{ $elem->tipo_elemento === 'digital' ? 'primary' : 'warning text-dark' }}">
-                                    {{ ucfirst($elem->tipo_elemento) }}
-                                </span>
-                            </td>
-                            <td class="fw-medium">{{ $elem->codigo }}</td>
+                            <td><span class="badge badge-{{ $elem->tipo_elemento === 'digital' ? 'primary' : 'warning' }}">{{ ucfirst($elem->tipo_elemento) }}</span></td>
+                            <td class="fw-600">{{ $elem->codigo }}</td>
                             <td>{{ $elem->tiempo_contrato }}</td>
-                            <td>S/. {{ number_format($elem->precio_unitario, 0, ',', '.') }}</td>
-                            <td class="text-muted small">{{ $elem->observaciones ?? '-' }}</td>
+                            <td class="fw-600">S/. {{ number_format($elem->precio_unitario, 0, ',', '.') }}</td>
+                            <td class="text-muted" style="font-size:13px">{{ $elem->observaciones ?? '—' }}</td>
                         </tr>
                         @empty
-                        <tr><td colspan="5" class="text-center text-muted py-3">Sin elementos detallados</td></tr>
+                        <tr><td colspan="5"><div class="empty-state" style="padding:32px"><i class="bi bi-grid-3x3"></i><p>Sin elementos detallados</p></div></td></tr>
                         @endforelse
                     </tbody>
                 </table>
