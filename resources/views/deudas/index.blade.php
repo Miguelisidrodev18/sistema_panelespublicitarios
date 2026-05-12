@@ -39,6 +39,10 @@
 </div>
 
 <div class="card">
+    <div class="card-header ch-amber">
+        <span><i class="bi bi-exclamation-triangle"></i>Registro de Deudas</span>
+        <span style="font-size:12px;font-weight:600;color:var(--primary)">S/. {{ number_format($total_pendiente, 0, ',', '.') }} pendiente</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>

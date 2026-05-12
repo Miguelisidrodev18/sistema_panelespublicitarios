@@ -38,6 +38,9 @@
 </div>
 
 <div class="card">
+    <div class="card-header" style="border-left-color:var(--primary);background:linear-gradient(to right,#FFF5F5,#fff)">
+        <span><i class="bi bi-arrow-up-circle" style="color:var(--primary)"></i>Registro de Egresos</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>

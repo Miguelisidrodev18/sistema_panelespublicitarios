@@ -26,6 +26,10 @@
 </div>
 
 <div class="card">
+    <div class="card-header ch-green">
+        <span><i class="bi bi-cash-coin"></i>Registro de Cobranzas</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text-light)">{{ $cobranzas->total() }} cuota(s)</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>

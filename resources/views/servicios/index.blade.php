@@ -15,7 +15,10 @@
 <div class="alert alert-success"><i class="bi bi-check-circle-fill"></i>{{ session('success') }}</div>
 @endif
 
-<div class="card border-0 shadow-sm">
+<div class="card">
+    <div class="card-header ch-green">
+        <span><i class="bi bi-box-seam"></i>Servicios disponibles</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>
@@ -24,7 +27,7 @@
                     <th>Descripción</th>
                     <th>Monto base</th>
                     <th>Estado</th>
-                    <th class="text-end">Acciones</th>
+                    <th class="td-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,12 +43,14 @@
                             <span class="badge badge-gray">Inactivo</span>
                         @endif
                     </td>
-                    <td class="text-end">
-                        <a href="{{ route('servicios.edit', $srv) }}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                        <form action="{{ route('servicios.destroy', $srv) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Desactivar este servicio?')">
+                    <td class="td-end">
+                        <div class="flex flex-center gap-8" style="justify-content:flex-end">
+                        <a href="{{ route('servicios.edit', $srv) }}" class="btn btn-sm btn-warning btn-icon"><i class="bi bi-pencil"></i></a>
+                        <form action="{{ route('servicios.destroy', $srv) }}" method="POST" onsubmit="return confirm('¿Desactivar este servicio?')">
                             @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>
+                            <button class="btn btn-sm btn-danger btn-icon"><i class="bi bi-x-lg"></i></button>
                         </form>
+                        </div>
                     </td>
                 </tr>
                 @empty

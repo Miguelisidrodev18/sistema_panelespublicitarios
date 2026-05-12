@@ -41,6 +41,10 @@
 </div>
 
 <div class="card">
+    <div class="card-header ch-purple">
+        <span><i class="bi bi-file-earmark-text"></i>Contratos registrados</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text-light)">{{ $contratos->total() }} contrato(s)</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>

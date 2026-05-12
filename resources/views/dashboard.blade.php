@@ -20,9 +20,23 @@
 @endif
 
 @if(auth()->user()->esAdmin())
+
+{{-- Welcome banner --}}
+<div style="background:linear-gradient(135deg,var(--sidebar-bg) 0%,#2D3147 60%,#1E2035 100%);border-radius:var(--radius-lg);padding:24px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 8px 32px rgba(15,23,42,.18);">
+    <div>
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px">Panel de administración</div>
+        <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.3px">Bienvenido, {{ auth()->user()->nombre_completo }}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px"><i class="bi bi-calendar3" style="margin-right:5px"></i>{{ now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a href="{{ route('cotizaciones.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i>Nueva cotización</a>
+        <a href="{{ route('empresas.index') }}" class="btn btn-sm" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15)"><i class="bi bi-building"></i>Empresas</a>
+    </div>
+</div>
+
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon dark"><i class="bi bi-building"></i></div>
+        <div class="stat-icon blue"><i class="bi bi-building"></i></div>
         <div>
             <div class="stat-value">{{ $stats['total_empresas'] }}</div>
             <div class="stat-label">Empresas activas</div>
@@ -31,36 +45,36 @@
     <div class="stat-card">
         <div class="stat-icon green"><i class="bi bi-arrow-down-circle"></i></div>
         <div>
-            <div class="stat-value" style="font-size:20px">{{ number_format($stats['ingresos_mes'], 0, ',', '.') }}</div>
-            <div class="stat-label">Ingresos del mes (S/.)</div>
+            <div class="stat-value" style="font-size:20px;color:#059669">S/. {{ number_format($stats['ingresos_mes'], 0, ',', '.') }}</div>
+            <div class="stat-label">Ingresos del mes</div>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon red"><i class="bi bi-arrow-up-circle"></i></div>
         <div>
-            <div class="stat-value" style="font-size:20px">{{ number_format($stats['egresos_mes'], 0, ',', '.') }}</div>
-            <div class="stat-label">Egresos del mes (S/.)</div>
+            <div class="stat-value" style="font-size:20px;color:var(--primary)">S/. {{ number_format($stats['egresos_mes'], 0, ',', '.') }}</div>
+            <div class="stat-label">Egresos del mes</div>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon amber"><i class="bi bi-exclamation-triangle"></i></div>
         <div>
-            <div class="stat-value" style="color:var(--primary)">{{ $stats['cuotas_vencidas'] }}</div>
+            <div class="stat-value" style="color:#D97706">{{ $stats['cuotas_vencidas'] }}</div>
             <div class="stat-label">Cuotas vencidas</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon blue"><i class="bi bi-display"></i></div>
+        <div class="stat-icon purple"><i class="bi bi-display"></i></div>
         <div>
-            <div class="stat-value">{{ $ocupacion_pct }}%</div>
+            <div class="stat-value" style="color:#7C3AED">{{ $ocupacion_pct }}%</div>
             <div class="stat-label">Ocupación paneles ({{ $paneles_activos }}/{{ $total_paneles }})</div>
         </div>
     </div>
 </div>
 
 <div class="card" style="margin-bottom:24px">
-    <div class="card-header">
-        <span><i class="bi bi-bar-chart-line" style="color:var(--primary);margin-right:8px"></i>Ingresos últimos 6 meses</span>
+    <div class="card-header ch-blue">
+        <span><i class="bi bi-bar-chart-line"></i>Ingresos últimos 6 meses</span>
     </div>
     <div class="card-body" style="height:240px;position:relative">
         <canvas id="chartIngresos"></canvas>
@@ -94,8 +108,8 @@
 
 @if(auth()->user()->esAdmin() && $contratos_morosos->count() > 0)
 <div class="card" style="margin-bottom:24px">
-    <div class="card-header">
-        <span><i class="bi bi-exclamation-circle" style="color:var(--primary);margin-right:8px"></i>Contratos morosos</span>
+    <div class="card-header" style="border-left-color:var(--primary);background:linear-gradient(to right,#FFF5F5,#fff)">
+        <span><i class="bi bi-exclamation-circle"></i>Contratos morosos</span>
         <a href="{{ route('contratos.index') }}" class="btn btn-sm btn-secondary">Ver todos</a>
     </div>
     <div class="table-wrapper">
@@ -135,8 +149,8 @@
 @endif
 
 <div class="card">
-    <div class="card-header">
-        <span><i class="bi bi-calendar-event" style="color:var(--primary);margin-right:8px"></i>Proximas cuotas a vencer</span>
+    <div class="card-header ch-amber">
+        <span><i class="bi bi-calendar-event"></i>Próximas cuotas a vencer</span>
         <a href="{{ route('cobranzas.index') }}?estado=pendiente" class="btn btn-sm btn-secondary">Ver todas</a>
     </div>
     <div class="table-wrapper">
@@ -196,6 +210,9 @@
     var data   = @json($ingresos6meses->pluck('monto'));
     var ctx    = document.getElementById('chartIngresos');
     if (!ctx) return;
+    var gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, 'rgba(59,130,246,0.4)');
+    gradient.addColorStop(1, 'rgba(59,130,246,0.02)');
     new Chart(ctx.getContext('2d'), {
         type: 'bar',
         data: {
@@ -203,11 +220,12 @@
             datasets: [{
                 label: 'Ingresos',
                 data: data,
-                backgroundColor: 'rgba(220,30,46,0.15)',
-                borderColor: '#DC1E2E',
+                backgroundColor: gradient,
+                borderColor: '#3B82F6',
                 borderWidth: 2,
-                borderRadius: 6,
-                hoverBackgroundColor: 'rgba(220,30,46,0.28)',
+                borderRadius: 8,
+                borderSkipped: false,
+                hoverBackgroundColor: 'rgba(59,130,246,0.55)',
             }]
         },
         options: {
@@ -216,8 +234,13 @@
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    backgroundColor: '#1A1D29',
+                    titleColor: 'rgba(255,255,255,.6)',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 8,
                     callbacks: {
-                        label: function(ctx) { return 'S/. ' + ctx.raw.toLocaleString('es'); }
+                        label: function(ctx) { return ' S/. ' + ctx.raw.toLocaleString('es'); }
                     }
                 }
             },
@@ -226,11 +249,11 @@
                     beginAtZero: true,
                     ticks: {
                         callback: function(v) { return 'S/. ' + v.toLocaleString('es'); },
-                        font: { size: 11 }
+                        font: { size: 11 }, color: '#94A3B8'
                     },
                     grid: { color: '#F1F5F9' }
                 },
-                x: { grid: { display: false } }
+                x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 12, weight: '600' } } }
             }
         }
     });

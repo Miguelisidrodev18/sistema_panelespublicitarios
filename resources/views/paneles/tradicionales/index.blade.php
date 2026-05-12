@@ -19,30 +19,38 @@
     @forelse($paneles as $panel)
     <div class="warehouse-card hover-lift">
         @if($panel->foto)
-            <img src="{{ Storage::url($panel->foto) }}" style="width:100%;height:160px;object-fit:cover;display:block" alt="{{ $panel->nombre }}">
+            <div style="position:relative">
+                <img src="{{ Storage::url($panel->foto) }}" style="width:100%;height:160px;object-fit:cover;display:block" alt="{{ $panel->nombre }}">
+                <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(146,64,14,.4));pointer-events:none"></div>
+                @if($panel->activo)
+                    <span class="badge badge-success" style="position:absolute;top:10px;right:10px"><i class="bi bi-circle-fill dot"></i>Activo</span>
+                @else
+                    <span class="badge badge-gray" style="position:absolute;top:10px;right:10px">Inactivo</span>
+                @endif
+            </div>
         @else
-            <div style="height:140px;background:linear-gradient(135deg,#92400E 0%,#F59E0B 100%);display:flex;align-items:center;justify-content:center">
-                <i class="bi bi-signpost-2" style="font-size:40px;color:rgba(255,255,255,.25)"></i>
+            <div style="height:140px;background:linear-gradient(135deg,#92400E 0%,#B45309 50%,#F59E0B 100%);display:flex;align-items:center;justify-content:center;position:relative">
+                <i class="bi bi-signpost-2" style="font-size:44px;color:rgba(255,255,255,.25)"></i>
+                @if($panel->activo)
+                    <span class="badge badge-success" style="position:absolute;top:10px;right:10px"><i class="bi bi-circle-fill dot"></i>Activo</span>
+                @else
+                    <span class="badge badge-gray" style="position:absolute;top:10px;right:10px">Inactivo</span>
+                @endif
             </div>
         @endif
         <div class="wh-body">
-            <div class="flex flex-between" style="align-items:flex-start;margin-bottom:6px">
-                <div class="fw-700" style="font-size:14px;color:var(--text-dark)">{{ $panel->nombre }}</div>
-                @if($panel->activo)
-                    <span class="badge badge-success"><i class="bi bi-circle-fill dot"></i>Activo</span>
-                @else
-                    <span class="badge badge-gray">Inactivo</span>
-                @endif
-            </div>
-            @if($panel->codigo)<div style="margin-bottom:4px"><code>{{ $panel->codigo }}</code></div>@endif
+            <div class="fw-700" style="font-size:14px;color:var(--text-dark);margin-bottom:6px">{{ $panel->nombre }}</div>
+            @if($panel->codigo)<div style="margin-bottom:6px"><code>{{ $panel->codigo }}</code></div>@endif
             @if($panel->direccion)
-            <div style="font-size:12px;color:var(--text-light);margin-bottom:2px"><i class="bi bi-geo-alt" style="margin-right:4px;color:#F59E0B"></i>{{ Str::limit($panel->direccion, 40) }}</div>
-            @endif
-            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px">
-                @if($panel->caras)<span class="badge badge-warning"><i class="bi bi-layout-split" style="font-size:10px"></i>{{ $panel->caras }} cara(s)</span>@endif
+            <div style="font-size:12.5px;color:var(--text-light);margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                <i class="bi bi-geo-alt-fill" style="color:#F59E0B;font-size:12px"></i>{{ Str::limit($panel->direccion, 40) }}
             </div>
-            <div style="font-size:12px;color:var(--text-light);margin-top:6px">
-                <i class="bi bi-building" style="margin-right:4px"></i>{{ $panel->empresas->count() }} empresa(s)
+            @endif
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
+                @if($panel->caras)<span class="badge badge-warning"><i class="bi bi-layout-split" style="font-size:10px"></i>{{ $panel->caras }} cara(s)</span>@endif
+                @if($panel->medidas)<span class="badge badge-info">{{ $panel->medidas }}</span>@endif
+                @if($panel->gramaje_lonas)<span class="badge badge-gray">{{ $panel->gramaje_lonas }}</span>@endif
+                <span class="badge badge-gray"><i class="bi bi-building"></i>{{ $panel->empresas->count() }}</span>
             </div>
         </div>
         @if(auth()->user()->esAdmin())

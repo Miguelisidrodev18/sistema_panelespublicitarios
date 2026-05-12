@@ -13,7 +13,10 @@
 
 <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
     @forelse($almacenes as $almacen)
-    <div class="warehouse-card {{ $almacen->es_principal ? 'is-primary' : '' }}">
+    <div class="warehouse-card {{ $almacen->es_principal ? 'is-primary' : '' }}" style="{{ $almacen->es_principal ? 'box-shadow:0 4px 20px rgba(220,30,46,.12)' : '' }}">
+        @if($almacen->es_principal)
+        <div style="height:6px;background:linear-gradient(90deg,var(--primary),var(--primary-light));"></div>
+        @endif
         <div class="wh-body">
             <div class="flex flex-between" style="align-items:flex-start;margin-bottom:10px">
                 <div>
@@ -33,8 +36,8 @@
             </div>
 
             @if($almacen->direccion)
-            <div style="font-size:12.5px;color:var(--text-light);margin-bottom:4px">
-                <i class="bi bi-geo-alt" style="margin-right:4px;color:var(--primary)"></i>{{ $almacen->direccion }}
+            <div style="font-size:12.5px;color:var(--text-light);margin-bottom:4px;display:flex;align-items:center;gap:5px">
+                <i class="bi bi-geo-alt-fill" style="color:var(--primary);font-size:12px"></i>{{ $almacen->direccion }}
             </div>
             @endif
             @if($almacen->telefono)

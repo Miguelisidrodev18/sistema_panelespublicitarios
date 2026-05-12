@@ -32,6 +32,10 @@
 </form>
 
 <div class="card">
+    <div class="card-header ch-blue">
+        <span><i class="bi bi-building"></i>Listado de Empresas</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text-light)">{{ $empresas->total() }} registros</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>

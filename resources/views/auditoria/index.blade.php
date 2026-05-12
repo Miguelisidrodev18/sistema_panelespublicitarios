@@ -5,9 +5,8 @@
 
 @section('content')
 
-<div class="card border-0 shadow-sm mb-3">
-    <div class="card-body py-2">
-        <form class="d-flex flex-wrap gap-2 align-items-center" method="GET">
+<div class="filter-bar" style="margin-bottom:20px">
+    <form style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%" method="GET">
             <select name="modulo" class="form-select" style="max-width:160px">
                 <option value="">Todos los módulos</option>
                 @foreach($modulos as $m)
@@ -31,13 +30,12 @@
             <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i>Filtrar</button>
             <a href="{{ route('auditoria.index') }}" class="btn btn-secondary btn-sm">Limpiar</a>
         </form>
-    </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header">
-        <span><i class="bi bi-shield-check" style="color:var(--primary);margin-right:8px"></i>Registro de Actividad</span>
-        <span class="text-muted small">{{ $logs->total() }} registro(s)</span>
+<div class="card">
+    <div class="card-header" style="border-left-color:var(--purple);background:linear-gradient(to right,#F5F3FF,#fff)">
+        <span><i class="bi bi-shield-check" style="color:var(--purple)"></i>Registro de Actividad</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text-light)">{{ $logs->total() }} registro(s)</span>
     </div>
     <div class="table-wrapper">
         <table>

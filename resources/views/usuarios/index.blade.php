@@ -12,6 +12,10 @@
 </div>
 
 <div class="card">
+    <div class="card-header" style="border-left-color:var(--purple);background:linear-gradient(to right,#F5F3FF,#fff)">
+        <span><i class="bi bi-people" style="color:var(--purple)"></i>Usuarios del sistema</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text-light)">{{ $usuarios->count() }} cuenta(s)</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>
@@ -32,6 +36,8 @@
                     <td>
                         @if($user->rol === 'admin')
                             <span class="badge badge-primary"><i class="bi bi-shield-check" style="font-size:10px"></i>Admin</span>
+                        @elseif($user->rol === 'gerencia')
+                            <span class="badge badge-purple"><i class="bi bi-person-check" style="font-size:10px"></i>Gerencia</span>
                         @else
                             <span class="badge badge-info">Empresa</span>
                         @endif
