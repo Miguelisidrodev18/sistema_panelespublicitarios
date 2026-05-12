@@ -6,6 +6,7 @@ use App\Models\Empresa;
 use App\Models\Servicio;
 use App\Models\PanelDigital;
 use App\Models\PanelUbicacion;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -45,6 +46,8 @@ class EmpresaController extends Controller
 
         $this->syncRelaciones($empresa, $request);
 
+        ActivityLog::registrar('created', 'Empresa', $empresa->id, "Empresa '{$empresa->nombre}' creada");
+
         return redirect()->route('empresas.show', $empresa)
             ->with('success', 'Empresa creada correctamente.');
     }
@@ -72,6 +75,8 @@ class EmpresaController extends Controller
         $empresa->update($validated);
 
         $this->syncRelaciones($empresa, $request);
+
+        ActivityLog::registrar('updated', 'Empresa', $empresa->id, "Empresa '{$empresa->nombre}' actualizada");
 
         return redirect()->route('empresas.show', $empresa)
             ->with('success', 'Empresa actualizada correctamente.');

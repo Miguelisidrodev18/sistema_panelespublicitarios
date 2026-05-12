@@ -281,7 +281,8 @@ var paneles = {
     digital:     @json($paneles_digitales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre])),
     tradicional: @json($paneles_tradicionales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre]))
 };
-var counters = { digital: 0, tradicional: 0 };
+var serviciosDisp = @json($servicios->map(fn($s) => ['id' => $s->id, 'nombre' => $s->nombre, 'monto' => $s->monto]));
+var counters = { digital: 0, tradicional: 0, servicio: 0 };
 
 function updateCount(tipo) {
     var n = document.getElementById('cont-' + tipo).querySelectorAll('.cot-panel-row').length;
@@ -296,8 +297,8 @@ function addPanel(tipo) {
     var idx  = counters[tipo]++;
     var opts = '<option value="">Seleccionar panel...</option>' +
         paneles[tipo].map(function(p) {
-            return '<option value="' + p.id + '" data-codigo="' + p.codigo + '">' +
-                   p.codigo + ' — ' + p.nombre + '</option>';
+            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '">' +
+                   (p.codigo ? p.codigo + ' — ' : '') + p.nombre + '</option>';
         }).join('');
 
     var row = document.createElement('div');
@@ -305,11 +306,14 @@ function addPanel(tipo) {
     row.id = 'row-' + tipo + '-' + idx;
     row.innerHTML =
         '<select name="elemento_panel_id[]" class="form-select form-select-sm" ' +
-            'onchange="onSelect(this,\'' + tipo + '\',' + idx + ')" required>' + opts + '</select>' +
+            'onchange="onSelect(this,\'' + tipo + '\',' + idx + ')">' + opts + '</select>' +
         '<input type="hidden" name="elemento_tipo[]" value="' + tipo + '">' +
         '<input type="text"   name="elemento_codigo[]" class="form-control form-control-sm f-cod" placeholder="Código" readonly>' +
         '<input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" placeholder="Meses" min="1">' +
         '<input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="1">' +
+        '<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Ver foto" ' +
+            'onclick="verFotoPanel(\'' + tipo + '\',' + idx + ')" id="btnFoto-' + tipo + '-' + idx + '" style="display:none">' +
+            '<i class="bi bi-image"></i></button>' +
         '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" ' +
             'onclick="removePanel(\'' + tipo + '\',' + idx + ')">' +
             '<i class="bi bi-trash"></i></button>';
@@ -321,7 +325,37 @@ function addPanel(tipo) {
 function onSelect(sel, tipo, idx) {
     var opt = sel.options[sel.selectedIndex];
     var row = document.getElementById('row-' + tipo + '-' + idx);
-    if (row) row.querySelector('input[name="elemento_codigo[]"]').value = opt.dataset.codigo || '';
+    if (row) {
+        row.querySelector('input[name="elemento_codigo[]"]').value = opt.dataset.codigo || '';
+        var btnFoto = document.getElementById('btnFoto-' + tipo + '-' + idx);
+        if (btnFoto) btnFoto.style.display = sel.value ? '' : 'none';
+    }
+}
+
+function verFotoPanel(tipo, idx) {
+    var row = document.getElementById('row-' + tipo + '-' + idx);
+    var panelId = row ? row.querySelector('select').value : null;
+    if (!panelId) return;
+    fetch('/panel-foto/' + tipo + '/' + panelId)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('fotoNombrePanel').textContent = data.nombre || 'Panel';
+            var img = document.getElementById('fotoPanelImg');
+            var noImg = document.getElementById('fotoPanelNoImg');
+            if (data.foto) {
+                img.src = data.foto;
+                img.style.display = '';
+                noImg.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                noImg.style.display = '';
+            }
+            document.getElementById('modalFotoPanel').style.display = 'flex';
+        });
+}
+
+function cerrarFotoPanel() {
+    document.getElementById('modalFotoPanel').style.display = 'none';
 }
 
 function removePanel(tipo, idx) {
@@ -332,6 +366,50 @@ function removePanel(tipo, idx) {
         document.getElementById('empty-' + tipo).style.display = '';
     }
     updateCount(tipo);
+}
+
+function addServicio() {
+    var cont  = document.getElementById('cont-servicio');
+    var empty = document.getElementById('empty-servicio');
+    if (empty) empty.style.display = 'none';
+
+    var idx  = counters['servicio']++;
+    var opts = '<option value="">Seleccionar servicio...</option>' +
+        serviciosDisp.map(function(s) {
+            return '<option value="' + s.id + '" data-monto="' + s.monto + '">' + s.nombre + ' (S/. ' + parseFloat(s.monto).toFixed(2) + ')</option>';
+        }).join('');
+
+    var row = document.createElement('div');
+    row.className = 'cot-panel-row';
+    row.id = 'row-servicio-' + idx;
+    row.innerHTML =
+        '<select name="srv_id[]" class="form-select form-select-sm" style="flex:3" ' +
+            'onchange="onSelectSrv(this,' + idx + ')">' + opts + '</select>' +
+        '<input type="number" name="srv_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="0.01">' +
+        '<input type="text"   name="srv_obs[]"   class="form-control form-control-sm" placeholder="Observaciones" style="flex:2">' +
+        '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" ' +
+            'onclick="removeServicio(' + idx + ')"><i class="bi bi-trash"></i></button>';
+
+    cont.appendChild(row);
+    updateCount('servicio');
+}
+
+function onSelectSrv(sel, idx) {
+    var opt = sel.options[sel.selectedIndex];
+    var row = document.getElementById('row-servicio-' + idx);
+    if (row && opt.dataset.monto) {
+        row.querySelector('input[name="srv_precio[]"]').value = parseFloat(opt.dataset.monto).toFixed(2);
+    }
+}
+
+function removeServicio(idx) {
+    var row = document.getElementById('row-servicio-' + idx);
+    if (row) row.remove();
+    var cont = document.getElementById('cont-servicio');
+    if (!cont.querySelector('.cot-panel-row')) {
+        document.getElementById('empty-servicio').style.display = '';
+    }
+    updateCount('servicio');
 }
 
 // Auto-rellenar empresa

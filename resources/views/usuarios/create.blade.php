@@ -54,6 +54,7 @@
                     <label class="form-label">Rol <span class="req">*</span></label>
                     <select name="rol" class="form-select" id="rolSelect" required>
                         <option value="admin" {{ old('rol') === 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="gerencia" {{ old('rol') === 'gerencia' ? 'selected' : '' }}>Gerencia</option>
                         <option value="empresa" {{ old('rol') === 'empresa' ? 'selected' : '' }}>Empresa</option>
                     </select>
                 </div>
@@ -100,8 +101,9 @@
 <script>
 document.getElementById('rolSelect').addEventListener('change', function () {
     const isEmpresa = this.value === 'empresa';
+    const isAdmin = this.value === 'admin' || this.value === 'gerencia';
     document.getElementById('empresaField').style.display = isEmpresa ? '' : 'none';
-    document.getElementById('permisosCard').style.display = isEmpresa ? '' : 'none';
+    document.getElementById('permisosCard').style.display = isAdmin ? 'none' : '';
 });
 
 function toggleAll(btn) {

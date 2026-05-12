@@ -62,7 +62,17 @@
                 @forelse($registros as $reg)
                 <tr>
                     <td class="fw-700" style="color:var(--text-dark)">{{ $reg->empresa_nombre }}</td>
-                    <td><code>{{ $reg->panel_codigo }}</code></td>
+                    <td>
+                        @php
+                            $panelNombre = $reg->tipo_panel === 'digital'
+                                ? ($mapaDigital[$reg->panel_codigo]->nombre ?? null)
+                                : ($mapaTradicional[$reg->panel_codigo]->nombre ?? null);
+                        @endphp
+                        @if($panelNombre)
+                            <div class="fw-600" style="font-size:13px">{{ $panelNombre }}</div>
+                        @endif
+                        <code style="font-size:11px">{{ $reg->panel_codigo }}</code>
+                    </td>
                     <td>
                         @if($reg->tipo_panel === 'digital')
                             <span class="badge badge-primary"><i class="bi bi-display"></i>Digital</span>

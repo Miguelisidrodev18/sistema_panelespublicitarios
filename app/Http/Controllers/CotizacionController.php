@@ -9,6 +9,7 @@ use App\Models\Empresa;
 use App\Models\PanelDigital;
 use App\Models\PanelUbicacion;
 use App\Models\Servicio;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -126,6 +127,8 @@ class CotizacionController extends Controller
             ]);
         }
 
+        ActivityLog::registrar('created', 'Cotizacion', $cotizacion->id, "Cotización {$cotizacion->numero} creada");
+
         return redirect()->route('cotizaciones.show', $cotizacion)->with('success', 'Cotización creada correctamente.');
     }
 
@@ -199,6 +202,8 @@ class CotizacionController extends Controller
                 'observaciones'   => $servicioObs[$j] ?? null,
             ]);
         }
+
+        ActivityLog::registrar('updated', 'Cotizacion', $cotizacion->id, "Cotización {$cotizacion->numero} actualizada");
 
         return redirect()->route('cotizaciones.show', $cotizacion)->with('success', 'Cotización actualizada.');
     }

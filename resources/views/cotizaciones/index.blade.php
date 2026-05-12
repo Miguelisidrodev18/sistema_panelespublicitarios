@@ -73,7 +73,7 @@
 </div>
 
 {{-- Tabla --}}
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm" style="overflow:visible">
     <div class="card-header">
         <span><i class="bi bi-list-ul" style="color:var(--primary);margin-right:8px"></i>Lista de Cotizaciones</span>
         <span class="text-muted small">{{ $cotizaciones->total() }} cotización(es)</span>

@@ -52,6 +52,7 @@
                     <label class="form-label">Rol</label>
                     <select name="rol" class="form-select" id="rolSelect">
                         <option value="admin" {{ old('rol', $usuario->rol) === 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="gerencia" {{ old('rol', $usuario->rol) === 'gerencia' ? 'selected' : '' }}>Gerencia</option>
                         <option value="empresa" {{ old('rol', $usuario->rol) === 'empresa' ? 'selected' : '' }}>Empresa</option>
                     </select>
                 </div>
@@ -75,7 +76,7 @@
         </div>
     </div>
 
-    <div class="card" id="permisosCard" style="{{ old('rol', $usuario->rol) === 'admin' ? 'display:none' : '' }}">
+    <div class="card" id="permisosCard" style="{{ in_array(old('rol', $usuario->rol), ['admin','gerencia']) ? 'display:none' : '' }}">
         <div class="card-header">
             <span><i class="bi bi-shield-check"></i>Permisos</span>
             <button type="button" class="btn btn-sm btn-secondary" onclick="toggleAll(this)">Seleccionar todo</button>
@@ -105,8 +106,9 @@
 <script>
 document.getElementById('rolSelect').addEventListener('change', function () {
     const isEmpresa = this.value === 'empresa';
+    const isAdmin = this.value === 'admin' || this.value === 'gerencia';
     document.getElementById('empresaField').style.display = isEmpresa ? '' : 'none';
-    document.getElementById('permisosCard').style.display = isEmpresa ? '' : 'none';
+    document.getElementById('permisosCard').style.display = isAdmin ? 'none' : '';
 });
 
 function toggleAll(btn) {

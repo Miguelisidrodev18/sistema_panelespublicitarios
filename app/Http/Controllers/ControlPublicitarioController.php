@@ -33,8 +33,12 @@ class ControlPublicitarioController extends Controller
         $registros = $query->orderBy('empresa_nombre')->paginate(30);
 
         $empresas = Empresa::activas()->orderBy('nombre')->pluck('nombre', 'nombre');
-        $paneles_digitales = PanelDigital::where('activo', true)->orderBy('nombre')->get(['codigo', 'nombre']);
-        $paneles_tradicionales = PanelUbicacion::where('activo', true)->orderBy('nombre')->get(['codigo', 'nombre']);
+        $paneles_digitales = PanelDigital::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
+        $paneles_tradicionales = PanelUbicacion::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
+
+        // Mapa código → nombre para lookup en vista
+        $mapaDigital = $paneles_digitales->keyBy('codigo');
+        $mapaTradicional = $paneles_tradicionales->keyBy('codigo');
 
         $stats = [
             'activos'   => ControlPublicitario::where('estado', 'activo')->count(),
@@ -42,7 +46,7 @@ class ControlPublicitarioController extends Controller
             'cancelados'=> ControlPublicitario::where('estado', 'cancelado')->count(),
         ];
 
-        return view('control_publicitario.index', compact('registros', 'empresas', 'paneles_digitales', 'paneles_tradicionales', 'stats'));
+        return view('control_publicitario.index', compact('registros', 'empresas', 'paneles_digitales', 'paneles_tradicionales', 'mapaDigital', 'mapaTradicional', 'stats'));
     }
 
     public function store(Request $request)
