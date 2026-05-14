@@ -56,8 +56,20 @@ class ControlPublicitarioController extends Controller
             ->groupBy('panel_codigo')
             ->pluck('total', 'panel_codigo');
 
+        // Pre-mapear para JS (evita arrow function dentro de @json en Blade)
+        $empresas_json = $empresas_data->map(function ($e) {
+            return [
+                'id'        => $e->id,
+                'nombre'    => $e->nombre,
+                'ruc'       => $e->ruc,
+                'correo'    => $e->correo,
+                'celular'   => $e->celular,
+                'encargado' => $e->encargado,
+            ];
+        })->values()->all();
+
         return view('control_publicitario.index', compact(
-            'registros', 'empresas_data', 'paneles_digitales', 'paneles_tradicionales',
+            'registros', 'empresas_data', 'empresas_json', 'paneles_digitales', 'paneles_tradicionales',
             'mapaDigital', 'mapaTradicional', 'stats', 'panelCounts'
         ));
     }

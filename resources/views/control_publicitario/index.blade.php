@@ -378,14 +378,7 @@
 @push('scripts')
 <script>
 // Datos de empresas existentes para lookup JS
-const empresasData = @json($empresas_data->map(fn($e) => [
-    'id'        => $e->id,
-    'nombre'    => $e->nombre,
-    'ruc'       => $e->ruc,
-    'correo'    => $e->correo,
-    'celular'   => $e->celular,
-    'encargado' => $e->encargado,
-]));
+const empresasData = @json($empresas_json);
 
 // ── Cuando el usuario escribe el nombre de empresa ──────────────────────────
 function onNombreEmpresaChange(value) {
