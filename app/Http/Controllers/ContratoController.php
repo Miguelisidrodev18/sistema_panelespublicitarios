@@ -59,6 +59,17 @@ class ContratoController extends Controller
 
         $contrato = Contrato::create($validated);
 
+        // Registrar el adelanto automáticamente como cobro para que figure en ingresos
+        if (!empty($validated['adelanto']) && $validated['adelanto'] > 0) {
+            ContratoCobro::create([
+                'contrato_id' => $contrato->id,
+                'tipo_cobro'  => 'Adelanto',
+                'monto'       => $validated['adelanto'],
+                'fecha_cobro' => $validated['fecha_inicio'] ?? now()->toDateString(),
+                'notas'       => 'Adelanto registrado al crear el contrato',
+            ]);
+        }
+
         if ($request->boolean('generar_cuotas') && $request->filled('num_cuotas') && $request->filled('primera_fecha')) {
             $numCuotas      = (int) $request->num_cuotas;
             $montoCuota     = round($validated['saldo_pendiente'] / $numCuotas);
