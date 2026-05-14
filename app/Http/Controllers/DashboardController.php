@@ -19,21 +19,31 @@ class DashboardController extends Controller
 
         if ($user->esAdmin()) {
             $stats = [
-                'total_empresas'    => Empresa::where('activo', true)->count(),
-                'cuotas_pendientes' => Cobranza::where('estado', 'pendiente')->count(),
-                'cuotas_vencidas'   => Cobranza::where('estado', 'pendiente')
+                'total_empresas'       => Empresa::where('activo', true)->count(),
+                'cuotas_pendientes'    => Cobranza::where('estado', 'pendiente')->count(),
+                'cuotas_vencidas'      => Cobranza::where('estado', 'pendiente')
                     ->where('fecha_vencimiento', '<', now())->count(),
-                'ingresos_mes'      => Ingreso::whereMonth('created_at', now()->month)
+                'ingresos_mes'         => Ingreso::whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)->sum('monto'),
-                'egresos_mes'       => Egreso::whereMonth('created_at', now()->month)
+                'egresos_mes'          => Egreso::whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)->sum('monto'),
-                'deudas_pendientes' => Deuda::where('estado', 'pendiente')->sum('monto_pendiente'),
+                'deudas_pendientes'    => Deuda::where('estado', 'pendiente')->sum('monto_pendiente'),
+                'ingresos_publicidad'  => ControlPublicitario::whereNotNull('monto_pagado')->sum('monto_pagado'),
+                'pendiente_publicidad' => ControlPublicitario::whereIn('estado', ['activo', 'pausado'])
+                    ->where('monto_pendiente', '>', 0)->sum('monto_pendiente'),
             ];
 
             $proximas_cuotas = Cobranza::with('empresa')
                 ->where('estado', 'pendiente')
                 ->orderBy('fecha_vencimiento')
                 ->limit(10)
+                ->get();
+
+            $proximas_campanas = ControlPublicitario::with('empresa')
+                ->whereIn('estado', ['activo', 'pausado'])
+                ->where('monto_pendiente', '>', 0)
+                ->orderByRaw('fecha_fin IS NULL, fecha_fin ASC')
+                ->limit(8)
                 ->get();
 
             // Alertas para el admin
@@ -153,10 +163,11 @@ class DashboardController extends Controller
             $paneles_activos   = 0;
             $ocupacion_pct     = 0;
             $contratos_morosos = collect();
+            $proximas_campanas = collect();
         }
 
         return view('dashboard', compact(
-            'stats', 'proximas_cuotas', 'alertas',
+            'stats', 'proximas_cuotas', 'proximas_campanas', 'alertas',
             'ingresos6meses', 'total_paneles', 'paneles_activos', 'ocupacion_pct',
             'contratos_morosos'
         ));

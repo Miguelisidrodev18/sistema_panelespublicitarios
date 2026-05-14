@@ -51,7 +51,17 @@
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
                 @if($panel->medidas)<span class="badge badge-info">{{ $panel->medidas }}</span>@endif
                 @if($panel->tandas)<span class="badge badge-purple">{{ $panel->tandas }} tandas</span>@endif
-                <span class="badge badge-gray"><i class="bi bi-building"></i>{{ $panel->empresas->count() }}</span>
+                @php $activas = (int)($campanasPorPanel[$panel->codigo] ?? 0) @endphp
+                @if($activas > 0)
+                    <span class="badge" style="background:linear-gradient(135deg,#10B981,#059669);color:#fff"
+                          title="{{ $activas }} campaña(s) activa(s) en control publicitario">
+                        <i class="bi bi-megaphone-fill"></i> {{ $activas }} en uso
+                    </span>
+                @else
+                    <span class="badge badge-success" title="Sin campañas activas — panel disponible">
+                        <i class="bi bi-check-circle-fill"></i> Disponible
+                    </span>
+                @endif
             </div>
         </div>
         @if(auth()->user()->esAdmin())

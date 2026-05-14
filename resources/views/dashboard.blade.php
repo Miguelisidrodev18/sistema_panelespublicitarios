@@ -70,6 +70,20 @@
             <div class="stat-label">Ocupación paneles ({{ $paneles_activos }}/{{ $total_paneles }})</div>
         </div>
     </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="bi bi-megaphone-fill"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:20px;color:#059669">S/. {{ number_format($stats['ingresos_publicidad'], 0, ',', '.') }}</div>
+            <div class="stat-label">Cobrado publicidad</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:20px;color:#D97706">S/. {{ number_format($stats['pendiente_publicidad'], 0, ',', '.') }}</div>
+            <div class="stat-label">Pendiente publicidad</div>
+        </div>
+    </div>
 </div>
 
 <div class="card" style="margin-bottom:24px">
@@ -198,6 +212,68 @@
         </table>
     </div>
 </div>
+
+@if(auth()->user()->esAdmin() && $proximas_campanas->count() > 0)
+<div class="card" style="margin-top:24px">
+    <div class="card-header" style="border-left-color:#EA580C;background:linear-gradient(to right,#FFF7ED,#fff)">
+        <span><i class="bi bi-megaphone" style="color:#EA580C"></i> Campañas publicitarias con pago pendiente</span>
+        <a href="{{ route('control-publicitario.index') }}" class="btn btn-sm btn-secondary">Ver todas</a>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Empresa</th>
+                    <th>Panel</th>
+                    <th>Cobrado</th>
+                    <th>Pendiente</th>
+                    <th>Vencimiento</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($proximas_campanas as $camp)
+                @php
+                    $diasFin = $camp->fecha_fin ? (int) now()->diffInDays($camp->fecha_fin, false) : null;
+                @endphp
+                <tr>
+                    <td>
+                        <div class="fw-600">{{ $camp->empresa_nombre }}</div>
+                        @if($camp->ruc)<div class="text-muted" style="font-size:11px;font-family:monospace">{{ $camp->ruc }}</div>@endif
+                    </td>
+                    <td>
+                        <code style="font-size:12px">{{ $camp->panel_codigo }}</code>
+                        <span class="badge {{ $camp->tipo_panel === 'digital' ? 'badge-primary' : 'badge-warning' }}" style="font-size:10px;margin-left:4px">{{ ucfirst($camp->tipo_panel) }}</span>
+                    </td>
+                    <td class="fw-600" style="color:#059669">
+                        @if($camp->monto_pagado !== null) S/. {{ number_format($camp->monto_pagado, 2) }} @else <span class="text-muted">—</span> @endif
+                    </td>
+                    <td class="fw-700" style="color:#EA580C">S/. {{ number_format($camp->monto_pendiente, 2) }}</td>
+                    <td>
+                        @if($camp->fecha_fin)
+                            <div style="font-size:12.5px">{{ $camp->fecha_fin->format('d/m/Y') }}</div>
+                            @if($diasFin !== null)
+                                @if($diasFin < 0)
+                                    <span class="badge badge-danger" style="font-size:10px">Vencida</span>
+                                @elseif($diasFin <= 7)
+                                    <span class="badge badge-warning" style="font-size:10px">{{ $diasFin }}d</span>
+                                @endif
+                            @endif
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @php $bmap = ['activo'=>'success','pausado'=>'warning','cancelado'=>'danger']; @endphp
+                        <span class="badge badge-{{ $bmap[$camp->estado] ?? 'gray' }}">{{ ucfirst($camp->estado) }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 @endsection
 

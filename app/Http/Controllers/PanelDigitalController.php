@@ -2,15 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ControlPublicitario;
 use App\Models\PanelDigital;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PanelDigitalController extends Controller
 {
     public function index()
     {
         $paneles = PanelDigital::with('empresas')->orderBy('nombre')->paginate(20);
-        return view('paneles.digitales.index', compact('paneles'));
+
+        $campanasPorPanel = ControlPublicitario::where('estado', 'activo')
+            ->where('tipo_panel', 'digital')
+            ->select('panel_codigo', DB::raw('count(*) as total'))
+            ->groupBy('panel_codigo')
+            ->pluck('total', 'panel_codigo');
+
+        return view('paneles.digitales.index', compact('paneles', 'campanasPorPanel'));
     }
 
     public function create()
