@@ -10,6 +10,7 @@ use App\Models\PanelDigital;
 use App\Models\PanelUbicacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ControlPublicitarioController extends Controller
@@ -211,5 +212,41 @@ class ControlPublicitarioController extends Controller
     {
         $controlPublicitario->delete();
         return back()->with('success', 'Registro eliminado.');
+    }
+
+    public function panelPreview(string $tipo, string $codigo)
+    {
+        if ($tipo === 'digital') {
+            $panel = PanelDigital::where('codigo', $codigo)->first();
+            if (!$panel) return response()->json(['error' => 'no encontrado'], 404);
+            return response()->json([
+                'tipo'        => 'digital',
+                'codigo'      => $panel->codigo,
+                'nombre'      => $panel->nombre,
+                'direccion'   => $panel->direccion,
+                'medidas'     => $panel->medidas,
+                'resolucion'  => $panel->resolucion,
+                'orientacion' => $panel->orientacion,
+                'tandas'      => $panel->tandas,
+                'lat'         => $panel->lat,
+                'lng'         => $panel->lng,
+                'foto_url'    => $panel->foto ? Storage::url($panel->foto) : null,
+            ]);
+        }
+
+        $panel = PanelUbicacion::where('codigo', $codigo)->first();
+        if (!$panel) return response()->json(['error' => 'no encontrado'], 404);
+        return response()->json([
+            'tipo'          => 'tradicional',
+            'codigo'        => $panel->codigo,
+            'nombre'        => $panel->nombre,
+            'direccion'     => $panel->direccion,
+            'medidas'       => $panel->medidas,
+            'caras'         => $panel->caras,
+            'gramaje_lonas' => $panel->gramaje_lonas,
+            'lat'           => $panel->lat,
+            'lng'           => $panel->lng,
+            'foto_url'      => $panel->foto ? Storage::url($panel->foto) : null,
+        ]);
     }
 }

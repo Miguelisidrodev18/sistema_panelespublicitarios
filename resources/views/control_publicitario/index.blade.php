@@ -44,6 +44,18 @@
 .extra-empresa-fields { border:1.5px dashed #FCD34D; border-radius:10px; padding:12px 14px; background:#FFFBEB; margin-top:4px; }
 .extra-empresa-fields .extra-title { font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:#D97706; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
 .ruc-tag { display:inline-flex; align-items:center; gap:4px; background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:600; font-family:monospace; }
+
+/* Panel preview */
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.panel-preview-photo { width:100%; max-height:220px; object-fit:cover; border-radius:10px; display:block; }
+.panel-preview-placeholder { width:100%; height:150px; background:linear-gradient(135deg,#F1F5F9,#E2E8F0); border-radius:10px; display:flex; align-items:center; justify-content:center; color:#CBD5E1; font-size:52px; }
+.panel-spec-grid { display:grid; grid-template-columns:auto 1fr; gap:7px 16px; font-size:13px; margin:12px 0; }
+.panel-spec-label { color:var(--text-lighter); font-weight:600; font-size:12px; white-space:nowrap; padding-top:1px; }
+.panel-spec-value { color:var(--text-dark); }
+.panel-preview-mini { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1px solid #BFDBFE; border-radius:8px; padding:8px 12px; font-size:12.5px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:box-shadow .15s; }
+.panel-preview-mini:hover { box-shadow:0 2px 10px rgba(37,99,235,.2); }
+.btn-panel-eye { padding:2px 6px; font-size:11px; background:transparent; border:1px solid var(--border); color:var(--text-light); border-radius:6px; line-height:1.6; cursor:pointer; transition:background .15s,color .15s; }
+.btn-panel-eye:hover { background:#EFF6FF; color:#2563EB; border-color:#BFDBFE; }
 </style>
 @endpush
 
@@ -132,7 +144,12 @@
                         @if($panelNombre)
                             <div class="fw-600" style="font-size:13px">{{ $panelNombre }}</div>
                         @endif
-                        <code style="font-size:11px">{{ $reg->panel_codigo }}</code>
+                        <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+                            <code style="font-size:11px">{{ $reg->panel_codigo }}</code>
+                            <button type="button" class="btn-panel-eye"
+                                    onclick="mostrarVistaPanel('{{ $reg->panel_codigo }}', '{{ $reg->tipo_panel }}')"
+                                    title="Vista rápida del panel"><i class="bi bi-eye"></i></button>
+                        </div>
                     </td>
                     <td>
                         @if($reg->tipo_panel === 'digital')
@@ -276,10 +293,18 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Panel <span class="req">*</span></label>
-                        <input type="text" name="panel_codigo" id="panelCodigoModal" class="form-control"
-                               list="lista_paneles_digital" required placeholder="Ej: PD-001">
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <input type="text" name="panel_codigo" id="panelCodigoModal" class="form-control"
+                                   list="lista_paneles_digital" required placeholder="Ej: PD-001"
+                                   onchange="autoPreviewPanel()" onblur="autoPreviewPanel()">
+                            <button type="button" class="btn btn-secondary btn-sm btn-icon"
+                                    onclick="mostrarVistaPanel()" title="Vista rápida del panel" style="flex-shrink:0">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                         <datalist id="lista_paneles_digital">@foreach($paneles_digitales as $p)<option value="{{ $p->codigo }}">{{ $p->codigo }} — {{ $p->nombre }}</option>@endforeach</datalist>
                         <datalist id="lista_paneles_tradicional">@foreach($paneles_tradicionales as $p)<option value="{{ $p->codigo }}">{{ $p->codigo }} — {{ $p->nombre }}</option>@endforeach</datalist>
+                        <div id="panelPreviewMini" style="display:none;margin-top:6px"></div>
                     </div>
 
                     {{-- Fechas --}}
@@ -366,6 +391,20 @@
     </div>
 </div>
 @endif
+
+{{-- Modal: vista rápida panel (accesible desde tabla y desde formulario) --}}
+<div class="modal-backdrop" id="modalPanelPreview" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-box" style="max-width:500px">
+        <div class="modal-header">
+            <h5 id="panelPreviewTitle">
+                <i class="bi bi-geo-alt-fill" style="margin-right:8px;color:var(--primary-light)"></i>Vista rápida del panel
+            </h5>
+            <button type="button" class="modal-close" onclick="document.getElementById('modalPanelPreview').classList.remove('open')">×</button>
+        </div>
+        <div class="modal-body" id="panelPreviewBody" style="padding:20px">
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -467,7 +506,8 @@ function buscarRucNuevo() {
         });
 }
 
-document.getElementById('rucInputNuevo').addEventListener('keydown', function(e) {
+const _rucInput = document.getElementById('rucInputNuevo');
+if (_rucInput) _rucInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); buscarRucNuevo(); }
 });
 
@@ -490,6 +530,94 @@ function actualizarPaneles() {
     const input = document.getElementById('panelCodigoModal');
     input.setAttribute('list', tipo === 'digital' ? 'lista_paneles_digital' : 'lista_paneles_tradicional');
     input.value = '';
+    document.getElementById('panelPreviewMini').style.display = 'none';
+}
+
+// ── Panel preview ────────────────────────────────────────────────────────────
+const _panelCache = {};
+
+async function _fetchPanel(codigo, tipo) {
+    const key = tipo + ':' + codigo;
+    if (_panelCache[key] !== undefined) return _panelCache[key];
+    try {
+        const r = await fetch('/panel-preview/' + encodeURIComponent(tipo) + '/' + encodeURIComponent(codigo));
+        _panelCache[key] = r.ok ? await r.json() : null;
+    } catch { _panelCache[key] = null; }
+    return _panelCache[key];
+}
+
+function autoPreviewPanel() {
+    const codigo = document.getElementById('panelCodigoModal').value.trim();
+    const tipo   = document.getElementById('tipoPanelModal').value;
+    const mini   = document.getElementById('panelPreviewMini');
+    if (!codigo) { mini.style.display = 'none'; return; }
+    _fetchPanel(codigo, tipo).then(data => {
+        if (!data) { mini.style.display = 'none'; return; }
+        const thumb = data.foto_url
+            ? '<img src="' + data.foto_url + '" style="width:50px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0">'
+            : '<span style="width:50px;height:38px;display:flex;align-items:center;justify-content:center;background:#E2E8F0;border-radius:6px;flex-shrink:0;color:#94A3B8;font-size:20px"><i class="bi bi-image"></i></span>';
+        mini.style.display = 'block';
+        mini.innerHTML = '<div class="panel-preview-mini" onclick="mostrarVistaPanel()">' +
+            thumb +
+            '<div style="flex:1;min-width:0"><div style="font-weight:700;color:#1D4ED8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + data.nombre + '</div>' +
+            '<div style="color:#64748B;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (data.direccion || '') + '</div></div>' +
+            '<i class="bi bi-eye" style="color:#2563EB;flex-shrink:0"></i></div>';
+    });
+}
+
+async function mostrarVistaPanel(codigoArg, tipoArg) {
+    const codigo = codigoArg || (document.getElementById('panelCodigoModal') ? document.getElementById('panelCodigoModal').value.trim() : '');
+    const tipo   = tipoArg   || (document.getElementById('tipoPanelModal')   ? document.getElementById('tipoPanelModal').value   : 'digital');
+    if (!codigo) return;
+
+    const modal = document.getElementById('modalPanelPreview');
+    const body  = document.getElementById('panelPreviewBody');
+    const title = document.getElementById('panelPreviewTitle');
+
+    title.innerHTML = '<i class="bi bi-geo-alt-fill" style="margin-right:8px;color:var(--primary-light)"></i>Vista rápida: <code>' + codigo + '</code>';
+    body.innerHTML  = '<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px;color:var(--text-light)">' +
+        '<i class="bi bi-arrow-repeat" style="font-size:28px;animation:spin .8s linear infinite"></i>Cargando datos del panel...</div>';
+    modal.classList.add('open');
+
+    const data = await _fetchPanel(codigo, tipo);
+    if (!data) {
+        body.innerHTML = '<div class="empty-state" style="padding:32px"><i class="bi bi-geo-alt"></i><p>Panel <strong>' + codigo + '</strong> no encontrado.</p></div>';
+        return;
+    }
+
+    const fotoHtml = data.foto_url
+        ? '<img src="' + data.foto_url + '" class="panel-preview-photo" alt="' + data.nombre + '">'
+        : '<div class="panel-preview-placeholder"><i class="bi bi-image-alt"></i></div>';
+
+    const typeBadge = data.tipo === 'digital'
+        ? '<span class="badge badge-primary"><i class="bi bi-display"></i> Digital</span>'
+        : '<span class="badge badge-warning"><i class="bi bi-signpost-2"></i> Tradicional</span>';
+
+    let specs = '<div class="panel-spec-grid">' +
+        '<span class="panel-spec-label">Código</span><span class="panel-spec-value"><code>' + data.codigo + '</code></span>' +
+        '<span class="panel-spec-label">Tipo</span><span class="panel-spec-value">' + typeBadge + '</span>';
+    if (data.direccion) specs += '<span class="panel-spec-label">Dirección</span><span class="panel-spec-value">' + data.direccion + '</span>';
+    if (data.medidas)   specs += '<span class="panel-spec-label">Medidas</span><span class="panel-spec-value">' + data.medidas + '</span>';
+    if (data.tipo === 'digital') {
+        if (data.resolucion)  specs += '<span class="panel-spec-label">Resolución</span><span class="panel-spec-value">' + data.resolucion + '</span>';
+        if (data.orientacion) specs += '<span class="panel-spec-label">Orientación</span><span class="panel-spec-value">' + data.orientacion + '</span>';
+        if (data.tandas)      specs += '<span class="panel-spec-label">Tandas/hora</span><span class="panel-spec-value">' + data.tandas + '</span>';
+    } else {
+        if (data.caras)         specs += '<span class="panel-spec-label">Caras</span><span class="panel-spec-value">' + data.caras + '</span>';
+        if (data.gramaje_lonas) specs += '<span class="panel-spec-label">Gramaje lonas</span><span class="panel-spec-value">' + data.gramaje_lonas + '</span>';
+    }
+    specs += '</div>';
+
+    const mapBtn = (data.lat && data.lng)
+        ? '<a href="https://www.google.com/maps?q=' + data.lat + ',' + data.lng + '" target="_blank" rel="noopener" ' +
+          'class="btn btn-sm btn-secondary" style="margin-top:4px"><i class="bi bi-map"></i> Ver en Google Maps</a>'
+        : '';
+
+    body.innerHTML =
+        '<div style="margin-bottom:14px">' + fotoHtml + '</div>' +
+        '<div style="font-size:16px;font-weight:700;margin-bottom:8px;color:var(--text-dark)">' + data.nombre + '</div>' +
+        specs +
+        (mapBtn ? '<div>' + mapBtn + '</div>' : '');
 }
 </script>
 @endpush
