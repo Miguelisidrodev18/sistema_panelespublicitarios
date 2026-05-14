@@ -55,6 +55,7 @@ class ControlPublicitarioExport implements FromQuery, WithHeadings, WithMapping,
     {
         return [
             'Empresa',
+            'RUC',
             'Código Panel',
             'Tipo Panel',
             'Estado',
@@ -77,6 +78,7 @@ class ControlPublicitarioExport implements FromQuery, WithHeadings, WithMapping,
 
         return [
             $row->empresa_nombre,
+            $row->ruc ?? '',
             $row->panel_codigo,
             ucfirst($row->tipo_panel),
             ucfirst($row->estado),
@@ -92,10 +94,10 @@ class ControlPublicitarioExport implements FromQuery, WithHeadings, WithMapping,
     public function styles(Worksheet $sheet)
     {
         $lastRow = $sheet->getHighestRow();
-        $lastCol = 'J';
+        $lastCol = 'K';
 
         // Header row — fondo azul oscuro, texto blanco, negrita
-        $sheet->getStyle('A1:J1')->applyFromArray([
+        $sheet->getStyle('A1:K1')->applyFromArray([
             'font' => [
                 'bold'  => true,
                 'color' => ['argb' => 'FFFFFFFF'],
@@ -136,40 +138,40 @@ class ControlPublicitarioExport implements FromQuery, WithHeadings, WithMapping,
             ]);
             $sheet->getRowDimension($i)->setRowHeight(18);
 
-            // Colorear columna Estado (D)
-            $estado = strtolower($sheet->getCell("D{$i}")->getValue());
+            // Colorear columna Estado (E — col 5, RUC es col 2)
+            $estado = strtolower($sheet->getCell("E{$i}")->getValue());
             $estadoColor = match ($estado) {
                 'activo'    => 'FF16A34A',
                 'pausado'   => 'FFD97706',
                 'cancelado' => 'FFDC2626',
                 default     => 'FF374151',
             };
-            $sheet->getStyle("D{$i}")->applyFromArray([
+            $sheet->getStyle("E{$i}")->applyFromArray([
                 'font' => ['bold' => true, 'color' => ['argb' => $estadoColor]],
             ]);
 
-            // Colorear columna Días Restantes (G)
-            $diasVal = $sheet->getCell("G{$i}")->getValue();
+            // Colorear columna Días Restantes (H — col 8)
+            $diasVal = $sheet->getCell("H{$i}")->getValue();
             if ($diasVal === 'VENCIDA') {
-                $sheet->getStyle("G{$i}")->applyFromArray([
+                $sheet->getStyle("H{$i}")->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['argb' => 'FFDC2626']],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEE2E2']],
                 ]);
             } elseif (is_numeric(rtrim($diasVal, ' días')) && (int) $diasVal <= 3) {
-                $sheet->getStyle("G{$i}")->applyFromArray([
+                $sheet->getStyle("H{$i}")->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['argb' => 'FFEA580C']],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFF7ED']],
                 ]);
             } elseif (is_numeric(rtrim($diasVal, ' días')) && (int) $diasVal <= 15) {
-                $sheet->getStyle("G{$i}")->applyFromArray([
+                $sheet->getStyle("H{$i}")->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['argb' => 'FF2563EB']],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFEFF6FF']],
                 ]);
             }
         }
 
-        // Columnas de monto: alinear a la derecha
-        $sheet->getStyle("H2:I{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        // Columnas de monto: alinear a la derecha (I y J)
+        $sheet->getStyle("I2:J{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
         // Borde exterior grueso
         $sheet->getStyle("A1:{$lastCol}{$lastRow}")->applyFromArray([

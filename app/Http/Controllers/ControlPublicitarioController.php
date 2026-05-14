@@ -21,31 +21,34 @@ class ControlPublicitarioController extends Controller
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
-
         if ($request->filled('tipo_panel')) {
             $query->where('tipo_panel', $request->tipo_panel);
         }
-
         if ($request->filled('buscar')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('empresa_nombre', 'like', '%' . $request->buscar . '%')
-                  ->orWhere('panel_codigo', 'like', '%' . $request->buscar . '%');
+            $buscar = $request->buscar;
+            $query->where(function ($q) use ($buscar) {
+                $q->where('empresa_nombre', 'like', "%{$buscar}%")
+                  ->orWhere('panel_codigo', 'like', "%{$buscar}%")
+                  ->orWhere('ruc', 'like', "%{$buscar}%");
             });
         }
 
         $registros = $query->orderBy('empresa_nombre')->paginate(30);
 
-        $empresas = Empresa::activas()->orderBy('nombre')->pluck('nombre', 'nombre');
-        $paneles_digitales = PanelDigital::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
+        $empresas_data = Empresa::activas()
+            ->orderBy('nombre')
+            ->get(['id', 'nombre', 'ruc', 'correo', 'celular', 'encargado']);
+
+        $paneles_digitales    = PanelDigital::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
         $paneles_tradicionales = PanelUbicacion::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
 
-        $mapaDigital = $paneles_digitales->keyBy('codigo');
+        $mapaDigital     = $paneles_digitales->keyBy('codigo');
         $mapaTradicional = $paneles_tradicionales->keyBy('codigo');
 
         $stats = [
-            'activos'   => ControlPublicitario::where('estado', 'activo')->count(),
-            'pausados'  => ControlPublicitario::where('estado', 'pausado')->count(),
-            'cancelados'=> ControlPublicitario::where('estado', 'cancelado')->count(),
+            'activos'    => ControlPublicitario::where('estado', 'activo')->count(),
+            'pausados'   => ControlPublicitario::where('estado', 'pausado')->count(),
+            'cancelados' => ControlPublicitario::where('estado', 'cancelado')->count(),
         ];
 
         $panelCounts = ControlPublicitario::where('estado', 'activo')
@@ -54,31 +57,80 @@ class ControlPublicitarioController extends Controller
             ->pluck('total', 'panel_codigo');
 
         return view('control_publicitario.index', compact(
-            'registros', 'empresas', 'paneles_digitales', 'paneles_tradicionales',
+            'registros', 'empresas_data', 'paneles_digitales', 'paneles_tradicionales',
             'mapaDigital', 'mapaTradicional', 'stats', 'panelCounts'
         ));
     }
 
     public function exportar(Request $request)
     {
-        return Excel::download(new ControlPublicitarioExport($request->all()), 'control_publicitario_' . now()->format('Ymd_His') . '.xlsx');
+        return Excel::download(
+            new ControlPublicitarioExport($request->all()),
+            'control_publicitario_' . now()->format('Ymd_His') . '.xlsx'
+        );
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'empresa_nombre'  => 'required|string|max:255',
-            'panel_codigo'    => 'required|string|max:50',
-            'tipo_panel'      => 'required|in:digital,tradicional',
-            'fecha_inicio'    => 'nullable|date',
-            'fecha_fin'       => 'nullable|date|after_or_equal:fecha_inicio',
-            'estado'          => 'required|in:activo,pausado,cancelado',
-            'notas'           => 'nullable|string',
-            'monto_pagado'    => 'nullable|numeric|min:0',
-            'monto_pendiente' => 'nullable|numeric|min:0',
+            'empresa_nombre'    => 'required|string|max:255',
+            'ruc'               => ['nullable', 'string', 'size:11', 'regex:/^\d{11}$/'],
+            'empresa_correo'    => 'nullable|email|max:150',
+            'empresa_celular'   => 'nullable|string|max:20',
+            'empresa_encargado' => 'nullable|string|max:100',
+            'panel_codigo'      => 'required|string|max:50',
+            'tipo_panel'        => 'required|in:digital,tradicional',
+            'fecha_inicio'      => 'nullable|date',
+            'fecha_fin'         => 'nullable|date|after_or_equal:fecha_inicio',
+            'estado'            => 'required|in:activo,pausado,cancelado',
+            'notas'             => 'nullable|string',
+            'monto_pagado'      => 'nullable|numeric|min:0',
+            'monto_pendiente'   => 'nullable|numeric|min:0',
         ]);
 
-        $registro = ControlPublicitario::create($validated);
+        // Buscar empresa existente por RUC o nombre
+        $empresa = null;
+        if (!empty($validated['ruc'])) {
+            $empresa = Empresa::where('ruc', $validated['ruc'])->first();
+        }
+        if (!$empresa) {
+            $empresa = Empresa::where('nombre', $validated['empresa_nombre'])->first();
+        }
+
+        $empresaCreada = false;
+        if ($empresa) {
+            // Completar campos vacíos con los datos nuevos
+            $updates = [];
+            if (!$empresa->ruc && !empty($validated['ruc']))                   $updates['ruc']       = $validated['ruc'];
+            if (!$empresa->correo && !empty($validated['empresa_correo']))     $updates['correo']    = $validated['empresa_correo'];
+            if (!$empresa->celular && !empty($validated['empresa_celular']))   $updates['celular']   = $validated['empresa_celular'];
+            if (!$empresa->encargado && !empty($validated['empresa_encargado'])) $updates['encargado'] = $validated['empresa_encargado'];
+            if ($updates) $empresa->update($updates);
+        } else {
+            $empresa = Empresa::create([
+                'nombre'    => $validated['empresa_nombre'],
+                'ruc'       => $validated['ruc'] ?? null,
+                'correo'    => $validated['empresa_correo'] ?? null,
+                'celular'   => $validated['empresa_celular'] ?? null,
+                'encargado' => $validated['empresa_encargado'] ?? null,
+                'activo'    => true,
+            ]);
+            $empresaCreada = true;
+        }
+
+        $registro = ControlPublicitario::create([
+            'empresa_nombre'  => $validated['empresa_nombre'],
+            'ruc'             => $validated['ruc'] ?? null,
+            'empresa_id'      => $empresa->id,
+            'panel_codigo'    => $validated['panel_codigo'],
+            'tipo_panel'      => $validated['tipo_panel'],
+            'fecha_inicio'    => $validated['fecha_inicio'] ?? null,
+            'fecha_fin'       => $validated['fecha_fin'] ?? null,
+            'estado'          => $validated['estado'],
+            'notas'           => $validated['notas'] ?? null,
+            'monto_pagado'    => $validated['monto_pagado'] ?? null,
+            'monto_pendiente' => $validated['monto_pendiente'] ?? null,
+        ]);
 
         ControlPublicitarioHistorial::create([
             'control_publicitario_id' => $registro->id,
@@ -88,13 +140,19 @@ class ControlPublicitarioController extends Controller
             'usuario_id'              => auth()->id(),
         ]);
 
-        return back()->with('success', 'Registro creado correctamente.');
+        $msg = 'Registro creado correctamente.';
+        if ($empresaCreada) {
+            $msg .= ' La empresa "' . $empresa->nombre . '" fue creada en el módulo Empresas.';
+        }
+
+        return back()->with('success', $msg);
     }
 
     public function update(Request $request, ControlPublicitario $controlPublicitario)
     {
         $validated = $request->validate([
             'estado'          => 'required|in:activo,pausado,cancelado',
+            'ruc'             => ['nullable', 'string', 'size:11', 'regex:/^\d{11}$/'],
             'fecha_inicio'    => 'nullable|date',
             'fecha_fin'       => 'nullable|date|after_or_equal:fecha_inicio',
             'notas'           => 'nullable|string',
@@ -106,6 +164,14 @@ class ControlPublicitarioController extends Controller
 
         if ($validated['estado'] === 'cancelado' && $estadoAnterior !== 'cancelado') {
             $validated['fecha_cancelacion'] = now();
+        }
+
+        // Sincronizar RUC con la empresa vinculada
+        if (!empty($validated['ruc']) && $controlPublicitario->empresa_id) {
+            $empresa = Empresa::find($controlPublicitario->empresa_id);
+            if ($empresa && !$empresa->ruc) {
+                $empresa->update(['ruc' => $validated['ruc']]);
+            }
         }
 
         $controlPublicitario->update($validated);
@@ -125,7 +191,7 @@ class ControlPublicitarioController extends Controller
 
     public function show(ControlPublicitario $controlPublicitario)
     {
-        $controlPublicitario->load('historial.usuario');
+        $controlPublicitario->load('historial.usuario', 'empresa');
         return view('control_publicitario.show', compact('controlPublicitario'));
     }
 

@@ -4,7 +4,8 @@
       "Bash(xargs grep *)",
       "Bash(php -l app/Exports/ControlPublicitarioExport.php)",
       "Bash(php -l app/Http/Controllers/ControlPublicitarioController.php)",
-      "Bash(php -l app/Models/ControlPublicitario.php)"
+      "Bash(php -l app/Models/ControlPublicitario.php)",
+      "Bash(php -m)"
     ]
   }
 }

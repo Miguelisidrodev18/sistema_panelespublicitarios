@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ControlPublicitario extends Model
@@ -10,15 +11,21 @@ class ControlPublicitario extends Model
     protected $table = 'control_publicitario';
 
     protected $fillable = [
-        'empresa_nombre', 'panel_codigo', 'tipo_panel', 'fecha_inicio', 'fecha_fin',
-        'estado', 'fecha_cancelacion', 'notas', 'monto_pagado', 'monto_pendiente',
+        'empresa_nombre', 'ruc', 'empresa_id', 'panel_codigo', 'tipo_panel',
+        'fecha_inicio', 'fecha_fin', 'estado', 'fecha_cancelacion',
+        'notas', 'monto_pagado', 'monto_pendiente',
     ];
 
     protected $casts = [
         'fecha_cancelacion' => 'datetime',
-        'fecha_inicio' => 'date',
-        'fecha_fin' => 'date',
+        'fecha_inicio'      => 'date',
+        'fecha_fin'         => 'date',
     ];
+
+    public function empresa(): BelongsTo
+    {
+        return $this->belongsTo(Empresa::class);
+    }
 
     public function historial(): HasMany
     {
