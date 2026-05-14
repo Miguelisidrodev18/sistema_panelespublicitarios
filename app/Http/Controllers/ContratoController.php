@@ -123,6 +123,9 @@ class ContratoController extends Controller
             'frecuencia_cobro' => 'nullable|in:mensual,bimestral,trimestral,semestral,anual',
         ]);
 
+        // Preservar adelanto si no se envió o viene vacío (columna NOT NULL en BD)
+        $validated['adelanto'] = $validated['adelanto'] ?? $contrato->adelanto ?? 0;
+
         $contrato->update($validated);
 
         return redirect()->route('contratos.show', $contrato)->with('success', 'Contrato actualizado.');
