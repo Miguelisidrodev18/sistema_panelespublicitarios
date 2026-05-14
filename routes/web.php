@@ -87,6 +87,8 @@ Route::middleware(['auth'])->group(function () {
     // Control Publicitario
     Route::get('/control-publicitario', [ControlPublicitarioController::class, 'index'])
         ->name('control-publicitario.index')->middleware('can-permiso:control_publicitario');
+    Route::get('/control-publicitario/exportar', [ControlPublicitarioController::class, 'exportar'])
+        ->name('control-publicitario.exportar')->middleware('can-permiso:control_publicitario');
     Route::post('/control-publicitario', [ControlPublicitarioController::class, 'store'])
         ->name('control-publicitario.store')->middleware('admin');
     Route::get('/control-publicitario/{controlPublicitario}', [ControlPublicitarioController::class, 'show'])

@@ -3,6 +3,38 @@
 @section('title', 'Campaña: ' . $controlPublicitario->empresa_nombre)
 @section('subtitle', 'Historial de campaña')
 
+@push('styles')
+<style>
+.badge-vencida  { background:linear-gradient(135deg,#DC2626,#B91C1C); color:#fff; box-shadow:0 2px 8px rgba(220,38,38,.45); }
+.badge-urgente  { background:linear-gradient(135deg,#EA580C,#C2410C); color:#fff; box-shadow:0 0 10px rgba(234,88,12,.55); animation:pulse-orange 1.6s ease-in-out infinite; }
+.badge-proximo  { background:linear-gradient(135deg,#2563EB,#1D4ED8); color:#fff; box-shadow:0 2px 8px rgba(37,99,235,.4); }
+@keyframes pulse-orange {
+    0%,100% { box-shadow:0 0 6px rgba(234,88,12,.45); }
+    50%      { box-shadow:0 0 18px rgba(234,88,12,.9); }
+}
+.campaign-header-card {
+    background:linear-gradient(135deg,#1E293B,#334155);
+    border-radius:16px 16px 0 0; padding:20px 24px;
+    display:flex; align-items:center; gap:14px;
+}
+.campaign-header-card .ch-icon {
+    width:48px; height:48px; border-radius:12px;
+    background:rgba(255,255,255,.12);
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; color:#fff;
+}
+.campaign-header-card .ch-title { font-size:15px; font-weight:700; color:#fff; }
+.campaign-header-card .ch-sub   { font-size:12px; color:rgba(255,255,255,.65); margin-top:2px; }
+.monto-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:20px;
+    font-weight:700; font-size:14px;
+}
+.monto-pagado   { background:linear-gradient(135deg,#D1FAE5,#A7F3D0); color:#065F46; }
+.monto-pendiente{ background:linear-gradient(135deg,#FEF3C7,#FDE68A); color:#92400E; }
+</style>
+@endpush
+
 @section('content')
 <div class="page-header">
     <div class="page-header-left">
@@ -17,32 +49,97 @@
             </div>
         </div>
     </div>
-    @php $bmap = ['activo'=>'success','pausado'=>'warning','cancelado'=>'danger']; @endphp
-    <span class="badge badge-{{ $bmap[$controlPublicitario->estado] ?? 'gray' }}" style="font-size:14px;padding:8px 18px">
-        {{ ucfirst($controlPublicitario->estado) }}
-    </span>
+    <div style="display:flex;align-items:center;gap:10px">
+        @php $bmap = ['activo'=>'success','pausado'=>'warning','cancelado'=>'danger']; @endphp
+        <span class="badge badge-{{ $bmap[$controlPublicitario->estado] ?? 'gray' }}" style="font-size:14px;padding:8px 18px">
+            {{ ucfirst($controlPublicitario->estado) }}
+        </span>
+        @if($controlPublicitario->estado === 'activo' && $controlPublicitario->fecha_fin)
+            @php $dias = (int) now()->diffInDays($controlPublicitario->fecha_fin, false) @endphp
+            @if($dias < 0)
+                <span class="badge badge-vencida" style="font-size:13px;padding:7px 14px">Vencida</span>
+            @elseif($dias <= 3)
+                <span class="badge badge-urgente" style="font-size:13px;padding:7px 14px">Vence en {{ $dias }}d</span>
+            @elseif($dias <= 15)
+                <span class="badge badge-proximo" style="font-size:13px;padding:7px 14px">{{ $dias }} días restantes</span>
+            @endif
+        @endif
+    </div>
 </div>
 
 <div class="row g-3">
     <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header"><span><i class="bi bi-info-circle" style="color:var(--primary);margin-right:8px"></i>Datos de la campaña</span></div>
+        <div class="card" style="overflow:hidden">
+            <div class="campaign-header-card">
+                <div class="ch-icon"><i class="bi bi-megaphone-fill"></i></div>
+                <div>
+                    <div class="ch-title">Datos de la campaña</div>
+                    <div class="ch-sub">Información del contrato publicitario</div>
+                </div>
+            </div>
             <div class="card-body">
                 <div class="detail-grid">
-                    <div class="detail-row"><div class="detail-label">Empresa</div><div class="detail-value fw-600">{{ $controlPublicitario->empresa_nombre }}</div></div>
-                    <div class="detail-row"><div class="detail-label">Panel</div><div class="detail-value"><code>{{ $controlPublicitario->panel_codigo }}</code></div></div>
-                    <div class="detail-row"><div class="detail-label">Tipo</div><div class="detail-value">{{ ucfirst($controlPublicitario->tipo_panel) }}</div></div>
-                    <div class="detail-row"><div class="detail-label">Inicio</div><div class="detail-value">{{ $controlPublicitario->fecha_inicio?->format('d/m/Y') ?? '—' }}</div></div>
-                    <div class="detail-row"><div class="detail-label">Fin</div><div class="detail-value">
-                        {{ $controlPublicitario->fecha_fin?->format('d/m/Y') ?? '—' }}
-                        @if($controlPublicitario->estado === 'activo' && $controlPublicitario->fecha_fin?->isPast())
-                            <span class="badge badge-danger" style="margin-left:4px">Vencida</span>
-                        @endif
-                    </div></div>
+                    <div class="detail-row">
+                        <div class="detail-label">Empresa</div>
+                        <div class="detail-value fw-600">{{ $controlPublicitario->empresa_nombre }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Panel</div>
+                        <div class="detail-value"><code>{{ $controlPublicitario->panel_codigo }}</code></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Tipo</div>
+                        <div class="detail-value">{{ ucfirst($controlPublicitario->tipo_panel) }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Inicio</div>
+                        <div class="detail-value">{{ $controlPublicitario->fecha_inicio?->format('d/m/Y') ?? '—' }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Fin</div>
+                        <div class="detail-value">
+                            {{ $controlPublicitario->fecha_fin?->format('d/m/Y') ?? '—' }}
+                            @if($controlPublicitario->estado === 'activo' && $controlPublicitario->fecha_fin)
+                                @php $d = (int) now()->diffInDays($controlPublicitario->fecha_fin, false) @endphp
+                                @if($d < 0)
+                                    <span class="badge badge-vencida" style="margin-left:4px;font-size:11px">Vencida</span>
+                                @elseif($d <= 3)
+                                    <span class="badge badge-urgente" style="margin-left:4px;font-size:11px">{{ $d }}d</span>
+                                @elseif($d <= 15)
+                                    <span class="badge badge-proximo" style="margin-left:4px;font-size:11px">{{ $d }}d</span>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
                     @if($controlPublicitario->fecha_cancelacion)
-                    <div class="detail-row"><div class="detail-label">Cancelación</div><div class="detail-value">{{ $controlPublicitario->fecha_cancelacion->format('d/m/Y H:i') }}</div></div>
+                    <div class="detail-row">
+                        <div class="detail-label">Cancelación</div>
+                        <div class="detail-value">{{ $controlPublicitario->fecha_cancelacion->format('d/m/Y H:i') }}</div>
+                    </div>
                     @endif
                 </div>
+
+                {{-- Montos --}}
+                @if($controlPublicitario->monto_pagado !== null || $controlPublicitario->monto_pendiente !== null)
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lighter);margin-bottom:10px">Montos del Contrato</div>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        @if($controlPublicitario->monto_pagado !== null)
+                        <div class="monto-badge monto-pagado">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Pagado: ${{ number_format($controlPublicitario->monto_pagado, 2) }}
+                        </div>
+                        @endif
+                        @if($controlPublicitario->monto_pendiente !== null)
+                        <div class="monto-badge monto-pendiente">
+                            <i class="bi bi-clock-fill"></i>
+                            Pendiente: ${{ number_format($controlPublicitario->monto_pendiente, 2) }}
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 @if($controlPublicitario->notas)
                     <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--text-light)">{{ $controlPublicitario->notas }}</div>
                 @endif

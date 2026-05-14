@@ -11,7 +11,7 @@ class ControlPublicitario extends Model
 
     protected $fillable = [
         'empresa_nombre', 'panel_codigo', 'tipo_panel', 'fecha_inicio', 'fecha_fin',
-        'estado', 'fecha_cancelacion', 'notas',
+        'estado', 'fecha_cancelacion', 'notas', 'monto_pagado', 'monto_pendiente',
     ];
 
     protected $casts = [

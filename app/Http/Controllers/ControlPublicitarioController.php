@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ControlPublicitarioExport;
 use App\Models\ControlPublicitario;
 use App\Models\ControlPublicitarioHistorial;
 use App\Models\Empresa;
 use App\Models\PanelDigital;
 use App\Models\PanelUbicacion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ControlPublicitarioController extends Controller
 {
@@ -36,7 +39,6 @@ class ControlPublicitarioController extends Controller
         $paneles_digitales = PanelDigital::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
         $paneles_tradicionales = PanelUbicacion::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
 
-        // Mapa código → nombre para lookup en vista
         $mapaDigital = $paneles_digitales->keyBy('codigo');
         $mapaTradicional = $paneles_tradicionales->keyBy('codigo');
 
@@ -46,19 +48,34 @@ class ControlPublicitarioController extends Controller
             'cancelados'=> ControlPublicitario::where('estado', 'cancelado')->count(),
         ];
 
-        return view('control_publicitario.index', compact('registros', 'empresas', 'paneles_digitales', 'paneles_tradicionales', 'mapaDigital', 'mapaTradicional', 'stats'));
+        $panelCounts = ControlPublicitario::where('estado', 'activo')
+            ->select('panel_codigo', DB::raw('count(*) as total'))
+            ->groupBy('panel_codigo')
+            ->pluck('total', 'panel_codigo');
+
+        return view('control_publicitario.index', compact(
+            'registros', 'empresas', 'paneles_digitales', 'paneles_tradicionales',
+            'mapaDigital', 'mapaTradicional', 'stats', 'panelCounts'
+        ));
+    }
+
+    public function exportar(Request $request)
+    {
+        return Excel::download(new ControlPublicitarioExport($request->all()), 'control_publicitario_' . now()->format('Ymd_His') . '.xlsx');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'empresa_nombre' => 'required|string|max:255',
-            'panel_codigo'   => 'required|string|max:50',
-            'tipo_panel'     => 'required|in:digital,tradicional',
-            'fecha_inicio'   => 'nullable|date',
-            'fecha_fin'      => 'nullable|date|after_or_equal:fecha_inicio',
-            'estado'         => 'required|in:activo,pausado,cancelado',
-            'notas'          => 'nullable|string',
+            'empresa_nombre'  => 'required|string|max:255',
+            'panel_codigo'    => 'required|string|max:50',
+            'tipo_panel'      => 'required|in:digital,tradicional',
+            'fecha_inicio'    => 'nullable|date',
+            'fecha_fin'       => 'nullable|date|after_or_equal:fecha_inicio',
+            'estado'          => 'required|in:activo,pausado,cancelado',
+            'notas'           => 'nullable|string',
+            'monto_pagado'    => 'nullable|numeric|min:0',
+            'monto_pendiente' => 'nullable|numeric|min:0',
         ]);
 
         $registro = ControlPublicitario::create($validated);
@@ -77,10 +94,12 @@ class ControlPublicitarioController extends Controller
     public function update(Request $request, ControlPublicitario $controlPublicitario)
     {
         $validated = $request->validate([
-            'estado'       => 'required|in:activo,pausado,cancelado',
-            'fecha_inicio' => 'nullable|date',
-            'fecha_fin'    => 'nullable|date|after_or_equal:fecha_inicio',
-            'notas'        => 'nullable|string',
+            'estado'          => 'required|in:activo,pausado,cancelado',
+            'fecha_inicio'    => 'nullable|date',
+            'fecha_fin'       => 'nullable|date|after_or_equal:fecha_inicio',
+            'notas'           => 'nullable|string',
+            'monto_pagado'    => 'nullable|numeric|min:0',
+            'monto_pendiente' => 'nullable|numeric|min:0',
         ]);
 
         $estadoAnterior = $controlPublicitario->estado;

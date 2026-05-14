@@ -3,21 +3,94 @@
 @section('title', 'Control Publicitario')
 @section('subtitle', 'Estado de campañas por empresa y panel')
 
+@push('styles')
+<style>
+.pub-stat-card {
+    position:relative; overflow:hidden; border-radius:16px;
+    padding:22px 24px; color:#fff;
+    display:flex; flex-direction:column; gap:6px;
+    transition:transform .2s, box-shadow .2s;
+}
+.pub-stat-card:hover { transform:translateY(-3px); }
+.pub-stat-card .stat-icon {
+    position:absolute; right:-8px; top:-8px;
+    font-size:70px; opacity:.15; line-height:1;
+}
+.pub-stat-card .stat-val {
+    font-size:36px; font-weight:800; line-height:1; color:#fff;
+}
+.pub-stat-card .stat-lbl {
+    font-size:12px; font-weight:600; letter-spacing:.6px;
+    text-transform:uppercase; color:rgba(255,255,255,.82);
+    display:flex; align-items:center; gap:6px;
+}
+.pub-stat-card.green  { background:linear-gradient(135deg,#10B981,#059669); box-shadow:0 6px 24px rgba(16,185,129,.35); }
+.pub-stat-card.amber  { background:linear-gradient(135deg,#F59E0B,#D97706); box-shadow:0 6px 24px rgba(245,158,11,.35); }
+.pub-stat-card.red    { background:linear-gradient(135deg,#DC1E2E,#B01825); box-shadow:0 6px 24px rgba(220,30,46,.35); }
+
+/* Alert badges */
+.badge-vencida {
+    background:linear-gradient(135deg,#DC2626,#B91C1C);
+    color:#fff; box-shadow:0 2px 8px rgba(220,38,38,.45);
+}
+.badge-urgente {
+    background:linear-gradient(135deg,#EA580C,#C2410C);
+    color:#fff; box-shadow:0 0 10px rgba(234,88,12,.55);
+    animation:pulse-orange 1.6s ease-in-out infinite;
+}
+.badge-proximo {
+    background:linear-gradient(135deg,#2563EB,#1D4ED8);
+    color:#fff; box-shadow:0 2px 8px rgba(37,99,235,.4);
+}
+@keyframes pulse-orange {
+    0%,100% { box-shadow:0 0 6px rgba(234,88,12,.45); }
+    50%      { box-shadow:0 0 18px rgba(234,88,12,.9); }
+}
+
+/* Panel count badges */
+.badge-panel-alto   { background:linear-gradient(135deg,#DC2626,#B91C1C); color:#fff; }
+.badge-panel-medio  { background:linear-gradient(135deg,#EA580C,#C2410C); color:#fff; }
+.badge-panel-bajo   { background:linear-gradient(135deg,#64748B,#475569); color:#fff; }
+
+/* Tabla header luminoso */
+.pub-table thead tr th {
+    background:linear-gradient(135deg,#1E293B,#334155) !important;
+    color:#fff !important; font-weight:700;
+    border-bottom:2px solid #2563EB;
+}
+
+/* Btn exportar */
+.btn-exportar {
+    background:linear-gradient(135deg,#059669,#047857);
+    color:#fff; border:none;
+    box-shadow:0 4px 14px rgba(5,150,105,.4);
+    transition:box-shadow .2s, transform .15s;
+}
+.btn-exportar:hover {
+    box-shadow:0 6px 20px rgba(5,150,105,.6);
+    transform:translateY(-1px); color:#fff;
+}
+</style>
+@endpush
+
 @section('content')
 
-{{-- Estadísticas --}}
-<div class="stats-grid stagger" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
-    <div class="info-card">
-        <div class="info-card-value" style="color:#10B981">{{ $stats['activos'] }}</div>
-        <div class="info-card-label"><i class="bi bi-circle-fill" style="font-size:8px;color:#10B981"></i>Activos</div>
+{{-- Estadísticas luminosas --}}
+<div class="stats-grid stagger" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px">
+    <div class="pub-stat-card green">
+        <span class="stat-icon"><i class="bi bi-megaphone-fill"></i></span>
+        <div class="stat-val">{{ $stats['activos'] }}</div>
+        <div class="stat-lbl"><i class="bi bi-circle-fill" style="font-size:7px"></i>Campañas Activas</div>
     </div>
-    <div class="info-card">
-        <div class="info-card-value" style="color:#F59E0B">{{ $stats['pausados'] }}</div>
-        <div class="info-card-label"><i class="bi bi-pause-circle-fill" style="color:#F59E0B"></i>Pausados</div>
+    <div class="pub-stat-card amber">
+        <span class="stat-icon"><i class="bi bi-pause-circle-fill"></i></span>
+        <div class="stat-val">{{ $stats['pausados'] }}</div>
+        <div class="stat-lbl"><i class="bi bi-pause-circle-fill" style="font-size:10px"></i>Pausadas</div>
     </div>
-    <div class="info-card">
-        <div class="info-card-value" style="color:var(--primary)">{{ $stats['cancelados'] }}</div>
-        <div class="info-card-label"><i class="bi bi-x-circle-fill" style="color:var(--primary)"></i>Cancelados</div>
+    <div class="pub-stat-card red">
+        <span class="stat-icon"><i class="bi bi-x-circle-fill"></i></span>
+        <div class="stat-val">{{ $stats['cancelados'] }}</div>
+        <div class="stat-lbl"><i class="bi bi-x-circle-fill" style="font-size:10px"></i>Canceladas</div>
     </div>
 </div>
 
@@ -46,16 +119,19 @@
         </select>
         <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i>Filtrar</button>
         <a href="{{ route('control-publicitario.index') }}" class="btn btn-secondary btn-sm">Limpiar</a>
+        <a href="{{ route('control-publicitario.exportar', request()->query()) }}" class="btn btn-sm btn-exportar">
+            <i class="bi bi-file-earmark-excel-fill"></i> Exportar Excel
+        </a>
     </form>
 </div>
 
 <div class="card">
     <div class="table-wrapper">
-        <table>
+        <table class="pub-table">
             <thead>
                 <tr>
                     <th>Empresa</th><th>Panel</th><th>Tipo</th><th>Período</th>
-                    <th>Estado</th><th>Notas</th><th class="td-end">Acciones</th>
+                    <th>En Panel</th><th>Estado</th><th>Notas</th><th class="td-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,13 +161,34 @@
                             <div style="font-size:12.5px">{{ $reg->fecha_inicio->format('d/m/Y') }}</div>
                             @if($reg->fecha_fin)
                                 <div class="text-muted" style="font-size:12px">al {{ $reg->fecha_fin->format('d/m/Y') }}</div>
-                                @if($reg->estado === 'activo' && $reg->fecha_fin->isPast())
-                                    <span class="badge badge-danger" style="margin-top:2px">Vencida</span>
-                                @elseif($reg->estado === 'activo' && $reg->fecha_fin->diffInDays(now()) <= 30)
-                                    <span class="badge badge-warning" style="margin-top:2px">Por vencer</span>
+                                @if($reg->estado === 'activo')
+                                    @php $dias = (int) now()->diffInDays($reg->fecha_fin, false) @endphp
+                                    @if($dias < 0)
+                                        <span class="badge badge-vencida" style="margin-top:3px">Vencida</span>
+                                    @elseif($dias <= 3)
+                                        <span class="badge badge-urgente" style="margin-top:3px">Vence en {{ $dias }}d</span>
+                                    @elseif($dias <= 15)
+                                        <span class="badge badge-proximo" style="margin-top:3px">{{ $dias }} días</span>
+                                    @endif
                                 @endif
                             @endif
                         @else <span class="text-muted">—</span> @endif
+                    </td>
+                    <td>
+                        @php $cnt = (int)($panelCounts[$reg->panel_codigo] ?? 0) @endphp
+                        @if($cnt > 3)
+                            <span class="badge badge-panel-alto" title="{{ $cnt }} anuncios activos en este panel">
+                                <i class="bi bi-display"></i> {{ $cnt }} anuncios
+                            </span>
+                        @elseif($cnt > 1)
+                            <span class="badge badge-panel-medio" title="{{ $cnt }} anuncios activos en este panel">
+                                <i class="bi bi-display"></i> {{ $cnt }} anuncios
+                            </span>
+                        @else
+                            <span class="badge badge-panel-bajo" title="1 anuncio activo en este panel">
+                                <i class="bi bi-display"></i> {{ $cnt ?: 1 }} anuncio
+                            </span>
+                        @endif
                     </td>
                     <td>
                         @php $bmap = ['activo'=>'success','pausado'=>'warning','cancelado'=>'danger']; @endphp
@@ -103,7 +200,7 @@
                             <a href="{{ route('control-publicitario.show', $reg) }}" class="btn btn-sm btn-secondary btn-icon" title="Ver historial"><i class="bi bi-clock-history"></i></a>
                             @if(auth()->user()->esAdmin())
                             <button class="btn btn-sm btn-warning btn-icon"
-                                onclick="openEditModal({{ $reg->id }}, '{{ $reg->estado }}', '{{ $reg->fecha_inicio?->format('Y-m-d') ?? '' }}', '{{ $reg->fecha_fin?->format('Y-m-d') ?? '' }}', '{{ addslashes($reg->notas ?? '') }}')"
+                                onclick="openEditModal({{ $reg->id }}, '{{ $reg->estado }}', '{{ $reg->fecha_inicio?->format('Y-m-d') ?? '' }}', '{{ $reg->fecha_fin?->format('Y-m-d') ?? '' }}', '{{ addslashes($reg->notas ?? '') }}', '{{ $reg->monto_pagado ?? '' }}', '{{ $reg->monto_pendiente ?? '' }}')"
                                 title="Editar"><i class="bi bi-pencil"></i></button>
                             <form action="{{ route('control-publicitario.destroy', $reg) }}" method="POST" onsubmit="return confirm('¿Eliminar este registro?')">
                                 @csrf @method('DELETE')
@@ -114,7 +211,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7"><div class="empty-state"><i class="bi bi-clipboard2-check"></i><p>No hay registros de control publicitario</p></div></td></tr>
+                <tr><td colspan="8"><div class="empty-state"><i class="bi bi-clipboard2-check"></i><p>No hay registros de control publicitario</p></div></td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -159,6 +256,14 @@
                         <label class="form-label">Estado</label>
                         <select name="estado" class="form-select"><option value="activo">Activo</option><option value="pausado">Pausado</option><option value="cancelado">Cancelado</option></select>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-currency-dollar" style="color:#059669"></i> Monto Pagado</label>
+                        <input type="number" name="monto_pagado" class="form-control" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-currency-dollar" style="color:#EA580C"></i> Monto Pendiente</label>
+                        <input type="number" name="monto_pendiente" class="form-control" step="0.01" min="0" placeholder="0.00">
+                    </div>
                     <div class="form-group" style="grid-column:1/-1"><label class="form-label">Notas</label><textarea name="notas" class="form-control" rows="2"></textarea></div>
                 </div>
             </div>
@@ -172,7 +277,7 @@
 
 {{-- Modal editar --}}
 <div class="modal-backdrop" id="modalEditar" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="modal-box" style="max-width:480px">
+    <div class="modal-box" style="max-width:540px">
         <form id="formEditar" method="POST">
             @csrf @method('PATCH')
             <div class="modal-header">
@@ -186,6 +291,14 @@
                     <div class="form-group" style="grid-column:1/-1">
                         <label class="form-label">Estado</label>
                         <select name="estado" id="editEstado" class="form-select"><option value="activo">Activo</option><option value="pausado">Pausado</option><option value="cancelado">Cancelado</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-currency-dollar" style="color:#059669"></i> Monto Pagado</label>
+                        <input type="number" name="monto_pagado" id="editMontoPagado" class="form-control" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-currency-dollar" style="color:#EA580C"></i> Monto Pendiente</label>
+                        <input type="number" name="monto_pendiente" id="editMontoPendiente" class="form-control" step="0.01" min="0" placeholder="0.00">
                     </div>
                     <div class="form-group" style="grid-column:1/-1"><label class="form-label">Notas</label><textarea name="notas" id="editNotas" class="form-control" rows="2"></textarea></div>
                 </div>
@@ -202,12 +315,14 @@
 
 @push('scripts')
 <script>
-function openEditModal(id, estado, fechaInicio, fechaFin, notas) {
+function openEditModal(id, estado, fechaInicio, fechaFin, notas, montoPagado, montoPendiente) {
     document.getElementById('formEditar').action = '/control-publicitario/' + id;
     document.getElementById('editEstado').value = estado;
     document.getElementById('editFechaInicio').value = fechaInicio;
     document.getElementById('editFechaFin').value = fechaFin;
     document.getElementById('editNotas').value = notas;
+    document.getElementById('editMontoPagado').value = montoPagado;
+    document.getElementById('editMontoPendiente').value = montoPendiente;
     document.getElementById('modalEditar').classList.add('open');
 }
 function actualizarPaneles() {
