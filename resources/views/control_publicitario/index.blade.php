@@ -252,25 +252,18 @@
                         <div id="empresaStatusNuevo" style="display:none;margin-top:6px"></div>
                     </div>
 
-                    {{-- Campos extra empresa nueva (se muestran solo cuando es nueva) --}}
-                    <div id="extraEmpresaFields" style="display:none;grid-column:1/-1">
-                        <div class="extra-empresa-fields">
-                            <div class="extra-title"><i class="bi bi-building-add"></i>Datos de la nueva empresa (opcional)</div>
-                            <div class="grid cols-2" style="gap:10px">
-                                <div class="form-group mb-0">
-                                    <label class="form-label" style="font-size:12px">Correo</label>
-                                    <input type="email" name="empresa_correo" id="correoEmpresaNuevo" class="form-control" placeholder="correo@empresa.com">
-                                </div>
-                                <div class="form-group mb-0">
-                                    <label class="form-label" style="font-size:12px">Celular</label>
-                                    <input type="text" name="empresa_celular" id="celularEmpresaNuevo" class="form-control" placeholder="999 999 999">
-                                </div>
-                                <div class="form-group mb-0" style="grid-column:1/-1">
-                                    <label class="form-label" style="font-size:12px">Encargado / Contacto</label>
-                                    <input type="text" name="empresa_encargado" id="encargadoEmpresaNuevo" class="form-control" placeholder="Nombre del contacto">
-                                </div>
-                            </div>
-                        </div>
+                    {{-- Datos de contacto de la empresa --}}
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-envelope" style="color:#2563EB"></i> Correo empresa</label>
+                        <input type="email" name="empresa_correo" id="correoEmpresaNuevo" class="form-control" placeholder="correo@empresa.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="bi bi-phone" style="color:#059669"></i> Celular empresa</label>
+                        <input type="text" name="empresa_celular" id="celularEmpresaNuevo" class="form-control" placeholder="999 999 999">
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label"><i class="bi bi-person" style="color:#7C3AED"></i> Encargado / Contacto</label>
+                        <input type="text" name="empresa_encargado" id="encargadoEmpresaNuevo" class="form-control" placeholder="Nombre del contacto">
                     </div>
 
                     {{-- Panel --}}
@@ -384,33 +377,28 @@ const empresasData = @json($empresas_json);
 function onNombreEmpresaChange(value) {
     const match = empresasData.find(e => e.nombre.toLowerCase() === value.toLowerCase());
     const statusDiv = document.getElementById('empresaStatusNuevo');
-    const extraFields = document.getElementById('extraEmpresaFields');
 
     if (match) {
-        // Empresa encontrada → llenar RUC y ocultar campos extra
+        // Empresa encontrada → auto-rellenar datos de contacto
         document.getElementById('rucHiddenNuevo').value = match.ruc || '';
-        if (match.ruc) document.getElementById('rucInputNuevo').value = match.ruc;
-        if (match.correo)    document.getElementById('correoEmpresaNuevo').value    = match.correo;
-        if (match.celular)   document.getElementById('celularEmpresaNuevo').value   = match.celular;
+        if (match.ruc)      document.getElementById('rucInputNuevo').value        = match.ruc;
+        if (match.correo)   document.getElementById('correoEmpresaNuevo').value   = match.correo;
+        if (match.celular)  document.getElementById('celularEmpresaNuevo').value  = match.celular;
         if (match.encargado) document.getElementById('encargadoEmpresaNuevo').value = match.encargado;
-        extraFields.style.display = 'none';
         statusDiv.style.display = 'block';
         statusDiv.innerHTML = '<div class="empresa-found-banner">' +
             '<i class="bi bi-check-circle-fill"></i>' +
-            '<span><strong>Empresa encontrada</strong> en el sistema' +
+            '<span><strong>Empresa encontrada</strong> en el sistema — datos auto-rellenados' +
             (match.ruc ? ' · RUC: <strong>' + match.ruc + '</strong>' : '') +
             '</span></div>';
     } else if (value.length > 2) {
-        // Empresa nueva → mostrar campos extra
         document.getElementById('rucHiddenNuevo').value = document.getElementById('rucInputNuevo').value;
-        extraFields.style.display = 'block';
         statusDiv.style.display = 'block';
         statusDiv.innerHTML = '<div class="empresa-new-banner">' +
             '<i class="bi bi-building-add"></i>' +
-            '<span>Empresa nueva — se creará automáticamente en el módulo Empresas.</span></div>';
+            '<span>Empresa nueva — se creará automáticamente en el módulo Empresas al guardar.</span></div>';
     } else {
         statusDiv.style.display = 'none';
-        extraFields.style.display = 'none';
     }
 }
 
@@ -431,10 +419,9 @@ function buscarRucNuevo() {
     if (localMatch) {
         document.getElementById('nombreEmpresaNuevo').value = localMatch.nombre;
         document.getElementById('rucHiddenNuevo').value = ruc;
-        if (localMatch.correo)    document.getElementById('correoEmpresaNuevo').value    = localMatch.correo;
-        if (localMatch.celular)   document.getElementById('celularEmpresaNuevo').value   = localMatch.celular;
+        if (localMatch.correo)    document.getElementById('correoEmpresaNuevo').value   = localMatch.correo;
+        if (localMatch.celular)   document.getElementById('celularEmpresaNuevo').value  = localMatch.celular;
         if (localMatch.encargado) document.getElementById('encargadoEmpresaNuevo').value = localMatch.encargado;
-        document.getElementById('extraEmpresaFields').style.display = 'none';
         document.getElementById('empresaStatusNuevo').style.display = 'block';
         document.getElementById('empresaStatusNuevo').innerHTML =
             '<div class="empresa-found-banner"><i class="bi bi-check-circle-fill"></i><span><strong>' +
@@ -455,7 +442,6 @@ function buscarRucNuevo() {
             if (!data.nombre) throw new Error('sin datos');
             document.getElementById('nombreEmpresaNuevo').value = data.nombre;
             document.getElementById('rucHiddenNuevo').value = ruc;
-            document.getElementById('extraEmpresaFields').style.display = 'block';
             document.getElementById('empresaStatusNuevo').style.display = 'block';
             document.getElementById('empresaStatusNuevo').innerHTML =
                 '<div class="empresa-new-banner"><i class="bi bi-building-add"></i>' +
