@@ -3,6 +3,14 @@
 @section('title', 'Editar Panel Tradicional')
 @section('subtitle', $panelTradicional->nombre)
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+.leaflet-container { font-family: inherit; }
+.mapa-hint { margin-top:6px; font-size:12px; color:var(--text-light); display:flex; align-items:center; gap:5px; }
+</style>
+@endpush
+
 @section('content')
 <div class="form-card">
 
@@ -44,7 +52,7 @@
                 </div>
                 <div class="col-12">
                     <label class="form-label">Dirección / Ubicación</label>
-                    <input type="text" name="direccion" value="{{ old('direccion', $panelTradicional->direccion) }}" class="form-control">
+                    <input type="text" name="direccion" id="inputDireccion" value="{{ old('direccion', $panelTradicional->direccion) }}" class="form-control">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">N° de caras</label>
@@ -62,14 +70,35 @@
                     <label class="form-label">Costo de producción (S/.)</label>
                     <input type="number" name="costo_produccion" value="{{ old('costo_produccion', $panelTradicional->costo_produccion) }}" class="form-control" step="0.01" min="0">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Latitud</label>
-                    <input type="number" name="lat" value="{{ old('lat', $panelTradicional->lat) }}" class="form-control" step="any">
+
+                {{-- Mapa de ubicación --}}
+                <div class="col-12">
+                    <label class="form-label"><i class="bi bi-map" style="color:#2563EB;margin-right:5px"></i>Ubicación en el mapa</label>
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+                        <button type="button" id="btnGeoActual" onclick="usarUbicacionActual()" class="btn btn-sm btn-secondary">
+                            <i class="bi bi-crosshair"></i> Mi ubicación
+                        </button>
+                        <input type="text" id="buscarDireccion" class="form-control" style="max-width:320px"
+                               placeholder="Buscar dirección en el mapa..."
+                               onkeydown="if(event.key==='Enter'){event.preventDefault();buscarEnMapa()}">
+                        <button type="button" onclick="buscarEnMapa()" class="btn btn-sm btn-primary btn-icon" title="Buscar">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <div id="mapaPanel" style="height:320px;border-radius:10px;border:1.5px solid var(--border);overflow:hidden"></div>
+                    <div id="coordsInfo" class="mapa-hint">
+                        @if(old('lat', $panelTradicional->lat) && old('lng', $panelTradicional->lng))
+                            <i class="bi bi-check-circle-fill" style="color:#10B981"></i>
+                            Lat: <strong>{{ old('lat', $panelTradicional->lat) }}</strong>,
+                            Lng: <strong>{{ old('lng', $panelTradicional->lng) }}</strong>
+                        @else
+                            <i class="bi bi-info-circle"></i> Haz clic en el mapa o arrastra el marcador para fijar la ubicación.
+                        @endif
+                    </div>
+                    <input type="hidden" name="lat" id="latInput" value="{{ old('lat', $panelTradicional->lat) }}">
+                    <input type="hidden" name="lng" id="lngInput" value="{{ old('lng', $panelTradicional->lng) }}">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Longitud</label>
-                    <input type="number" name="lng" value="{{ old('lng', $panelTradicional->lng) }}" class="form-control" step="any">
-                </div>
+
                 <div class="col-12">
                     <label class="form-label">Nueva foto (opcional)</label>
                     <input type="file" name="foto" accept="image/*" class="form-control">
@@ -91,3 +120,78 @@
 </form>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    const initLat = parseFloat('{{ old("lat", $panelTradicional->lat) }}') || null;
+    const initLng = parseFloat('{{ old("lng", $panelTradicional->lng) }}') || null;
+    const center  = (initLat && initLng) ? [initLat, initLng] : [-13.5, -72.5];
+    const zoom    = (initLat && initLng) ? 15 : 7;
+
+    const map = L.map('mapaPanel').setView(center, zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>', maxZoom: 19
+    }).addTo(map);
+
+    let marker = null;
+    if (initLat && initLng) {
+        marker = L.marker([initLat, initLng], {draggable: true}).addTo(map);
+        marker.on('dragend', e => setCoords(e.target.getLatLng().lat, e.target.getLatLng().lng));
+    }
+
+    map.on('click', e => placeMarker(e.latlng.lat, e.latlng.lng));
+
+    function placeMarker(lat, lng) {
+        if (marker) { marker.setLatLng([lat, lng]); }
+        else {
+            marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+            marker.on('dragend', e => setCoords(e.target.getLatLng().lat, e.target.getLatLng().lng));
+        }
+        setCoords(lat, lng);
+    }
+
+    function setCoords(lat, lng) {
+        document.getElementById('latInput').value = lat.toFixed(7);
+        document.getElementById('lngInput').value = lng.toFixed(7);
+        document.getElementById('coordsInfo').innerHTML =
+            '<i class="bi bi-check-circle-fill" style="color:#10B981"></i> ' +
+            'Lat: <strong>' + lat.toFixed(6) + '</strong>, Lng: <strong>' + lng.toFixed(6) + '</strong>';
+    }
+
+    window.usarUbicacionActual = function() {
+        const btn = document.getElementById('btnGeoActual');
+        if (!navigator.geolocation) { alert('Geolocalización no disponible en este navegador.'); return; }
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Obteniendo...';
+        navigator.geolocation.getCurrentPosition(pos => {
+            placeMarker(pos.coords.latitude, pos.coords.longitude);
+            map.setView([pos.coords.latitude, pos.coords.longitude], 17);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-crosshair"></i> Mi ubicación';
+        }, () => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-crosshair"></i> Mi ubicación';
+            alert('No se pudo obtener la ubicación.');
+        });
+    };
+
+    window.buscarEnMapa = function() {
+        const q = document.getElementById('buscarDireccion').value.trim();
+        if (!q) return;
+        fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1', {
+            headers: {'Accept-Language': 'es'}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.length) { alert('Dirección no encontrada. Intenta con un texto más específico.'); return; }
+            const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+            placeMarker(lat, lng);
+            map.setView([lat, lng], 17);
+        })
+        .catch(() => alert('Error al buscar la dirección.'));
+    };
+})();
+</script>
+@endpush
