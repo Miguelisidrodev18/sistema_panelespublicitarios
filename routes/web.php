@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Paneles Digitales
     Route::resource('paneles-digitales', PanelDigitalController::class)
+        ->parameters(['paneles-digitales' => 'panelDigital'])
         ->middleware('can-permiso:paneles_digitales');
 
     // Paneles Tradicionales
