@@ -34,7 +34,7 @@
     </div>
 </div>
 
-<div class="stats-grid">
+<div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
     <div class="stat-card">
         <div class="stat-icon blue"><i class="bi bi-building"></i></div>
         <div>
