@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Empresa;
 use App\Models\Cobranza;
 use App\Models\Contrato;
+use App\Models\ContratoCobro;
 use App\Models\ControlPublicitario;
 use App\Models\Ingreso;
 use App\Models\Egreso;
@@ -24,7 +25,9 @@ class DashboardController extends Controller
                 'cuotas_vencidas'      => Cobranza::where('estado', 'pendiente')
                     ->where('fecha_vencimiento', '<', now())->count(),
                 'ingresos_mes'         => Ingreso::whereMonth('created_at', now()->month)
-                    ->whereYear('created_at', now()->year)->sum('monto'),
+                    ->whereYear('created_at', now()->year)->sum('monto')
+                    + ContratoCobro::whereMonth('fecha_cobro', now()->month)
+                    ->whereYear('fecha_cobro', now()->year)->sum('monto'),
                 'egresos_mes'          => Egreso::whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)->sum('monto'),
                 'deudas_pendientes'    => Deuda::where('estado', 'pendiente')->sum('monto_pendiente'),
@@ -99,15 +102,17 @@ class DashboardController extends Controller
                 ]);
             }
 
-            // Ingresos últimos 6 meses para el gráfico
+            // Ingresos últimos 6 meses para el gráfico (Ingreso + cobros de contratos)
             $ingresos6meses = collect();
             for ($i = 5; $i >= 0; $i--) {
                 $mes = now()->subMonths($i);
+                $montoIngresos  = (int) Ingreso::whereYear('created_at', $mes->year)
+                    ->whereMonth('created_at', $mes->month)->sum('monto');
+                $montoCobros    = (int) ContratoCobro::whereYear('fecha_cobro', $mes->year)
+                    ->whereMonth('fecha_cobro', $mes->month)->sum('monto');
                 $ingresos6meses->push([
                     'label' => $mes->translatedFormat('M Y'),
-                    'monto' => (int) Ingreso::whereYear('created_at', $mes->year)
-                        ->whereMonth('created_at', $mes->month)
-                        ->sum('monto'),
+                    'monto' => $montoIngresos + $montoCobros,
                 ]);
             }
 
