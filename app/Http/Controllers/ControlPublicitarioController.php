@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\ControlPublicitarioExport;
 use App\Models\ControlPublicitario;
 use App\Models\ControlPublicitarioHistorial;
+use App\Models\ControlPublicitarioPanel;
 use App\Models\Empresa;
 use App\Models\PanelDigital;
 use App\Models\PanelUbicacion;
@@ -17,20 +18,20 @@ class ControlPublicitarioController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ControlPublicitario::query();
+        $query = ControlPublicitario::with('paneles');
 
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
         if ($request->filled('tipo_panel')) {
-            $query->where('tipo_panel', $request->tipo_panel);
+            $query->whereHas('paneles', fn($q) => $q->where('tipo_panel', $request->tipo_panel));
         }
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
             $query->where(function ($q) use ($buscar) {
                 $q->where('empresa_nombre', 'like', "%{$buscar}%")
-                  ->orWhere('panel_codigo', 'like', "%{$buscar}%")
-                  ->orWhere('ruc', 'like', "%{$buscar}%");
+                  ->orWhere('ruc', 'like', "%{$buscar}%")
+                  ->orWhereHas('paneles', fn($p) => $p->where('panel_codigo', 'like', "%{$buscar}%"));
             });
         }
 
@@ -52,26 +53,18 @@ class ControlPublicitarioController extends Controller
             'cancelados' => ControlPublicitario::where('estado', 'cancelado')->count(),
         ];
 
-        $panelCounts = ControlPublicitario::where('estado', 'activo')
-            ->select('panel_codigo', DB::raw('count(*) as total'))
-            ->groupBy('panel_codigo')
-            ->pluck('total', 'panel_codigo');
-
-        // Pre-mapear para JS (evita arrow function dentro de @json en Blade)
-        $empresas_json = $empresas_data->map(function ($e) {
-            return [
-                'id'        => $e->id,
-                'nombre'    => $e->nombre,
-                'ruc'       => $e->ruc,
-                'correo'    => $e->correo,
-                'celular'   => $e->celular,
-                'encargado' => $e->encargado,
-            ];
-        })->values()->all();
+        $empresas_json = $empresas_data->map(fn($e) => [
+            'id'        => $e->id,
+            'nombre'    => $e->nombre,
+            'ruc'       => $e->ruc,
+            'correo'    => $e->correo,
+            'celular'   => $e->celular,
+            'encargado' => $e->encargado,
+        ])->values()->all();
 
         return view('control_publicitario.index', compact(
             'registros', 'empresas_data', 'empresas_json', 'paneles_digitales', 'paneles_tradicionales',
-            'mapaDigital', 'mapaTradicional', 'stats', 'panelCounts'
+            'mapaDigital', 'mapaTradicional', 'stats'
         ));
     }
 
@@ -91,8 +84,9 @@ class ControlPublicitarioController extends Controller
             'empresa_correo'    => 'nullable|email|max:150',
             'empresa_celular'   => 'nullable|string|max:20',
             'empresa_encargado' => 'nullable|string|max:100',
-            'panel_codigo'      => 'required|string|max:50',
-            'tipo_panel'        => 'required|in:digital,tradicional',
+            'paneles'           => 'required|array|min:1',
+            'paneles.*.codigo'  => 'required|string|max:50',
+            'paneles.*.tipo'    => 'required|in:digital,tradicional',
             'fecha_inicio'      => 'nullable|date',
             'fecha_fin'         => 'nullable|date|after_or_equal:fecha_inicio',
             'estado'            => 'required|in:activo,pausado,cancelado',
@@ -101,7 +95,7 @@ class ControlPublicitarioController extends Controller
             'monto_pendiente'   => 'nullable|numeric|min:0',
         ]);
 
-        // Buscar empresa existente por RUC o nombre
+        // Buscar o crear empresa
         $empresa = null;
         if (!empty($validated['ruc'])) {
             $empresa = Empresa::where('ruc', $validated['ruc'])->first();
@@ -112,11 +106,10 @@ class ControlPublicitarioController extends Controller
 
         $empresaCreada = false;
         if ($empresa) {
-            // Completar campos vacíos con los datos nuevos
             $updates = [];
-            if (!$empresa->ruc && !empty($validated['ruc']))                   $updates['ruc']       = $validated['ruc'];
-            if (!$empresa->correo && !empty($validated['empresa_correo']))     $updates['correo']    = $validated['empresa_correo'];
-            if (!$empresa->celular && !empty($validated['empresa_celular']))   $updates['celular']   = $validated['empresa_celular'];
+            if (!$empresa->ruc && !empty($validated['ruc']))                     $updates['ruc']       = $validated['ruc'];
+            if (!$empresa->correo && !empty($validated['empresa_correo']))       $updates['correo']    = $validated['empresa_correo'];
+            if (!$empresa->celular && !empty($validated['empresa_celular']))     $updates['celular']   = $validated['empresa_celular'];
             if (!$empresa->encargado && !empty($validated['empresa_encargado'])) $updates['encargado'] = $validated['empresa_encargado'];
             if ($updates) $empresa->update($updates);
         } else {
@@ -131,12 +124,15 @@ class ControlPublicitarioController extends Controller
             $empresaCreada = true;
         }
 
+        // Usar primer panel como referencia en la fila principal (legacy)
+        $primerPanel = $validated['paneles'][0];
+
         $registro = ControlPublicitario::create([
             'empresa_nombre'  => $validated['empresa_nombre'],
             'ruc'             => $validated['ruc'] ?? null,
             'empresa_id'      => $empresa->id,
-            'panel_codigo'    => $validated['panel_codigo'],
-            'tipo_panel'      => $validated['tipo_panel'],
+            'panel_codigo'    => $primerPanel['codigo'],
+            'tipo_panel'      => $primerPanel['tipo'],
             'fecha_inicio'    => $validated['fecha_inicio'] ?? null,
             'fecha_fin'       => $validated['fecha_fin'] ?? null,
             'estado'          => $validated['estado'],
@@ -144,6 +140,15 @@ class ControlPublicitarioController extends Controller
             'monto_pagado'    => $validated['monto_pagado'] ?? null,
             'monto_pendiente' => $validated['monto_pendiente'] ?? null,
         ]);
+
+        // Guardar todos los paneles en la tabla pivot
+        foreach ($validated['paneles'] as $p) {
+            ControlPublicitarioPanel::create([
+                'control_publicitario_id' => $registro->id,
+                'panel_codigo'            => $p['codigo'],
+                'tipo_panel'              => $p['tipo'],
+            ]);
+        }
 
         ControlPublicitarioHistorial::create([
             'control_publicitario_id' => $registro->id,
@@ -158,19 +163,22 @@ class ControlPublicitarioController extends Controller
             $msg .= ' La empresa "' . $empresa->nombre . '" fue creada en el módulo Empresas.';
         }
 
-        return back()->with('success', $msg);
+        return redirect()->route('control-publicitario.index')->with('success', $msg);
     }
 
     public function update(Request $request, ControlPublicitario $controlPublicitario)
     {
         $validated = $request->validate([
-            'estado'          => 'required|in:activo,pausado,cancelado',
-            'ruc'             => ['nullable', 'string', 'size:11', 'regex:/^\d{11}$/'],
-            'fecha_inicio'    => 'nullable|date',
-            'fecha_fin'       => 'nullable|date|after_or_equal:fecha_inicio',
-            'notas'           => 'nullable|string',
-            'monto_pagado'    => 'nullable|numeric|min:0',
-            'monto_pendiente' => 'nullable|numeric|min:0',
+            'estado'           => 'required|in:activo,pausado,cancelado',
+            'ruc'              => ['nullable', 'string', 'size:11', 'regex:/^\d{11}$/'],
+            'fecha_inicio'     => 'nullable|date',
+            'fecha_fin'        => 'nullable|date|after_or_equal:fecha_inicio',
+            'notas'            => 'nullable|string',
+            'monto_pagado'     => 'nullable|numeric|min:0',
+            'monto_pendiente'  => 'nullable|numeric|min:0',
+            'paneles'          => 'nullable|array|min:1',
+            'paneles.*.codigo' => 'required_with:paneles|string|max:50',
+            'paneles.*.tipo'   => 'required_with:paneles|in:digital,tradicional',
         ]);
 
         $estadoAnterior = $controlPublicitario->estado;
@@ -179,7 +187,6 @@ class ControlPublicitarioController extends Controller
             $validated['fecha_cancelacion'] = now();
         }
 
-        // Sincronizar RUC con la empresa vinculada
         if (!empty($validated['ruc']) && $controlPublicitario->empresa_id) {
             $empresa = Empresa::find($controlPublicitario->empresa_id);
             if ($empresa && !$empresa->ruc) {
@@ -187,6 +194,22 @@ class ControlPublicitarioController extends Controller
             }
         }
 
+        // Sincronizar paneles si se enviaron
+        if (!empty($validated['paneles'])) {
+            $controlPublicitario->paneles()->delete();
+            foreach ($validated['paneles'] as $p) {
+                ControlPublicitarioPanel::create([
+                    'control_publicitario_id' => $controlPublicitario->id,
+                    'panel_codigo'            => $p['codigo'],
+                    'tipo_panel'              => $p['tipo'],
+                ]);
+            }
+            // Actualizar referencia legacy con el primer panel
+            $validated['panel_codigo'] = $validated['paneles'][0]['codigo'];
+            $validated['tipo_panel']   = $validated['paneles'][0]['tipo'];
+        }
+
+        unset($validated['paneles']);
         $controlPublicitario->update($validated);
 
         if ($validated['estado'] !== $estadoAnterior) {
@@ -199,19 +222,27 @@ class ControlPublicitarioController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Registro actualizado correctamente.');
+        return redirect()->route('control-publicitario.index')->with('success', 'Registro actualizado correctamente.');
     }
 
     public function show(ControlPublicitario $controlPublicitario)
     {
-        $controlPublicitario->load('historial.usuario', 'empresa');
-        return view('control_publicitario.show', compact('controlPublicitario'));
+        $controlPublicitario->load('historial.usuario', 'empresa', 'paneles');
+
+        $paneles_digitales    = PanelDigital::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
+        $paneles_tradicionales = PanelUbicacion::where('activo', true)->orderBy('nombre')->get(['id', 'codigo', 'nombre']);
+        $mapaDigital     = $paneles_digitales->keyBy('codigo');
+        $mapaTradicional = $paneles_tradicionales->keyBy('codigo');
+
+        return view('control_publicitario.show', compact(
+            'controlPublicitario', 'paneles_digitales', 'paneles_tradicionales', 'mapaDigital', 'mapaTradicional'
+        ));
     }
 
     public function destroy(ControlPublicitario $controlPublicitario)
     {
         $controlPublicitario->delete();
-        return back()->with('success', 'Registro eliminado.');
+        return redirect()->route('control-publicitario.index')->with('success', 'Registro eliminado.');
     }
 
     public function panelPreview(string $tipo, string $codigo)

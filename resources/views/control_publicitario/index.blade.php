@@ -27,10 +27,6 @@
 .badge-proximo  { background:linear-gradient(135deg,#2563EB,#1D4ED8); color:#fff; box-shadow:0 2px 8px rgba(37,99,235,.4); }
 @keyframes pulse-orange { 0%,100%{box-shadow:0 0 6px rgba(234,88,12,.45);}50%{box-shadow:0 0 18px rgba(234,88,12,.9);} }
 
-.badge-panel-alto  { background:linear-gradient(135deg,#DC2626,#B91C1C); color:#fff; }
-.badge-panel-medio { background:linear-gradient(135deg,#EA580C,#C2410C); color:#fff; }
-.badge-panel-bajo  { background:linear-gradient(135deg,#64748B,#475569); color:#fff; }
-
 .pub-table thead tr th { background:linear-gradient(135deg,#1E293B,#334155) !important; color:#fff !important; font-weight:700; border-bottom:2px solid #2563EB; }
 
 .btn-exportar { background:linear-gradient(135deg,#059669,#047857); color:#fff; border:none; box-shadow:0 4px 14px rgba(5,150,105,.4); transition:box-shadow .2s,transform .15s; }
@@ -41,9 +37,24 @@
 .ruc-search-box .ruc-title { font-size:11px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:#2563EB; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
 .empresa-found-banner { background:linear-gradient(135deg,#D1FAE5,#A7F3D0); border:1px solid #6EE7B7; border-radius:8px; padding:8px 12px; font-size:12.5px; color:#065F46; display:flex; align-items:center; gap:8px; margin-top:8px; }
 .empresa-new-banner   { background:linear-gradient(135deg,#FEF3C7,#FDE68A); border:1px solid #FCD34D; border-radius:8px; padding:8px 12px; font-size:12.5px; color:#92400E; display:flex; align-items:center; gap:8px; margin-top:8px; }
-.extra-empresa-fields { border:1.5px dashed #FCD34D; border-radius:10px; padding:12px 14px; background:#FFFBEB; margin-top:4px; }
-.extra-empresa-fields .extra-title { font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:#D97706; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
 .ruc-tag { display:inline-flex; align-items:center; gap:4px; background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:600; font-family:monospace; }
+
+/* Panel rows dinámicos */
+.panel-row { display:flex; gap:8px; align-items:center; background:var(--bg-card,#F8FAFC); border:1px solid var(--border,#E2E8F0); border-radius:8px; padding:8px 10px; margin-bottom:6px; }
+.panel-row .panel-row-fields { display:flex; gap:6px; flex:1; align-items:center; }
+.panel-row select { min-width:120px; }
+.panel-row input  { flex:1; }
+.btn-remove-panel { background:none; border:1px solid #FCA5A5; color:#DC2626; border-radius:6px; padding:3px 8px; font-size:13px; cursor:pointer; transition:background .15s; }
+.btn-remove-panel:hover { background:#FEE2E2; }
+.btn-add-panel { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1px dashed #2563EB; color:#1D4ED8; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; width:100%; margin-top:4px; transition:background .15s; }
+.btn-add-panel:hover { background:linear-gradient(135deg,#DBEAFE,#BFDBFE); }
+.paneles-section-label { font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:#2563EB; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+
+/* Panel chips en tabla */
+.panel-chip { display:inline-flex; align-items:center; gap:4px; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:6px; padding:2px 7px; font-size:11px; font-weight:600; margin:2px 2px 0 0; cursor:pointer; transition:background .12s; }
+.panel-chip:hover { background:#DBEAFE; }
+.panel-chip.tradicional { background:#FEF3C7; border-color:#FCD34D; }
+.panel-chip.tradicional:hover { background:#FDE68A; }
 
 /* Panel preview */
 @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
@@ -52,16 +63,12 @@
 .panel-spec-grid { display:grid; grid-template-columns:auto 1fr; gap:7px 16px; font-size:13px; margin:12px 0; }
 .panel-spec-label { color:var(--text-lighter); font-weight:600; font-size:12px; white-space:nowrap; padding-top:1px; }
 .panel-spec-value { color:var(--text-dark); }
-.panel-preview-mini { background:linear-gradient(135deg,#EFF6FF,#DBEAFE); border:1px solid #BFDBFE; border-radius:8px; padding:8px 12px; font-size:12.5px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:box-shadow .15s; }
-.panel-preview-mini:hover { box-shadow:0 2px 10px rgba(37,99,235,.2); }
-.btn-panel-eye { padding:2px 6px; font-size:11px; background:transparent; border:1px solid var(--border); color:var(--text-light); border-radius:6px; line-height:1.6; cursor:pointer; transition:background .15s,color .15s; }
-.btn-panel-eye:hover { background:#EFF6FF; color:#2563EB; border-color:#BFDBFE; }
 </style>
 @endpush
 
 @section('content')
 
-{{-- Estadísticas luminosas --}}
+{{-- Estadísticas --}}
 <div class="stats-grid stagger" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px">
     <div class="pub-stat-card green">
         <span class="stat-icon"><i class="bi bi-megaphone-fill"></i></span>
@@ -101,8 +108,8 @@
         </select>
         <select name="tipo_panel" class="form-select" style="max-width:150px">
             <option value="">Tipo panel</option>
-            <option value="digital"      {{ request('tipo_panel') === 'digital'      ? 'selected' : '' }}>Digital</option>
-            <option value="tradicional"  {{ request('tipo_panel') === 'tradicional'  ? 'selected' : '' }}>Tradicional</option>
+            <option value="digital"     {{ request('tipo_panel') === 'digital'     ? 'selected' : '' }}>Digital</option>
+            <option value="tradicional" {{ request('tipo_panel') === 'tradicional' ? 'selected' : '' }}>Tradicional</option>
         </select>
         <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i>Filtrar</button>
         <a href="{{ route('control-publicitario.index') }}" class="btn btn-secondary btn-sm">Limpiar</a>
@@ -117,12 +124,17 @@
         <table class="pub-table">
             <thead>
                 <tr>
-                    <th>Empresa / RUC</th><th>Panel</th><th>Tipo</th><th>Período</th>
-                    <th>En Panel</th><th>Estado</th><th>Montos</th><th class="td-end">Acciones</th>
+                    <th>Empresa / RUC</th><th>Pantallas</th><th>Período</th>
+                    <th>Estado</th><th>Montos</th><th class="td-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($registros as $reg)
+                @php
+                    $panelesList = $reg->paneles->count()
+                        ? $reg->paneles
+                        : collect([['panel_codigo' => $reg->panel_codigo, 'tipo_panel' => $reg->tipo_panel]]);
+                @endphp
                 <tr>
                     <td>
                         <div class="fw-700" style="color:var(--text-dark)">{{ $reg->empresa_nombre }}</div>
@@ -136,26 +148,26 @@
                         @endif
                     </td>
                     <td>
-                        @php
-                            $panelNombre = $reg->tipo_panel === 'digital'
-                                ? ($mapaDigital[$reg->panel_codigo]->nombre ?? null)
-                                : ($mapaTradicional[$reg->panel_codigo]->nombre ?? null);
-                        @endphp
-                        @if($panelNombre)
-                            <div class="fw-600" style="font-size:13px">{{ $panelNombre }}</div>
-                        @endif
-                        <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
-                            <code style="font-size:11px">{{ $reg->panel_codigo }}</code>
-                            <button type="button" class="btn-panel-eye"
-                                    onclick="mostrarVistaPanel('{{ $reg->panel_codigo }}', '{{ $reg->tipo_panel }}')"
-                                    title="Vista rápida del panel"><i class="bi bi-eye"></i></button>
-                        </div>
-                    </td>
-                    <td>
-                        @if($reg->tipo_panel === 'digital')
-                            <span class="badge badge-primary"><i class="bi bi-display"></i>Digital</span>
-                        @else
-                            <span class="badge badge-warning"><i class="bi bi-signpost-2"></i>Tradicional</span>
+                        @foreach($reg->paneles->count() ? $reg->paneles : collect([(object)['panel_codigo'=>$reg->panel_codigo,'tipo_panel'=>$reg->tipo_panel]]) as $p)
+                            @php
+                                $pCodigo = is_object($p) ? $p->panel_codigo : $p['panel_codigo'];
+                                $pTipo   = is_object($p) ? $p->tipo_panel   : $p['tipo_panel'];
+                                $pNombre = $pTipo === 'digital'
+                                    ? ($mapaDigital[$pCodigo]->nombre ?? null)
+                                    : ($mapaTradicional[$pCodigo]->nombre ?? null);
+                            @endphp
+                            <span class="panel-chip {{ $pTipo === 'tradicional' ? 'tradicional' : '' }}"
+                                  onclick="mostrarVistaPanel('{{ $pCodigo }}', '{{ $pTipo }}')"
+                                  title="{{ $pNombre ?? $pCodigo }} — Ver panel">
+                                <i class="bi bi-{{ $pTipo === 'digital' ? 'display' : 'signpost-2' }}"></i>
+                                {{ $pCodigo }}
+                                @if($pNombre) <span style="opacity:.7;font-weight:400">{{ $pNombre }}</span> @endif
+                            </span>
+                        @endforeach
+                        @if($reg->paneles->count() > 1)
+                            <div style="font-size:10.5px;color:var(--text-lighter);margin-top:3px">
+                                <i class="bi bi-collection"></i> Paquete · {{ $reg->paneles->count() }} pantallas
+                            </div>
                         @endif
                     </td>
                     <td>
@@ -177,25 +189,15 @@
                         @else <span class="text-muted">—</span> @endif
                     </td>
                     <td>
-                        @php $cnt = (int)($panelCounts[$reg->panel_codigo] ?? 0) @endphp
-                        @if($cnt > 3)
-                            <span class="badge badge-panel-alto" title="{{ $cnt }} anuncios activos en este panel"><i class="bi bi-display"></i> {{ $cnt }}</span>
-                        @elseif($cnt > 1)
-                            <span class="badge badge-panel-medio" title="{{ $cnt }} anuncios activos en este panel"><i class="bi bi-display"></i> {{ $cnt }}</span>
-                        @else
-                            <span class="badge badge-panel-bajo" title="1 anuncio activo en este panel"><i class="bi bi-display"></i> {{ $cnt ?: 1 }}</span>
-                        @endif
-                    </td>
-                    <td>
                         @php $bmap = ['activo'=>'success','pausado'=>'warning','cancelado'=>'danger']; @endphp
                         <span class="badge badge-{{ $bmap[$reg->estado] ?? 'gray' }}">{{ ucfirst($reg->estado) }}</span>
                     </td>
                     <td style="font-size:12.5px">
                         @if($reg->monto_pagado !== null)
-                            <div style="color:#065F46"><i class="bi bi-check-circle-fill" style="font-size:10px"></i> ${{ number_format($reg->monto_pagado,2) }}</div>
+                            <div style="color:#065F46"><i class="bi bi-check-circle-fill" style="font-size:10px"></i> S/ {{ number_format($reg->monto_pagado,2) }}</div>
                         @endif
                         @if($reg->monto_pendiente !== null)
-                            <div style="color:#92400E"><i class="bi bi-clock-fill" style="font-size:10px"></i> ${{ number_format($reg->monto_pendiente,2) }}</div>
+                            <div style="color:#92400E"><i class="bi bi-clock-fill" style="font-size:10px"></i> S/ {{ number_format($reg->monto_pendiente,2) }}</div>
                         @endif
                         @if($reg->monto_pagado === null && $reg->monto_pendiente === null)
                             <span class="text-muted">—</span>
@@ -206,7 +208,7 @@
                             <a href="{{ route('control-publicitario.show', $reg) }}" class="btn btn-sm btn-secondary btn-icon" title="Ver historial"><i class="bi bi-clock-history"></i></a>
                             @if(auth()->user()->esAdmin())
                             <button class="btn btn-sm btn-warning btn-icon"
-                                onclick="openEditModal({{ $reg->id }}, '{{ $reg->estado }}', '{{ $reg->fecha_inicio?->format('Y-m-d') ?? '' }}', '{{ $reg->fecha_fin?->format('Y-m-d') ?? '' }}', '{{ addslashes($reg->notas ?? '') }}', '{{ $reg->monto_pagado ?? '' }}', '{{ $reg->monto_pendiente ?? '' }}', '{{ $reg->ruc ?? '' }}')"
+                                onclick="openEditModal({{ $reg->id }}, '{{ $reg->estado }}', '{{ $reg->fecha_inicio?->format('Y-m-d') ?? '' }}', '{{ $reg->fecha_fin?->format('Y-m-d') ?? '' }}', {{ json_encode($reg->notas ?? '') }}, '{{ $reg->monto_pagado ?? '' }}', '{{ $reg->monto_pendiente ?? '' }}', '{{ $reg->ruc ?? '' }}', {{ $reg->paneles->count() ? $reg->paneles->map(fn($p)=>['codigo'=>$p->panel_codigo,'tipo'=>$p->tipo_panel])->toJson() : json_encode([['codigo'=>$reg->panel_codigo,'tipo'=>$reg->tipo_panel]]) }})"
                                 title="Editar"><i class="bi bi-pencil"></i></button>
                             <form action="{{ route('control-publicitario.destroy', $reg) }}" method="POST" onsubmit="return confirm('¿Eliminar este registro?')">
                                 @csrf @method('DELETE')
@@ -217,7 +219,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8"><div class="empty-state"><i class="bi bi-clipboard2-check"></i><p>No hay registros de control publicitario</p></div></td></tr>
+                <tr><td colspan="6"><div class="empty-state"><i class="bi bi-clipboard2-check"></i><p>No hay registros de control publicitario</p></div></td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -227,10 +229,18 @@
     @endif
 </div>
 
+{{-- Datalists globales para paneles --}}
+<datalist id="lista_paneles_digital">
+    @foreach($paneles_digitales as $p)<option value="{{ $p->codigo }}">{{ $p->codigo }} — {{ $p->nombre }}</option>@endforeach
+</datalist>
+<datalist id="lista_paneles_tradicional">
+    @foreach($paneles_tradicionales as $p)<option value="{{ $p->codigo }}">{{ $p->codigo }} — {{ $p->nombre }}</option>@endforeach
+</datalist>
+
 @if(auth()->user()->esAdmin())
-{{-- Modal nuevo --}}
+{{-- ═══════════════════════════ MODAL NUEVO ═══════════════════════════ --}}
 <div class="modal-backdrop" id="modalNuevo" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="modal-box" style="max-width:620px">
+    <div class="modal-box" style="max-width:660px">
         <form action="{{ route('control-publicitario.store') }}" method="POST">
             @csrf
             <div class="modal-header">
@@ -239,7 +249,7 @@
             </div>
             <div class="modal-body">
 
-                {{-- Bloque búsqueda RUC --}}
+                {{-- Búsqueda RUC --}}
                 <div class="ruc-search-box">
                     <div class="ruc-title"><i class="bi bi-upc-scan"></i>Buscar empresa por RUC (SUNAT)</div>
                     <div style="display:flex;gap:8px;align-items:center">
@@ -263,13 +273,12 @@
                         <input type="hidden" name="ruc" id="rucHiddenNuevo">
                         <datalist id="lista_empresas_nuevo">
                             @foreach($empresas_data as $emp)
-                                <option value="{{ $emp->nombre }}" data-id="{{ $emp->id }}">
+                                <option value="{{ $emp->nombre }}">
                             @endforeach
                         </datalist>
                         <div id="empresaStatusNuevo" style="display:none;margin-top:6px"></div>
                     </div>
 
-                    {{-- Datos de contacto de la empresa --}}
                     <div class="form-group">
                         <label class="form-label"><i class="bi bi-envelope" style="color:#2563EB"></i> Correo empresa</label>
                         <input type="email" name="empresa_correo" id="correoEmpresaNuevo" class="form-control" placeholder="correo@empresa.com">
@@ -283,28 +292,13 @@
                         <input type="text" name="empresa_encargado" id="encargadoEmpresaNuevo" class="form-control" placeholder="Nombre del contacto">
                     </div>
 
-                    {{-- Panel --}}
-                    <div class="form-group">
-                        <label class="form-label">Tipo de panel <span class="req">*</span></label>
-                        <select name="tipo_panel" id="tipoPanelModal" class="form-select" onchange="actualizarPaneles()">
-                            <option value="digital">Digital</option>
-                            <option value="tradicional">Tradicional</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Panel <span class="req">*</span></label>
-                        <div style="display:flex;gap:6px;align-items:center">
-                            <input type="text" name="panel_codigo" id="panelCodigoModal" class="form-control"
-                                   list="lista_paneles_digital" required placeholder="Ej: PD-001"
-                                   onchange="autoPreviewPanel()" onblur="autoPreviewPanel()">
-                            <button type="button" class="btn btn-secondary btn-sm btn-icon"
-                                    onclick="mostrarVistaPanel()" title="Vista rápida del panel" style="flex-shrink:0">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                        <datalist id="lista_paneles_digital">@foreach($paneles_digitales as $p)<option value="{{ $p->codigo }}">{{ $p->codigo }} — {{ $p->nombre }}</option>@endforeach</datalist>
-                        <datalist id="lista_paneles_tradicional">@foreach($paneles_tradicionales as $p)<option value="{{ $p->codigo }}">{{ $p->codigo }} — {{ $p->nombre }}</option>@endforeach</datalist>
-                        <div id="panelPreviewMini" style="display:none;margin-top:6px"></div>
+                    {{-- Pantallas (paquete) --}}
+                    <div class="form-group" style="grid-column:1/-1">
+                        <div class="paneles-section-label"><i class="bi bi-collection"></i> Pantallas contratadas <span class="req">*</span></div>
+                        <div id="panelesContainerNuevo"></div>
+                        <button type="button" class="btn-add-panel" onclick="addPanelRow('panelesContainerNuevo')">
+                            <i class="bi bi-plus-circle"></i> Agregar pantalla
+                        </button>
                     </div>
 
                     {{-- Fechas --}}
@@ -332,7 +326,6 @@
                         <input type="number" name="monto_pendiente" class="form-control" step="0.01" min="0" placeholder="0.00">
                     </div>
 
-                    {{-- Notas --}}
                     <div class="form-group" style="grid-column:1/-1">
                         <label class="form-label">Notas</label>
                         <textarea name="notas" class="form-control" rows="2" placeholder="Observaciones del contrato..."></textarea>
@@ -347,9 +340,9 @@
     </div>
 </div>
 
-{{-- Modal editar --}}
+{{-- ═══════════════════════════ MODAL EDITAR ═══════════════════════════ --}}
 <div class="modal-backdrop" id="modalEditar" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="modal-box" style="max-width:540px">
+    <div class="modal-box" style="max-width:580px">
         <form id="formEditar" method="POST">
             @csrf @method('PATCH')
             <div class="modal-header">
@@ -362,6 +355,16 @@
                         <label class="form-label"><i class="bi bi-upc-scan" style="color:#2563EB"></i> RUC</label>
                         <input type="text" name="ruc" id="editRuc" class="form-control" style="font-family:monospace;letter-spacing:1px" maxlength="11" placeholder="RUC (11 dígitos)">
                     </div>
+
+                    {{-- Pantallas del paquete --}}
+                    <div class="form-group" style="grid-column:1/-1">
+                        <div class="paneles-section-label"><i class="bi bi-collection"></i> Pantallas contratadas</div>
+                        <div id="panelesContainerEdit"></div>
+                        <button type="button" class="btn-add-panel" onclick="addPanelRow('panelesContainerEdit')">
+                            <i class="bi bi-plus-circle"></i> Agregar pantalla
+                        </button>
+                    </div>
+
                     <div class="form-group"><label class="form-label">Fecha inicio</label><input type="date" name="fecha_inicio" id="editFechaInicio" class="form-control"></div>
                     <div class="form-group"><label class="form-label">Fecha fin</label><input type="date" name="fecha_fin" id="editFechaFin" class="form-control"></div>
                     <div class="form-group" style="grid-column:1/-1">
@@ -380,7 +383,10 @@
                         <label class="form-label"><i class="bi bi-currency-dollar" style="color:#EA580C"></i> Monto Pendiente</label>
                         <input type="number" name="monto_pendiente" id="editMontoPendiente" class="form-control" step="0.01" min="0" placeholder="0.00">
                     </div>
-                    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Notas</label><textarea name="notas" id="editNotas" class="form-control" rows="2"></textarea></div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Notas</label>
+                        <textarea name="notas" id="editNotas" class="form-control" rows="2"></textarea>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -392,7 +398,7 @@
 </div>
 @endif
 
-{{-- Modal: vista rápida panel (accesible desde tabla y desde formulario) --}}
+{{-- Modal: vista rápida panel --}}
 <div class="modal-backdrop" id="modalPanelPreview" onclick="if(event.target===this)this.classList.remove('open')">
     <div class="modal-box" style="max-width:500px">
         <div class="modal-header">
@@ -401,41 +407,125 @@
             </h5>
             <button type="button" class="modal-close" onclick="document.getElementById('modalPanelPreview').classList.remove('open')">×</button>
         </div>
-        <div class="modal-body" id="panelPreviewBody" style="padding:20px">
-        </div>
+        <div class="modal-body" id="panelPreviewBody" style="padding:20px"></div>
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-// Datos de empresas existentes para lookup JS
 const empresasData = @json($empresas_json);
 
-// ── Cuando el usuario escribe el nombre de empresa ──────────────────────────
+// ── Panel rows dinámicos ─────────────────────────────────────────────────────
+let _panelRowIndex = 0;
+
+function addPanelRow(containerId, codigo = '', tipo = 'digital') {
+    const container = document.getElementById(containerId);
+    const idx = _panelRowIndex++;
+    const prefix = containerId === 'panelesContainerNuevo' ? 'nuevo' : 'edit';
+    const listId = tipo === 'digital' ? 'lista_paneles_digital' : 'lista_paneles_tradicional';
+
+    const div = document.createElement('div');
+    div.className = 'panel-row';
+    div.dataset.rowId = idx;
+    div.innerHTML =
+        '<div class="panel-row-fields">' +
+            '<select name="paneles[' + idx + '][tipo]" class="form-select" onchange="onTipoPanelChange(this)">' +
+                '<option value="digital"' + (tipo === 'digital' ? ' selected' : '') + '>Digital</option>' +
+                '<option value="tradicional"' + (tipo === 'tradicional' ? ' selected' : '') + '>Tradicional</option>' +
+            '</select>' +
+            '<input type="text" name="paneles[' + idx + '][codigo]" class="form-control" ' +
+                   'placeholder="Ej: PD-001" required ' +
+                   'list="' + (tipo === 'digital' ? 'lista_paneles_digital' : 'lista_paneles_tradicional') + '" ' +
+                   'value="' + escapeHtml(codigo) + '" ' +
+                   'onblur="mostrarVistaPanel(this.value, this.closest(\'.panel-row\').querySelector(\'select\').value)">' +
+        '</div>' +
+        '<button type="button" class="btn-remove-panel" onclick="removePanelRow(this)" title="Quitar pantalla">' +
+            '<i class="bi bi-x-lg"></i>' +
+        '</button>';
+    container.appendChild(div);
+}
+
+function removePanelRow(btn) {
+    const row = btn.closest('.panel-row');
+    const container = row.parentElement;
+    if (container.querySelectorAll('.panel-row').length <= 1) {
+        alert('Debe haber al menos una pantalla en el contrato.');
+        return;
+    }
+    row.remove();
+}
+
+function onTipoPanelChange(select) {
+    const input = select.closest('.panel-row-fields').querySelector('input');
+    input.setAttribute('list', select.value === 'digital' ? 'lista_paneles_digital' : 'lista_paneles_tradicional');
+    input.value = '';
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Inicializar modal nuevo con una fila vacía al abrir
+document.getElementById('modalNuevo')?.addEventListener('transitionend', function() {
+    if (this.classList.contains('open')) {
+        const c = document.getElementById('panelesContainerNuevo');
+        if (c && c.children.length === 0) addPanelRow('panelesContainerNuevo');
+    }
+});
+// Fallback: al hacer click en el botón "Nuevo Registro"
+document.querySelector('[onclick*="modalNuevo"]')?.addEventListener('click', function() {
+    setTimeout(() => {
+        const c = document.getElementById('panelesContainerNuevo');
+        if (c && c.children.length === 0) addPanelRow('panelesContainerNuevo');
+    }, 50);
+});
+
+// ── Modal editar ─────────────────────────────────────────────────────────────
+function openEditModal(id, estado, fechaInicio, fechaFin, notas, montoPagado, montoPendiente, ruc, paneles) {
+    document.getElementById('formEditar').action = '/control-publicitario/' + id;
+    document.getElementById('editEstado').value         = estado;
+    document.getElementById('editFechaInicio').value    = fechaInicio;
+    document.getElementById('editFechaFin').value       = fechaFin;
+    document.getElementById('editNotas').value          = notas;
+    document.getElementById('editMontoPagado').value    = montoPagado;
+    document.getElementById('editMontoPendiente').value = montoPendiente;
+    document.getElementById('editRuc').value            = ruc;
+
+    // Cargar pantallas
+    const container = document.getElementById('panelesContainerEdit');
+    container.innerHTML = '';
+    _panelRowIndex = 1000; // offset para evitar colisión con modal nuevo
+    const lista = Array.isArray(paneles) ? paneles : [];
+    if (lista.length === 0) {
+        addPanelRow('panelesContainerEdit');
+    } else {
+        lista.forEach(p => addPanelRow('panelesContainerEdit', p.codigo || '', p.tipo || 'digital'));
+    }
+
+    document.getElementById('modalEditar').classList.add('open');
+}
+
+// ── Empresa lookup ───────────────────────────────────────────────────────────
 function onNombreEmpresaChange(value) {
     const match = empresasData.find(e => e.nombre.toLowerCase() === value.toLowerCase());
     const statusDiv = document.getElementById('empresaStatusNuevo');
 
     if (match) {
-        // Empresa encontrada → auto-rellenar datos de contacto
         document.getElementById('rucHiddenNuevo').value = match.ruc || '';
-        if (match.ruc)      document.getElementById('rucInputNuevo').value        = match.ruc;
-        if (match.correo)   document.getElementById('correoEmpresaNuevo').value   = match.correo;
-        if (match.celular)  document.getElementById('celularEmpresaNuevo').value  = match.celular;
+        if (match.ruc)       document.getElementById('rucInputNuevo').value         = match.ruc;
+        if (match.correo)    document.getElementById('correoEmpresaNuevo').value    = match.correo;
+        if (match.celular)   document.getElementById('celularEmpresaNuevo').value   = match.celular;
         if (match.encargado) document.getElementById('encargadoEmpresaNuevo').value = match.encargado;
         statusDiv.style.display = 'block';
-        statusDiv.innerHTML = '<div class="empresa-found-banner">' +
-            '<i class="bi bi-check-circle-fill"></i>' +
-            '<span><strong>Empresa encontrada</strong> en el sistema — datos auto-rellenados' +
-            (match.ruc ? ' · RUC: <strong>' + match.ruc + '</strong>' : '') +
-            '</span></div>';
+        statusDiv.innerHTML = '<div class="empresa-found-banner"><i class="bi bi-check-circle-fill"></i>' +
+            '<span><strong>Empresa encontrada</strong> en el sistema' +
+            (match.ruc ? ' · RUC: <strong>' + match.ruc + '</strong>' : '') + '</span></div>';
     } else if (value.length > 2) {
         document.getElementById('rucHiddenNuevo').value = document.getElementById('rucInputNuevo').value;
         statusDiv.style.display = 'block';
-        statusDiv.innerHTML = '<div class="empresa-new-banner">' +
-            '<i class="bi bi-building-add"></i>' +
-            '<span>Empresa nueva — se creará automáticamente en el módulo Empresas al guardar.</span></div>';
+        statusDiv.innerHTML = '<div class="empresa-new-banner"><i class="bi bi-building-add"></i>' +
+            '<span>Empresa nueva — se creará automáticamente al guardar.</span></div>';
     } else {
         statusDiv.style.display = 'none';
     }
@@ -453,7 +543,6 @@ function buscarRucNuevo() {
         return;
     }
 
-    // Primero buscar en empresas locales
     const localMatch = empresasData.find(e => e.ruc === ruc);
     if (localMatch) {
         document.getElementById('nombreEmpresaNuevo').value = localMatch.nombre;
@@ -470,21 +559,20 @@ function buscarRucNuevo() {
         return;
     }
 
-    // Si no está local, ir a SUNAT
     btn.disabled = true;
     btn.innerHTML = '<i class="bi bi-arrow-repeat"></i>Buscando...';
     resultDiv.style.display = 'none';
 
     fetch('/sunat/ruc/' + ruc)
-        .then(res => { if (!res.ok) throw new Error('no encontrado'); return res.json(); })
+        .then(res => { if (!res.ok) throw new Error(); return res.json(); })
         .then(data => {
-            if (!data.nombre) throw new Error('sin datos');
+            if (!data.nombre) throw new Error();
             document.getElementById('nombreEmpresaNuevo').value = data.nombre;
             document.getElementById('rucHiddenNuevo').value = ruc;
             document.getElementById('empresaStatusNuevo').style.display = 'block';
             document.getElementById('empresaStatusNuevo').innerHTML =
                 '<div class="empresa-new-banner"><i class="bi bi-building-add"></i>' +
-                '<span>Empresa nueva encontrada en SUNAT — se creará en Empresas al guardar.</span></div>';
+                '<span>Empresa nueva encontrada en SUNAT — se creará al guardar.</span></div>';
             const dir = [data.direccion, data.distrito, data.provincia, data.departamento]
                 .filter(v => v && v !== '-').join(', ');
             resultDiv.style.display = 'block';
@@ -492,46 +580,18 @@ function buscarRucNuevo() {
                 '<div class="empresa-found-banner"><i class="bi bi-check-circle-fill"></i>' +
                 '<div><strong>' + data.nombre + '</strong>' +
                 '<div style="font-size:11.5px;margin-top:3px">RUC: <strong>' + ruc + '</strong>' +
-                ' · Estado: <span class="badge badge-success" style="font-size:10px">' + (data.estado || '—') + '</span>' +
-                ' · Cond.: <span class="badge badge-' + (data.condicion === 'HABIDO' ? 'success' : 'danger') + '" style="font-size:10px">' + (data.condicion || '—') + '</span>' +
                 (dir ? '<br>' + dir : '') + '</div></div></div>';
         })
         .catch(() => {
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = '<div class="alert alert-danger" style="margin:0"><i class="bi bi-x-circle-fill"></i> RUC no encontrado. Completá los datos manualmente.</div>';
         })
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-search"></i>Buscar';
-        });
+        .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-search"></i>Buscar'; });
 }
 
-const _rucInput = document.getElementById('rucInputNuevo');
-if (_rucInput) _rucInput.addEventListener('keydown', function(e) {
+document.getElementById('rucInputNuevo')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); buscarRucNuevo(); }
 });
-
-// ── Modal editar ─────────────────────────────────────────────────────────────
-function openEditModal(id, estado, fechaInicio, fechaFin, notas, montoPagado, montoPendiente, ruc) {
-    document.getElementById('formEditar').action = '/control-publicitario/' + id;
-    document.getElementById('editEstado').value        = estado;
-    document.getElementById('editFechaInicio').value   = fechaInicio;
-    document.getElementById('editFechaFin').value      = fechaFin;
-    document.getElementById('editNotas').value         = notas;
-    document.getElementById('editMontoPagado').value   = montoPagado;
-    document.getElementById('editMontoPendiente').value = montoPendiente;
-    document.getElementById('editRuc').value           = ruc;
-    document.getElementById('modalEditar').classList.add('open');
-}
-
-// ── Cambio tipo panel ────────────────────────────────────────────────────────
-function actualizarPaneles() {
-    const tipo = document.getElementById('tipoPanelModal').value;
-    const input = document.getElementById('panelCodigoModal');
-    input.setAttribute('list', tipo === 'digital' ? 'lista_paneles_digital' : 'lista_paneles_tradicional');
-    input.value = '';
-    document.getElementById('panelPreviewMini').style.display = 'none';
-}
 
 // ── Panel preview ────────────────────────────────────────────────────────────
 const _panelCache = {};
@@ -546,28 +606,9 @@ async function _fetchPanel(codigo, tipo) {
     return _panelCache[key];
 }
 
-function autoPreviewPanel() {
-    const codigo = document.getElementById('panelCodigoModal').value.trim();
-    const tipo   = document.getElementById('tipoPanelModal').value;
-    const mini   = document.getElementById('panelPreviewMini');
-    if (!codigo) { mini.style.display = 'none'; return; }
-    _fetchPanel(codigo, tipo).then(data => {
-        if (!data) { mini.style.display = 'none'; return; }
-        const thumb = data.foto_url
-            ? '<img src="' + data.foto_url + '" style="width:50px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0">'
-            : '<span style="width:50px;height:38px;display:flex;align-items:center;justify-content:center;background:#E2E8F0;border-radius:6px;flex-shrink:0;color:#94A3B8;font-size:20px"><i class="bi bi-image"></i></span>';
-        mini.style.display = 'block';
-        mini.innerHTML = '<div class="panel-preview-mini" onclick="mostrarVistaPanel()">' +
-            thumb +
-            '<div style="flex:1;min-width:0"><div style="font-weight:700;color:#1D4ED8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + data.nombre + '</div>' +
-            '<div style="color:#64748B;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (data.direccion || '') + '</div></div>' +
-            '<i class="bi bi-eye" style="color:#2563EB;flex-shrink:0"></i></div>';
-    });
-}
-
 async function mostrarVistaPanel(codigoArg, tipoArg) {
-    const codigo = codigoArg || (document.getElementById('panelCodigoModal') ? document.getElementById('panelCodigoModal').value.trim() : '');
-    const tipo   = tipoArg   || (document.getElementById('tipoPanelModal')   ? document.getElementById('tipoPanelModal').value   : 'digital');
+    const codigo = (codigoArg || '').trim();
+    const tipo   = tipoArg || 'digital';
     if (!codigo) return;
 
     const modal = document.getElementById('modalPanelPreview');

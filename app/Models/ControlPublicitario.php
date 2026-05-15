@@ -32,6 +32,11 @@ class ControlPublicitario extends Model
         return $this->hasMany(ControlPublicitarioHistorial::class)->latest();
     }
 
+    public function paneles(): HasMany
+    {
+        return $this->hasMany(ControlPublicitarioPanel::class, 'control_publicitario_id');
+    }
+
     public function scopeActivos($query)
     {
         return $query->where('estado', 'activo');

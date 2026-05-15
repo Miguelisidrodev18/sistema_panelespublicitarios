@@ -35,10 +35,20 @@
                 @if($controlPublicitario->ruc)
                     <span class="ruc-tag"><i class="bi bi-upc-scan"></i>{{ $controlPublicitario->ruc }}</span>
                 @endif
-                <code>{{ $controlPublicitario->panel_codigo }}</code>
-                <span class="badge badge-{{ $controlPublicitario->tipo_panel === 'digital' ? 'primary' : 'warning' }}">
-                    {{ ucfirst($controlPublicitario->tipo_panel) }}
-                </span>
+                @php
+                    $headerPaneles = $controlPublicitario->paneles->count()
+                        ? $controlPublicitario->paneles
+                        : collect([(object)['panel_codigo'=>$controlPublicitario->panel_codigo,'tipo_panel'=>$controlPublicitario->tipo_panel]]);
+                @endphp
+                @foreach($headerPaneles as $hp)
+                    <code>{{ $hp->panel_codigo }}</code>
+                    <span class="badge badge-{{ $hp->tipo_panel === 'digital' ? 'primary' : 'warning' }}" style="font-size:10px">
+                        {{ ucfirst($hp->tipo_panel) }}
+                    </span>
+                @endforeach
+                @if($headerPaneles->count() > 1)
+                    <span class="badge badge-gray" style="font-size:10px"><i class="bi bi-collection"></i> Paquete</span>
+                @endif
             </div>
         </div>
     </div>
@@ -99,12 +109,36 @@
                     </div>
                     @endif
                     <div class="detail-row">
-                        <div class="detail-label">Panel</div>
-                        <div class="detail-value"><code>{{ $controlPublicitario->panel_codigo }}</code></div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Tipo</div>
-                        <div class="detail-value">{{ ucfirst($controlPublicitario->tipo_panel) }}</div>
+                        <div class="detail-label">Pantallas</div>
+                        <div class="detail-value">
+                            @php
+                                $panelesMostrar = $controlPublicitario->paneles->count()
+                                    ? $controlPublicitario->paneles
+                                    : collect([(object)['panel_codigo'=>$controlPublicitario->panel_codigo,'tipo_panel'=>$controlPublicitario->tipo_panel]]);
+                            @endphp
+                            @foreach($panelesMostrar as $p)
+                                @php
+                                    $pCodigo = $p->panel_codigo;
+                                    $pTipo   = $p->tipo_panel;
+                                    $pNombre = $pTipo === 'digital'
+                                        ? ($mapaDigital[$pCodigo]->nombre ?? null)
+                                        : ($mapaTradicional[$pCodigo]->nombre ?? null);
+                                @endphp
+                                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                                    <span class="badge badge-{{ $pTipo === 'digital' ? 'primary' : 'warning' }}" style="font-size:10px">
+                                        <i class="bi bi-{{ $pTipo === 'digital' ? 'display' : 'signpost-2' }}"></i>
+                                        {{ ucfirst($pTipo) }}
+                                    </span>
+                                    <code>{{ $pCodigo }}</code>
+                                    @if($pNombre) <span style="font-size:12.5px;color:var(--text-light)">{{ $pNombre }}</span> @endif
+                                </div>
+                            @endforeach
+                            @if($panelesMostrar->count() > 1)
+                                <div style="font-size:11px;color:var(--text-lighter);margin-top:2px">
+                                    <i class="bi bi-collection"></i> Paquete · {{ $panelesMostrar->count() }} pantallas
+                                </div>
+                            @endif
+                        </div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Inicio</div>
