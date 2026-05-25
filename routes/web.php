@@ -105,6 +105,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('cotizaciones', CotizacionController::class)
         ->parameters(['cotizaciones' => 'cotizacion'])
         ->middleware('can-permiso:cotizaciones');
+    Route::get('/cotizaciones/{cotizacion}/imprimir', [CotizacionController::class, 'imprimir'])
+        ->name('cotizaciones.imprimir')->middleware('can-permiso:cotizaciones');
     Route::get('/cotizaciones/{cotizacion}/convertir', [CotizacionController::class, 'convertirAContrato'])
         ->name('cotizaciones.convertir')->middleware('admin');
     Route::post('/cotizaciones/{cotizacion}/convertir', [CotizacionController::class, 'guardarContrato'])

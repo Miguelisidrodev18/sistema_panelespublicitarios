@@ -16,14 +16,15 @@
             </div>
         </div>
     </div>
-    @if(auth()->user()->esAdmin())
     <div class="flex gap-8">
+        <a href="{{ route('cotizaciones.imprimir', $cotizacion) }}" target="_blank" class="btn btn-secondary"><i class="bi bi-printer"></i>Imprimir</a>
+        @if(auth()->user()->esAdmin())
         @if(in_array($cotizacion->estado, ['pendiente', 'aprobada']))
         <a href="{{ route('cotizaciones.convertir', $cotizacion) }}" class="btn btn-success"><i class="bi bi-arrow-right-circle"></i>Convertir a Contrato</a>
         @endif
         <a href="{{ route('cotizaciones.edit', $cotizacion) }}" class="btn btn-warning"><i class="bi bi-pencil"></i>Editar</a>
+        @endif
     </div>
-    @endif
 </div>
 
 <div class="row g-3">

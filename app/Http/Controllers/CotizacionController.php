@@ -138,6 +138,23 @@ class CotizacionController extends Controller
         return view('cotizaciones.show', compact('cotizacion'));
     }
 
+    public function imprimir(Cotizacion $cotizacion)
+    {
+        $cotizacion->load(['elementos.servicio', 'empresa']);
+
+        foreach ($cotizacion->elementos as $elem) {
+            if ($elem->tipo_elemento === 'digital' && $elem->panel_id) {
+                $elem->panel = PanelDigital::find($elem->panel_id);
+            } elseif ($elem->tipo_elemento === 'tradicional' && $elem->panel_id) {
+                $elem->panel = PanelUbicacion::find($elem->panel_id);
+            }
+        }
+
+        $empresa_propia = config('empresa');
+
+        return view('cotizaciones.print', compact('cotizacion', 'empresa_propia'));
+    }
+
     public function edit(Cotizacion $cotizacion)
     {
         $cotizacion->load('elementos');
