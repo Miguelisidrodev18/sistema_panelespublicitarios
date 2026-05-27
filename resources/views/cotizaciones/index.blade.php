@@ -397,9 +397,17 @@ function cerrarModal(id) {
     document.body.style.overflow = '';
 }
 
+@php
+$_mPanelesDigital = $paneles_digitales->map(function($p) {
+    return ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0, 'desc' => $p->desc_costo ?? 'Instalación y puesta en marcha'];
+})->values();
+$_mPanelesTradicional = $paneles_tradicionales->map(function($p) {
+    return ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0, 'desc' => $p->desc_costo ?? 'Producción de lona e instalación'];
+})->values();
+@endphp
 var mPaneles = {
-    digital:     @json($paneles_digitales->map(fn($p) => ['id'=>$p->id,'codigo'=>$p->codigo,'nombre'=>$p->nombre,'costo'=>$p->costo_produccion ?? 0,'desc'=>$p->desc_costo ?? 'Instalación y puesta en marcha'])),
-    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id'=>$p->id,'codigo'=>$p->codigo,'nombre'=>$p->nombre,'costo'=>$p->costo_produccion ?? 0,'desc'=>$p->desc_costo ?? 'Producción de lona e instalación']))
+    digital:     @json($_mPanelesDigital),
+    tradicional: @json($_mPanelesTradicional)
 };
 var mCounters = { digital: 0, tradicional: 0 };
 var M_IGV = 0.18;

@@ -294,11 +294,22 @@
 
 @push('scripts')
 <script>
+@php
+$_cPanDigital = $paneles_digitales->map(function($p) {
+    return ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0, 'desc' => $p->desc_costo ?? 'Instalación y puesta en marcha'];
+})->values();
+$_cPanTradicional = $paneles_tradicionales->map(function($p) {
+    return ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0, 'desc' => $p->desc_costo ?? 'Producción de lona e instalación'];
+})->values();
+$_cServicios = $servicios->map(function($s) {
+    return ['id' => $s->id, 'nombre' => $s->nombre, 'monto' => $s->monto];
+})->values();
+@endphp
 var paneles = {
-    digital:     @json($paneles_digitales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0])),
-    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0]))
+    digital:     @json($_cPanDigital),
+    tradicional: @json($_cPanTradicional)
 };
-var serviciosDisp = @json($servicios->map(fn($s) => ['id' => $s->id, 'nombre' => $s->nombre, 'monto' => $s->monto]));
+var serviciosDisp = @json($_cServicios);
 var counters = { digital: 0, tradicional: 0, servicio: 0 };
 var IGV = 0.18;
 

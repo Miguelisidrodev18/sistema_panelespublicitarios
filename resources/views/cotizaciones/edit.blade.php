@@ -234,11 +234,22 @@
 
 @push('scripts')
 <script>
+@php
+$_panDigital = $paneles_digitales->map(function($p) {
+    return ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0, 'desc' => $p->desc_costo ?? 'Instalación y puesta en marcha'];
+})->values();
+$_panTradicional = $paneles_tradicionales->map(function($p) {
+    return ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0, 'desc' => $p->desc_costo ?? 'Producción de lona e instalación'];
+})->values();
+$_serviciosDisp = $servicios->map(function($s) {
+    return ['id' => $s->id, 'nombre' => $s->nombre, 'monto' => $s->monto];
+})->values();
+@endphp
 var paneles = {
-    digital:     @json($paneles_digitales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0])),
-    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0]))
+    digital:     @json($_panDigital),
+    tradicional: @json($_panTradicional)
 };
-var serviciosDisp = @json($servicios->map(fn($s) => ['id' => $s->id, 'nombre' => $s->nombre, 'monto' => $s->monto]));
+var serviciosDisp = @json($_serviciosDisp);
 var counters = { digital: 0, tradicional: 0, servicio: 0 };
 var IGV = 0.18;
 
@@ -260,7 +271,7 @@ function addPanel(tipo) {
     var idx  = counters[tipo]++;
     var opts = '<option value="">Seleccionar panel...</option>' +
         paneles[tipo].map(function(p) {
-            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '" data-costo="' + (p.costo||0) + '">' +
+            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '" data-costo="' + (p.costo||0) + '" data-desc="' + (p.desc||'') + '">' +
                    (p.codigo ? p.codigo + ' — ' : '') + p.nombre + '</option>';
         }).join('');
     var descDefault = tipo === 'tradicional' ? 'Producción de lona e instalación' : 'Instalación y puesta en marcha';
@@ -285,7 +296,9 @@ function onSelect(sel) {
     if (!row) return;
     row.querySelector('input[name="elemento_codigo[]"]').value = opt.dataset.codigo || '';
     var costoInp = row.querySelector('input[name="elemento_costo[]"]');
-    if (costoInp && opt.dataset.costo) costoInp.value = parseFloat(opt.dataset.costo).toFixed(2);
+    if (costoInp && opt.dataset.costo !== undefined) costoInp.value = parseFloat(opt.dataset.costo||0).toFixed(2);
+    var descInp = row.querySelector('input[name="elemento_desc_costo[]"]');
+    if (descInp && opt.dataset.desc) descInp.value = opt.dataset.desc;
     recalcularTotales();
 }
 
