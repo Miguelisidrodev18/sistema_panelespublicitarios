@@ -92,40 +92,55 @@ class CotizacionController extends Controller
         $cotizacion = Cotizacion::create($validated);
 
         // Guardar paneles de interés
-        $panelIds  = $request->input('elemento_panel_id', []);
-        $tipos     = $request->input('elemento_tipo', []);
-        $codigos   = $request->input('elemento_codigo', []);
-        $tiempos   = $request->input('elemento_tiempo', []);
-        $precios   = $request->input('elemento_precio', []);
+        $panelIds       = $request->input('elemento_panel_id', []);
+        $tipos          = $request->input('elemento_tipo', []);
+        $codigos        = $request->input('elemento_codigo', []);
+        $tiempos        = $request->input('elemento_tiempo', []);
+        $precios        = $request->input('elemento_precio', []);
+        $costos         = $request->input('elemento_costo', []);
+        $descCostos     = $request->input('elemento_desc_costo', []);
 
+        $montoTotal = 0;
         foreach ($panelIds as $i => $panelId) {
             if (!$panelId) continue;
+            $precio = (float)($precios[$i] ?? 0);
+            $costo  = (float)($costos[$i] ?? 0);
+            $montoTotal += $precio + $costo;
             CotizacionElemento::create([
-                'cotizacion_id'   => $cotizacion->id,
-                'tipo_elemento'   => $tipos[$i] ?? 'digital',
-                'panel_id'        => $panelId,
-                'codigo'          => $codigos[$i] ?? '',
-                'tiempo_contrato' => $tiempos[$i] ?? null,
-                'precio_unitario' => $precios[$i] ?? 0,
+                'cotizacion_id'    => $cotizacion->id,
+                'tipo_elemento'    => $tipos[$i] ?? 'digital',
+                'panel_id'         => $panelId,
+                'codigo'           => $codigos[$i] ?? '',
+                'tiempo_contrato'  => $tiempos[$i] ?? null,
+                'precio_unitario'  => $precio,
+                'costo_produccion' => $costo ?: null,
+                'desc_costo'       => $descCostos[$i] ?? null,
             ]);
         }
 
         // Guardar servicios adicionales
-        $servicioIds    = $request->input('srv_id', []);
+        $servicioIds     = $request->input('srv_id', []);
         $servicioPrecios = $request->input('srv_precio', []);
-        $servicioObs    = $request->input('srv_obs', []);
+        $servicioObs     = $request->input('srv_obs', []);
+        $servicioSubtipo = $request->input('srv_subtipo', []);
         foreach ($servicioIds as $j => $srvId) {
             if (!$srvId) continue;
             $srv = Servicio::find($srvId);
+            $precio = (float)($servicioPrecios[$j] ?? 0);
+            $montoTotal += $precio;
             CotizacionElemento::create([
                 'cotizacion_id'   => $cotizacion->id,
                 'tipo_elemento'   => 'servicio',
+                'subtipo'         => $servicioSubtipo[$j] ?? null,
                 'servicio_id'     => $srvId,
                 'codigo'          => $srv->nombre ?? '',
-                'precio_unitario' => $servicioPrecios[$j] ?? 0,
+                'precio_unitario' => $precio,
                 'observaciones'   => $servicioObs[$j] ?? null,
             ]);
         }
+
+        // Auto-calcular monto_propuesto (neto sin IGV)
+        $cotizacion->update(['monto_propuesto' => $montoTotal]);
 
         ActivityLog::registrar('created', 'Cotizacion', $cotizacion->id, "Cotización {$cotizacion->numero} creada");
 
@@ -138,7 +153,7 @@ class CotizacionController extends Controller
         return view('cotizaciones.show', compact('cotizacion'));
     }
 
-    public function imprimir(Cotizacion $cotizacion)
+    public function imprimir(Request $request, Cotizacion $cotizacion)
     {
         $cotizacion->load(['elementos.servicio', 'empresa']);
 
@@ -151,8 +166,9 @@ class CotizacionController extends Controller
         }
 
         $empresa_propia = config('empresa');
+        $con_foto = $request->input('foto', '1') !== '0';
 
-        return view('cotizaciones.print', compact('cotizacion', 'empresa_propia'));
+        return view('cotizaciones.print', compact('cotizacion', 'empresa_propia', 'con_foto'));
     }
 
     public function edit(Cotizacion $cotizacion)
@@ -185,20 +201,28 @@ class CotizacionController extends Controller
 
         // Sincronizar elementos de paneles
         $cotizacion->elementos()->whereIn('tipo_elemento', ['digital', 'tradicional'])->delete();
-        $panelIds = $request->input('elemento_panel_id', []);
-        $tipos    = $request->input('elemento_tipo', []);
-        $codigos  = $request->input('elemento_codigo', []);
-        $tiempos  = $request->input('elemento_tiempo', []);
-        $precios  = $request->input('elemento_precio', []);
+        $panelIds   = $request->input('elemento_panel_id', []);
+        $tipos      = $request->input('elemento_tipo', []);
+        $codigos    = $request->input('elemento_codigo', []);
+        $tiempos    = $request->input('elemento_tiempo', []);
+        $precios    = $request->input('elemento_precio', []);
+        $costos     = $request->input('elemento_costo', []);
+        $descCostos = $request->input('elemento_desc_costo', []);
+        $montoTotal = 0;
         foreach ($panelIds as $i => $panelId) {
             if (!$panelId) continue;
+            $precio = (float)($precios[$i] ?? 0);
+            $costo  = (float)($costos[$i] ?? 0);
+            $montoTotal += $precio + $costo;
             CotizacionElemento::create([
-                'cotizacion_id'   => $cotizacion->id,
-                'tipo_elemento'   => $tipos[$i] ?? 'digital',
-                'panel_id'        => $panelId,
-                'codigo'          => $codigos[$i] ?? '',
-                'tiempo_contrato' => $tiempos[$i] ?? null,
-                'precio_unitario' => $precios[$i] ?? 0,
+                'cotizacion_id'    => $cotizacion->id,
+                'tipo_elemento'    => $tipos[$i] ?? 'digital',
+                'panel_id'         => $panelId,
+                'codigo'           => $codigos[$i] ?? '',
+                'tiempo_contrato'  => $tiempos[$i] ?? null,
+                'precio_unitario'  => $precio,
+                'costo_produccion' => $costo ?: null,
+                'desc_costo'       => $descCostos[$i] ?? null,
             ]);
         }
 
@@ -207,18 +231,25 @@ class CotizacionController extends Controller
         $servicioIds     = $request->input('srv_id', []);
         $servicioPrecios = $request->input('srv_precio', []);
         $servicioObs     = $request->input('srv_obs', []);
+        $servicioSubtipo = $request->input('srv_subtipo', []);
         foreach ($servicioIds as $j => $srvId) {
             if (!$srvId) continue;
             $srv = Servicio::find($srvId);
+            $precio = (float)($servicioPrecios[$j] ?? 0);
+            $montoTotal += $precio;
             CotizacionElemento::create([
                 'cotizacion_id'   => $cotizacion->id,
                 'tipo_elemento'   => 'servicio',
+                'subtipo'         => $servicioSubtipo[$j] ?? null,
                 'servicio_id'     => $srvId,
                 'codigo'          => $srv->nombre ?? '',
-                'precio_unitario' => $servicioPrecios[$j] ?? 0,
+                'precio_unitario' => $precio,
                 'observaciones'   => $servicioObs[$j] ?? null,
             ]);
         }
+
+        // Recalcular monto_propuesto (neto sin IGV)
+        $cotizacion->update(['monto_propuesto' => $montoTotal]);
 
         ActivityLog::registrar('updated', 'Cotizacion', $cotizacion->id, "Cotización {$cotizacion->numero} actualizada");
 

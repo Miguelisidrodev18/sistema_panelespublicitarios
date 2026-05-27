@@ -94,22 +94,61 @@
             </div>
             <div class="table-wrapper">
                 <table>
-                    <thead><tr><th>Tipo</th><th>Código</th><th>Meses</th><th>Precio unitario</th><th>Observaciones</th></tr></thead>
-                    <tbody>
-                        @forelse($cotizacion->elementos as $elem)
+                    <thead>
                         <tr>
-                            <td><span class="badge badge-{{ $elem->tipo_elemento === 'digital' ? 'primary' : 'warning' }}">{{ ucfirst($elem->tipo_elemento) }}</span></td>
+                            <th>Tipo</th>
+                            <th>Código / Servicio</th>
+                            <th>Meses</th>
+                            <th>Precio</th>
+                            <th>Costo Prod.</th>
+                            <th>Desc. Costo</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php $sumaTotal = 0; @endphp
+                        @forelse($cotizacion->elementos as $elem)
+                        @php
+                            $precio = (float)$elem->precio_unitario;
+                            $costo  = (float)($elem->costo_produccion ?? 0);
+                            $linea  = $precio + $costo;
+                            $sumaTotal += $linea;
+                            $badgeColor = match($elem->tipo_elemento) {
+                                'digital'    => 'primary',
+                                'tradicional'=> 'warning',
+                                default      => 'info',
+                            };
+                            $subtipo = $elem->subtipo ? strtoupper($elem->subtipo) : null;
+                        @endphp
+                        <tr>
+                            <td>
+                                <span class="badge badge-{{ $badgeColor }}">{{ ucfirst($elem->tipo_elemento) }}</span>
+                                @if($subtipo)<span class="badge badge-gray" style="margin-left:3px;font-size:10px">{{ $subtipo }}</span>@endif
+                            </td>
                             <td class="fw-600">{{ $elem->codigo }}</td>
-                            <td>{{ $elem->tiempo_contrato }}</td>
-                            <td class="fw-600">S/. {{ number_format($elem->precio_unitario, 0, ',', '.') }}</td>
-                            <td class="text-muted" style="font-size:13px">{{ $elem->observaciones ?? '—' }}</td>
+                            <td>{{ $elem->tiempo_contrato ?? '—' }}</td>
+                            <td class="fw-600">S/. {{ number_format($precio, 2, '.', ',') }}</td>
+                            <td>{{ $costo > 0 ? 'S/. '.number_format($costo,2,'.',',') : '—' }}</td>
+                            <td class="text-muted" style="font-size:12px">{{ $elem->desc_costo ?? ($elem->observaciones ?? '—') }}</td>
+                            <td class="fw-700" style="color:#059669">S/. {{ number_format($linea, 2, '.', ',') }}</td>
                         </tr>
                         @empty
-                        <tr><td colspan="5"><div class="empty-state" style="padding:32px"><i class="bi bi-grid-3x3"></i><p>Sin elementos detallados</p></div></td></tr>
+                        <tr><td colspan="7"><div class="empty-state" style="padding:32px"><i class="bi bi-grid-3x3"></i><p>Sin elementos detallados</p></div></td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+            @if($cotizacion->elementos->count() > 0)
+            @php
+                $igv   = $sumaTotal * 0.18;
+                $total = $sumaTotal + $igv;
+            @endphp
+            <div style="display:flex;justify-content:flex-end;padding:16px 20px;border-top:1px solid var(--border);gap:32px">
+                <div style="font-size:13px;color:var(--text-light)">Subtotal neto<br><strong style="color:var(--text-dark);font-size:15px">S/. {{ number_format($sumaTotal, 2, '.', ',') }}</strong></div>
+                <div style="font-size:13px;color:var(--text-light)">IGV (18%)<br><strong style="color:var(--text-dark);font-size:15px">S/. {{ number_format($igv, 2, '.', ',') }}</strong></div>
+                <div style="font-size:13px;color:var(--text-light)">TOTAL CON IGV<br><strong style="color:#059669;font-size:18px;font-weight:800">S/. {{ number_format($total, 2, '.', ',') }}</strong></div>
+            </div>
+            @endif
         </div>
     </div>
 </div>

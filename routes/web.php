@@ -20,6 +20,7 @@ use App\Http\Controllers\ParrillaController;
 use App\Http\Controllers\SunatController;
 use App\Http\Controllers\ServicioController;
 use App\Http\Controllers\AuditoriaController;
+use App\Http\Controllers\TramiteController;
 
 // Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
@@ -111,6 +112,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('cotizaciones.convertir')->middleware('admin');
     Route::post('/cotizaciones/{cotizacion}/convertir', [CotizacionController::class, 'guardarContrato'])
         ->name('cotizaciones.guardar-contrato')->middleware('admin');
+
+    // Trámites
+    Route::resource('tramites', TramiteController::class)
+        ->parameters(['tramites' => 'tramite'])
+        ->middleware('can-permiso:tramites');
 
     // Almacenes
     Route::resource('almacenes', AlmacenController::class)

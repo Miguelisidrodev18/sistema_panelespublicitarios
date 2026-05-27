@@ -82,7 +82,7 @@
     </div>
     <div class="p-4">
         <div class="row g-3">
-            <div class="col-md-5">
+            <div class="col-md-6">
                 <label class="form-label">Tipo de servicio</label>
                 <input type="text" name="tipo_contrato" value="{{ old('tipo_contrato') }}"
                     class="form-control" list="tipos_cotizacion"
@@ -94,13 +94,7 @@
                     <option value="Mixto">
                 </datalist>
             </div>
-            <div class="col-md-4">
-                <label class="form-label">Monto propuesto (S/.)</label>
-                <input type="number" name="monto_propuesto"
-                    value="{{ old('monto_propuesto', 0) }}"
-                    class="form-control" step="1" min="0">
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <label class="form-label">N° Cotización</label>
                 <input type="text" class="form-control bg-light" value="{{ $numero }}" readonly>
             </div>
@@ -202,6 +196,29 @@
     </div>
 </div>
 
+{{-- Resumen de totales con IGV --}}
+<div class="card border-0 shadow-sm mb-3" id="resumen-totales" style="display:none">
+    <div class="cot-section-title"><i class="bi bi-calculator"></i> Resumen de Totales</div>
+    <div class="p-3">
+        <div class="d-flex justify-content-end">
+            <table style="font-size:13px;min-width:260px">
+                <tr>
+                    <td class="pe-4 text-muted">Subtotal neto</td>
+                    <td class="fw-600 text-end">S/. <span id="res-subtotal">0.00</span></td>
+                </tr>
+                <tr>
+                    <td class="pe-4 text-muted">IGV (18%)</td>
+                    <td class="fw-600 text-end">S/. <span id="res-igv">0.00</span></td>
+                </tr>
+                <tr style="border-top:2px solid #E2E8F0">
+                    <td class="pe-4 fw-700 pt-2" style="font-size:14px">TOTAL CON IGV</td>
+                    <td class="fw-800 text-end pt-2" style="font-size:14px;color:#059669">S/. <span id="res-total">0.00</span></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex gap-2 justify-content-end mb-4">
     <a href="{{ route('cotizaciones.index') }}" class="btn btn-outline-secondary">
         <i class="bi bi-x-lg me-1"></i>Cancelar
@@ -278,15 +295,40 @@
 @push('scripts')
 <script>
 var paneles = {
-    digital:     @json($paneles_digitales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre])),
-    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre]))
+    digital:     @json($paneles_digitales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0])),
+    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0]))
 };
 var serviciosDisp = @json($servicios->map(fn($s) => ['id' => $s->id, 'nombre' => $s->nombre, 'monto' => $s->monto]));
 var counters = { digital: 0, tradicional: 0, servicio: 0 };
+var IGV = 0.18;
 
 function updateCount(tipo) {
     var n = document.getElementById('cont-' + tipo).querySelectorAll('.cot-panel-row').length;
     document.getElementById('cnt-' + tipo).textContent = n;
+}
+
+function recalcularTotales() {
+    var subtotal = 0;
+    document.querySelectorAll('input[name="elemento_precio[]"]').forEach(function(inp) {
+        subtotal += parseFloat(inp.value) || 0;
+    });
+    document.querySelectorAll('input[name="elemento_costo[]"]').forEach(function(inp) {
+        subtotal += parseFloat(inp.value) || 0;
+    });
+    document.querySelectorAll('input[name="srv_precio[]"]').forEach(function(inp) {
+        subtotal += parseFloat(inp.value) || 0;
+    });
+    var igv   = subtotal * IGV;
+    var total = subtotal + igv;
+    var resumen = document.getElementById('resumen-totales');
+    if (subtotal > 0) {
+        resumen.style.display = '';
+        document.getElementById('res-subtotal').textContent = subtotal.toFixed(2);
+        document.getElementById('res-igv').textContent      = igv.toFixed(2);
+        document.getElementById('res-total').textContent    = total.toFixed(2);
+    } else {
+        resumen.style.display = 'none';
+    }
 }
 
 function addPanel(tipo) {
@@ -297,26 +339,29 @@ function addPanel(tipo) {
     var idx  = counters[tipo]++;
     var opts = '<option value="">Seleccionar panel...</option>' +
         paneles[tipo].map(function(p) {
-            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '">' +
+            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '" data-costo="' + (p.costo||0) + '">' +
                    (p.codigo ? p.codigo + ' — ' : '') + p.nombre + '</option>';
         }).join('');
 
+    var descDefault = tipo === 'tradicional' ? 'Producción de lona e instalación' : 'Instalación y puesta en marcha';
+
     var row = document.createElement('div');
-    row.className = 'cot-panel-row';
+    row.className = 'cot-panel-row flex-wrap';
     row.id = 'row-' + tipo + '-' + idx;
     row.innerHTML =
-        '<select name="elemento_panel_id[]" class="form-select form-select-sm" ' +
+        '<select name="elemento_panel_id[]" class="form-select form-select-sm" style="flex:3;min-width:180px" ' +
             'onchange="onSelect(this,\'' + tipo + '\',' + idx + ')">' + opts + '</select>' +
         '<input type="hidden" name="elemento_tipo[]" value="' + tipo + '">' +
-        '<input type="text"   name="elemento_codigo[]" class="form-control form-control-sm f-cod" placeholder="Código" readonly>' +
-        '<input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" placeholder="Meses" min="1">' +
-        '<input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="1">' +
+        '<input type="text" name="elemento_codigo[]" class="form-control form-control-sm f-cod" placeholder="Código" readonly>' +
+        '<input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" placeholder="Meses" min="1" oninput="recalcularTotales()">' +
+        '<input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="0.01" oninput="recalcularTotales()">' +
+        '<input type="number" name="elemento_costo[]" class="form-control form-control-sm f-pre" placeholder="S/. Costo prod." min="0" step="0.01" id="costo-' + tipo + '-' + idx + '" oninput="recalcularTotales()">' +
+        '<input type="text" name="elemento_desc_costo[]" class="form-control form-control-sm" placeholder="Desc. costo (ej: Prod. lona e instalación)" style="flex:2;min-width:160px" value="' + descDefault + '">' +
         '<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Ver foto" ' +
             'onclick="verFotoPanel(\'' + tipo + '\',' + idx + ')" id="btnFoto-' + tipo + '-' + idx + '" style="display:none">' +
             '<i class="bi bi-image"></i></button>' +
         '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" ' +
-            'onclick="removePanel(\'' + tipo + '\',' + idx + ')">' +
-            '<i class="bi bi-trash"></i></button>';
+            'onclick="removePanel(\'' + tipo + '\',' + idx + ')"><i class="bi bi-trash"></i></button>';
 
     cont.appendChild(row);
     updateCount(tipo);
@@ -329,6 +374,9 @@ function onSelect(sel, tipo, idx) {
         row.querySelector('input[name="elemento_codigo[]"]').value = opt.dataset.codigo || '';
         var btnFoto = document.getElementById('btnFoto-' + tipo + '-' + idx);
         if (btnFoto) btnFoto.style.display = sel.value ? '' : 'none';
+        var costoInp = document.getElementById('costo-' + tipo + '-' + idx);
+        if (costoInp && opt.dataset.costo) costoInp.value = parseFloat(opt.dataset.costo).toFixed(2);
+        recalcularTotales();
     }
 }
 
@@ -342,14 +390,8 @@ function verFotoPanel(tipo, idx) {
             document.getElementById('fotoNombrePanel').textContent = data.nombre || 'Panel';
             var img = document.getElementById('fotoPanelImg');
             var noImg = document.getElementById('fotoPanelNoImg');
-            if (data.foto) {
-                img.src = data.foto;
-                img.style.display = '';
-                noImg.style.display = 'none';
-            } else {
-                img.style.display = 'none';
-                noImg.style.display = '';
-            }
+            if (data.foto) { img.src = data.foto; img.style.display = ''; noImg.style.display = 'none'; }
+            else { img.style.display = 'none'; noImg.style.display = ''; }
             document.getElementById('modalFotoPanel').style.display = 'flex';
         });
 }
@@ -362,10 +404,9 @@ function removePanel(tipo, idx) {
     var row = document.getElementById('row-' + tipo + '-' + idx);
     if (row) row.remove();
     var cont = document.getElementById('cont-' + tipo);
-    if (!cont.querySelector('.cot-panel-row')) {
-        document.getElementById('empty-' + tipo).style.display = '';
-    }
+    if (!cont.querySelector('.cot-panel-row')) document.getElementById('empty-' + tipo).style.display = '';
     updateCount(tipo);
+    recalcularTotales();
 }
 
 function addServicio() {
@@ -380,13 +421,19 @@ function addServicio() {
         }).join('');
 
     var row = document.createElement('div');
-    row.className = 'cot-panel-row';
+    row.className = 'cot-panel-row flex-wrap';
     row.id = 'row-servicio-' + idx;
     row.innerHTML =
-        '<select name="srv_id[]" class="form-select form-select-sm" style="flex:3" ' +
+        '<select name="srv_id[]" class="form-select form-select-sm" style="flex:3;min-width:160px" ' +
             'onchange="onSelectSrv(this,' + idx + ')">' + opts + '</select>' +
-        '<input type="number" name="srv_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="0.01">' +
-        '<input type="text"   name="srv_obs[]"   class="form-control form-control-sm" placeholder="Observaciones" style="flex:2">' +
+        '<select name="srv_subtipo[]" class="form-select form-select-sm" style="width:100px;flex-shrink:0">' +
+            '<option value="">Tipo</option>' +
+            '<option value="led">LED</option>' +
+            '<option value="banner">BANNER</option>' +
+            '<option value="general">GENERAL</option>' +
+        '</select>' +
+        '<input type="number" name="srv_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="0.01" oninput="recalcularTotales()">' +
+        '<input type="text" name="srv_obs[]" class="form-control form-control-sm" placeholder="Observaciones" style="flex:2;min-width:120px">' +
         '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" ' +
             'onclick="removeServicio(' + idx + ')"><i class="bi bi-trash"></i></button>';
 
@@ -399,6 +446,7 @@ function onSelectSrv(sel, idx) {
     var row = document.getElementById('row-servicio-' + idx);
     if (row && opt.dataset.monto) {
         row.querySelector('input[name="srv_precio[]"]').value = parseFloat(opt.dataset.monto).toFixed(2);
+        recalcularTotales();
     }
 }
 
@@ -406,10 +454,9 @@ function removeServicio(idx) {
     var row = document.getElementById('row-servicio-' + idx);
     if (row) row.remove();
     var cont = document.getElementById('cont-servicio');
-    if (!cont.querySelector('.cot-panel-row')) {
-        document.getElementById('empty-servicio').style.display = '';
-    }
+    if (!cont.querySelector('.cot-panel-row')) document.getElementById('empty-servicio').style.display = '';
     updateCount('servicio');
+    recalcularTotales();
 }
 
 // Auto-rellenar empresa

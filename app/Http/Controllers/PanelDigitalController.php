@@ -30,16 +30,17 @@ class PanelDigitalController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'codigo' => 'nullable|string|max:50',
-            'nombre' => 'required|string|max:200',
-            'direccion' => 'nullable|string',
-            'medidas' => 'nullable|string|max:100',
-            'resolucion' => 'nullable|string|max:100',
-            'orientacion' => 'nullable|in:horizontal,vertical',
-            'tandas' => 'nullable|integer|min:1',
-            'foto' => 'nullable|file|image|max:5120',
-            'lat' => 'nullable|numeric',
-            'lng' => 'nullable|numeric',
+            'codigo'           => 'nullable|string|max:50',
+            'nombre'           => 'required|string|max:200',
+            'direccion'        => 'nullable|string',
+            'medidas'          => 'nullable|string|max:100',
+            'resolucion'       => 'nullable|string|max:100',
+            'orientacion'      => 'nullable|in:horizontal,vertical',
+            'tandas'           => 'nullable|integer|min:1',
+            'costo_produccion' => 'nullable|numeric|min:0',
+            'foto'             => 'nullable|file|image|max:5120',
+            'lat'              => 'nullable|numeric',
+            'lng'              => 'nullable|numeric',
         ]);
 
         if ($request->hasFile('foto')) {
@@ -59,17 +60,18 @@ class PanelDigitalController extends Controller
     public function update(Request $request, PanelDigital $panelDigital)
     {
         $validated = $request->validate([
-            'codigo' => 'nullable|string|max:50',
-            'nombre' => 'required|string|max:200',
-            'direccion' => 'nullable|string',
-            'medidas' => 'nullable|string|max:100',
-            'resolucion' => 'nullable|string|max:100',
-            'orientacion' => 'nullable|in:horizontal,vertical',
-            'tandas' => 'nullable|integer|min:1',
-            'foto' => 'nullable|file|image|max:5120',
-            'lat' => 'nullable|numeric',
-            'lng' => 'nullable|numeric',
-            'activo' => 'boolean',
+            'codigo'           => 'nullable|string|max:50',
+            'nombre'           => 'required|string|max:200',
+            'direccion'        => 'nullable|string',
+            'medidas'          => 'nullable|string|max:100',
+            'resolucion'       => 'nullable|string|max:100',
+            'orientacion'      => 'nullable|in:horizontal,vertical',
+            'tandas'           => 'nullable|integer|min:1',
+            'costo_produccion' => 'nullable|numeric|min:0',
+            'foto'             => 'nullable|file|image|max:5120',
+            'lat'              => 'nullable|numeric',
+            'lng'              => 'nullable|numeric',
+            'activo'           => 'boolean',
         ]);
 
         if ($request->hasFile('foto')) {

@@ -1089,7 +1089,7 @@
         </a>
         @endif
 
-        @if($user->esAdmin() || $user->tienePermiso('contratos') || $user->tienePermiso('cotizaciones'))
+        @if($user->esAdmin() || $user->tienePermiso('contratos') || $user->tienePermiso('cotizaciones') || $user->tienePermiso('tramites'))
         <div class="nav-section-label">Contratos</div>
         @if($user->esAdmin() || $user->tienePermiso('cotizaciones'))
         <a href="{{ route('cotizaciones.index') }}" class="nav-link {{ request()->routeIs('cotizaciones.*') ? 'active' : '' }}">
@@ -1099,6 +1099,11 @@
         @if($user->esAdmin() || $user->tienePermiso('contratos'))
         <a href="{{ route('contratos.index') }}" class="nav-link {{ request()->routeIs('contratos.*') ? 'active' : '' }}">
             <i class="bi bi-file-earmark-text"></i>Contratos
+        </a>
+        @endif
+        @if($user->esAdmin() || $user->tienePermiso('tramites'))
+        <a href="{{ route('tramites.index') }}" class="nav-link {{ request()->routeIs('tramites.*') ? 'active' : '' }}">
+            <i class="bi bi-file-earmark-check"></i>Trámites
         </a>
         @endif
         @endif

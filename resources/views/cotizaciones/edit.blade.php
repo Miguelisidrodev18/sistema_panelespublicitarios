@@ -65,10 +65,6 @@
                     <input type="text" name="tipo_contrato" value="{{ old('tipo_contrato', $cotizacion->tipo_contrato) }}" class="form-control" list="tipos_contrato">
                     <datalist id="tipos_contrato"><option value="Panel Digital"><option value="Panel Tradicional"><option value="Marketing Digital"><option value="Mixto"></datalist>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Monto propuesto (S/.)</label>
-                    <input type="number" name="monto_propuesto" value="{{ old('monto_propuesto', $cotizacion->monto_propuesto) }}" class="form-control" step="1" min="0">
-                </div>
                 <div class="col-md-4">
                     <label class="form-label">Fecha cotización</label>
                     <input type="date" name="fecha_cotizacion" value="{{ old('fecha_cotizacion', $cotizacion->fecha_cotizacion?->format('Y-m-d')) }}" class="form-control">
@@ -100,18 +96,20 @@
                 </div>
                 <div id="cont-digital">
                     @foreach($cotizacion->elementos->where('tipo_elemento','digital') as $el)
-                    <div class="cot-panel-row" id="row-digital-pre-{{ $el->id }}">
-                        <select name="elemento_panel_id[]" class="form-select form-select-sm">
+                    <div class="cot-panel-row flex-wrap" id="row-digital-pre-{{ $el->id }}">
+                        <select name="elemento_panel_id[]" class="form-select form-select-sm" style="flex:3;min-width:180px" onchange="onSelect(this)">
                             <option value="">Seleccionar panel...</option>
                             @foreach($paneles_digitales as $pd)
-                            <option value="{{ $pd->id }}" data-codigo="{{ $pd->codigo }}" {{ $el->panel_id == $pd->id ? 'selected' : '' }}>{{ $pd->codigo }} — {{ $pd->nombre }}</option>
+                            <option value="{{ $pd->id }}" data-codigo="{{ $pd->codigo }}" data-costo="{{ $pd->costo_produccion ?? 0 }}" {{ $el->panel_id == $pd->id ? 'selected' : '' }}>{{ $pd->codigo }} — {{ $pd->nombre }}</option>
                             @endforeach
                         </select>
                         <input type="hidden" name="elemento_tipo[]" value="digital">
                         <input type="text" name="elemento_codigo[]" class="form-control form-control-sm f-cod" value="{{ $el->codigo }}" readonly>
-                        <input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" value="{{ $el->tiempo_contrato }}" placeholder="Meses" min="1">
-                        <input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" value="{{ $el->precio_unitario }}" placeholder="S/. Precio" min="0" step="1">
-                        <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest('.cot-panel-row').remove()"><i class="bi bi-trash"></i></button>
+                        <input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" value="{{ $el->tiempo_contrato }}" placeholder="Meses" min="1" oninput="recalcularTotales()">
+                        <input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" value="{{ $el->precio_unitario }}" placeholder="S/. Precio" min="0" step="0.01" oninput="recalcularTotales()">
+                        <input type="number" name="elemento_costo[]" class="form-control form-control-sm f-pre" value="{{ $el->costo_produccion }}" placeholder="S/. Costo prod." min="0" step="0.01" oninput="recalcularTotales()">
+                        <input type="text" name="elemento_desc_costo[]" class="form-control form-control-sm" value="{{ $el->desc_costo ?? 'Instalación y puesta en marcha' }}" placeholder="Desc. costo" style="flex:2;min-width:160px">
+                        <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest('.cot-panel-row').remove();recalcularTotales()"><i class="bi bi-trash"></i></button>
                     </div>
                     @endforeach
                     <div class="cot-empty" id="empty-digital" {{ $cotizacion->elementos->where('tipo_elemento','digital')->count() ? 'style=display:none' : '' }}>
@@ -130,18 +128,20 @@
                 </div>
                 <div id="cont-tradicional">
                     @foreach($cotizacion->elementos->where('tipo_elemento','tradicional') as $el)
-                    <div class="cot-panel-row">
-                        <select name="elemento_panel_id[]" class="form-select form-select-sm">
+                    <div class="cot-panel-row flex-wrap">
+                        <select name="elemento_panel_id[]" class="form-select form-select-sm" style="flex:3;min-width:180px" onchange="onSelect(this)">
                             <option value="">Seleccionar panel...</option>
                             @foreach($paneles_tradicionales as $pt)
-                            <option value="{{ $pt->id }}" data-codigo="{{ $pt->codigo }}" {{ $el->panel_id == $pt->id ? 'selected' : '' }}>{{ $pt->codigo }} — {{ $pt->nombre }}</option>
+                            <option value="{{ $pt->id }}" data-codigo="{{ $pt->codigo }}" data-costo="{{ $pt->costo_produccion ?? 0 }}" {{ $el->panel_id == $pt->id ? 'selected' : '' }}>{{ $pt->codigo }} — {{ $pt->nombre }}</option>
                             @endforeach
                         </select>
                         <input type="hidden" name="elemento_tipo[]" value="tradicional">
                         <input type="text" name="elemento_codigo[]" class="form-control form-control-sm f-cod" value="{{ $el->codigo }}" readonly>
-                        <input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" value="{{ $el->tiempo_contrato }}" placeholder="Meses" min="1">
-                        <input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" value="{{ $el->precio_unitario }}" placeholder="S/. Precio" min="0" step="1">
-                        <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest('.cot-panel-row').remove()"><i class="bi bi-trash"></i></button>
+                        <input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" value="{{ $el->tiempo_contrato }}" placeholder="Meses" min="1" oninput="recalcularTotales()">
+                        <input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" value="{{ $el->precio_unitario }}" placeholder="S/. Precio" min="0" step="0.01" oninput="recalcularTotales()">
+                        <input type="number" name="elemento_costo[]" class="form-control form-control-sm f-pre" value="{{ $el->costo_produccion }}" placeholder="S/. Costo prod." min="0" step="0.01" oninput="recalcularTotales()">
+                        <input type="text" name="elemento_desc_costo[]" class="form-control form-control-sm" value="{{ $el->desc_costo ?? 'Producción de lona e instalación' }}" placeholder="Desc. costo" style="flex:2;min-width:160px">
+                        <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest('.cot-panel-row').remove();recalcularTotales()"><i class="bi bi-trash"></i></button>
                     </div>
                     @endforeach
                     <div class="cot-empty" id="empty-tradicional" {{ $cotizacion->elementos->where('tipo_elemento','tradicional')->count() ? 'style=display:none' : '' }}>
@@ -160,22 +160,51 @@
                 </div>
                 <div id="cont-servicio">
                     @foreach($cotizacion->elementos->where('tipo_elemento','servicio') as $el)
-                    <div class="cot-panel-row">
-                        <select name="srv_id[]" class="form-select form-select-sm" style="flex:3">
+                    <div class="cot-panel-row flex-wrap">
+                        <select name="srv_id[]" class="form-select form-select-sm" style="flex:3;min-width:160px" onchange="onSelectSrv(this)">
                             <option value="">Seleccionar servicio...</option>
                             @foreach($servicios as $s)
                             <option value="{{ $s->id }}" data-monto="{{ $s->monto }}" {{ $el->servicio_id == $s->id ? 'selected' : '' }}>{{ $s->nombre }}</option>
                             @endforeach
                         </select>
-                        <input type="number" name="srv_precio[]" class="form-control form-control-sm f-pre" value="{{ $el->precio_unitario }}" placeholder="S/. Precio" min="0" step="0.01">
-                        <input type="text" name="srv_obs[]" class="form-control form-control-sm" value="{{ $el->observaciones }}" placeholder="Observaciones" style="flex:2">
-                        <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest('.cot-panel-row').remove()"><i class="bi bi-trash"></i></button>
+                        <select name="srv_subtipo[]" class="form-select form-select-sm" style="width:100px;flex-shrink:0">
+                            <option value="">Tipo</option>
+                            <option value="led"     {{ $el->subtipo == 'led'     ? 'selected' : '' }}>LED</option>
+                            <option value="banner"  {{ $el->subtipo == 'banner'  ? 'selected' : '' }}>BANNER</option>
+                            <option value="general" {{ $el->subtipo == 'general' ? 'selected' : '' }}>GENERAL</option>
+                        </select>
+                        <input type="number" name="srv_precio[]" class="form-control form-control-sm f-pre" value="{{ $el->precio_unitario }}" placeholder="S/. Precio" min="0" step="0.01" oninput="recalcularTotales()">
+                        <input type="text" name="srv_obs[]" class="form-control form-control-sm" value="{{ $el->observaciones }}" placeholder="Observaciones" style="flex:2;min-width:120px">
+                        <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest('.cot-panel-row').remove();recalcularTotales()"><i class="bi bi-trash"></i></button>
                     </div>
                     @endforeach
                     <div class="cot-empty" id="empty-servicio" {{ $cotizacion->elementos->where('tipo_elemento','servicio')->count() ? 'style=display:none' : '' }}>
                         <i class="bi bi-box-seam me-1 opacity-50"></i>Sin servicios adicionales
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Resumen de totales con IGV --}}
+    <div class="card" id="resumen-totales" style="margin-bottom:16px">
+        <div class="card-header ch-green"><span><i class="bi bi-calculator"></i>Resumen de Totales</span></div>
+        <div class="card-body" style="padding:16px 24px">
+            <div class="d-flex justify-content-end">
+                <table style="font-size:13px;min-width:260px">
+                    <tr>
+                        <td class="pe-4" style="color:var(--text-light)">Subtotal neto</td>
+                        <td class="fw-600 text-end">S/. <span id="res-subtotal">0.00</span></td>
+                    </tr>
+                    <tr>
+                        <td class="pe-4" style="color:var(--text-light)">IGV (18%)</td>
+                        <td class="fw-600 text-end">S/. <span id="res-igv">0.00</span></td>
+                    </tr>
+                    <tr style="border-top:2px solid var(--border)">
+                        <td class="pe-4 fw-700 pt-2" style="font-size:14px">TOTAL CON IGV</td>
+                        <td class="fw-800 text-end pt-2" style="font-size:14px;color:#059669">S/. <span id="res-total">0.00</span></td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
@@ -206,11 +235,23 @@
 @push('scripts')
 <script>
 var paneles = {
-    digital:     @json($paneles_digitales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre])),
-    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre]))
+    digital:     @json($paneles_digitales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0])),
+    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id' => $p->id, 'codigo' => $p->codigo, 'nombre' => $p->nombre, 'costo' => $p->costo_produccion ?? 0]))
 };
 var serviciosDisp = @json($servicios->map(fn($s) => ['id' => $s->id, 'nombre' => $s->nombre, 'monto' => $s->monto]));
 var counters = { digital: 0, tradicional: 0, servicio: 0 };
+var IGV = 0.18;
+
+function recalcularTotales() {
+    var subtotal = 0;
+    document.querySelectorAll('input[name="elemento_precio[]"]').forEach(function(i){ subtotal += parseFloat(i.value)||0; });
+    document.querySelectorAll('input[name="elemento_costo[]"]').forEach(function(i){ subtotal += parseFloat(i.value)||0; });
+    document.querySelectorAll('input[name="srv_precio[]"]').forEach(function(i){ subtotal += parseFloat(i.value)||0; });
+    var igv = subtotal * IGV;
+    document.getElementById('res-subtotal').textContent = subtotal.toFixed(2);
+    document.getElementById('res-igv').textContent      = igv.toFixed(2);
+    document.getElementById('res-total').textContent    = (subtotal + igv).toFixed(2);
+}
 
 function addPanel(tipo) {
     var cont  = document.getElementById('cont-' + tipo);
@@ -219,49 +260,66 @@ function addPanel(tipo) {
     var idx  = counters[tipo]++;
     var opts = '<option value="">Seleccionar panel...</option>' +
         paneles[tipo].map(function(p) {
-            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '">' + (p.codigo ? p.codigo + ' — ' : '') + p.nombre + '</option>';
+            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '" data-costo="' + (p.costo||0) + '">' +
+                   (p.codigo ? p.codigo + ' — ' : '') + p.nombre + '</option>';
         }).join('');
+    var descDefault = tipo === 'tradicional' ? 'Producción de lona e instalación' : 'Instalación y puesta en marcha';
     var row = document.createElement('div');
-    row.className = 'cot-panel-row';
+    row.className = 'cot-panel-row flex-wrap';
+    row.id = 'row-' + tipo + '-' + idx;
     row.innerHTML =
-        '<select name="elemento_panel_id[]" class="form-select form-select-sm" onchange="onSelect(this)">' + opts + '</select>' +
+        '<select name="elemento_panel_id[]" class="form-select form-select-sm" style="flex:3;min-width:180px" onchange="onSelect(this)">' + opts + '</select>' +
         '<input type="hidden" name="elemento_tipo[]" value="' + tipo + '">' +
         '<input type="text" name="elemento_codigo[]" class="form-control form-control-sm f-cod" placeholder="Código" readonly>' +
-        '<input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" placeholder="Meses" min="1">' +
-        '<input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="1">' +
-        '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest(\'.cot-panel-row\').remove()"><i class="bi bi-trash"></i></button>';
+        '<input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" placeholder="Meses" min="1" oninput="recalcularTotales()">' +
+        '<input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="0.01" oninput="recalcularTotales()">' +
+        '<input type="number" name="elemento_costo[]" class="form-control form-control-sm f-pre" placeholder="S/. Costo prod." min="0" step="0.01" id="costo-' + tipo + '-' + idx + '" oninput="recalcularTotales()">' +
+        '<input type="text" name="elemento_desc_costo[]" class="form-control form-control-sm" placeholder="Desc. costo" style="flex:2;min-width:160px" value="' + descDefault + '">' +
+        '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest(\'.cot-panel-row\').remove();recalcularTotales()"><i class="bi bi-trash"></i></button>';
     cont.appendChild(row);
 }
 
 function onSelect(sel) {
     var opt = sel.options[sel.selectedIndex];
     var row = sel.closest('.cot-panel-row');
-    if (row) row.querySelector('input[name="elemento_codigo[]"]').value = opt.dataset.codigo || '';
+    if (!row) return;
+    row.querySelector('input[name="elemento_codigo[]"]').value = opt.dataset.codigo || '';
+    var costoInp = row.querySelector('input[name="elemento_costo[]"]');
+    if (costoInp && opt.dataset.costo) costoInp.value = parseFloat(opt.dataset.costo).toFixed(2);
+    recalcularTotales();
 }
 
 function addServicio() {
     var cont  = document.getElementById('cont-servicio');
     var empty = document.getElementById('empty-servicio');
     if (empty) empty.style.display = 'none';
-    var idx = counters['servicio']++;
     var opts = '<option value="">Seleccionar servicio...</option>' +
         serviciosDisp.map(function(s) {
             return '<option value="' + s.id + '" data-monto="' + s.monto + '">' + s.nombre + ' (S/. ' + parseFloat(s.monto).toFixed(2) + ')</option>';
         }).join('');
     var row = document.createElement('div');
-    row.className = 'cot-panel-row';
+    row.className = 'cot-panel-row flex-wrap';
     row.innerHTML =
-        '<select name="srv_id[]" class="form-select form-select-sm" style="flex:3" onchange="onSelectSrv(this)">' + opts + '</select>' +
-        '<input type="number" name="srv_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="0.01">' +
-        '<input type="text" name="srv_obs[]" class="form-control form-control-sm" placeholder="Observaciones" style="flex:2">' +
-        '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest(\'.cot-panel-row\').remove()"><i class="bi bi-trash"></i></button>';
+        '<select name="srv_id[]" class="form-select form-select-sm" style="flex:3;min-width:160px" onchange="onSelectSrv(this)">' + opts + '</select>' +
+        '<select name="srv_subtipo[]" class="form-select form-select-sm" style="width:100px;flex-shrink:0">' +
+            '<option value="">Tipo</option>' +
+            '<option value="led">LED</option>' +
+            '<option value="banner">BANNER</option>' +
+            '<option value="general">GENERAL</option>' +
+        '</select>' +
+        '<input type="number" name="srv_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="0.01" oninput="recalcularTotales()">' +
+        '<input type="text" name="srv_obs[]" class="form-control form-control-sm" placeholder="Observaciones" style="flex:2;min-width:120px">' +
+        '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="this.closest(\'.cot-panel-row\').remove();recalcularTotales()"><i class="bi bi-trash"></i></button>';
     cont.appendChild(row);
 }
 
 function onSelectSrv(sel) {
     var opt = sel.options[sel.selectedIndex];
     var row = sel.closest('.cot-panel-row');
-    if (row && opt.dataset.monto) row.querySelector('input[name="srv_precio[]"]').value = parseFloat(opt.dataset.monto).toFixed(2);
+    if (row && opt.dataset.monto) { row.querySelector('input[name="srv_precio[]"]').value = parseFloat(opt.dataset.monto).toFixed(2); recalcularTotales(); }
 }
+
+// Calcular al cargar con valores existentes
+document.addEventListener('DOMContentLoaded', recalcularTotales);
 </script>
 @endpush

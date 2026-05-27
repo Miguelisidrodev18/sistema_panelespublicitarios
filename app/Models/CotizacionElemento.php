@@ -11,12 +11,13 @@ class CotizacionElemento extends Model
     protected $table = 'cotizacion_elementos';
 
     protected $fillable = [
-        'cotizacion_id', 'tipo_elemento', 'panel_id', 'servicio_id', 'codigo',
-        'tiempo_contrato', 'precio_unitario', 'observaciones',
+        'cotizacion_id', 'tipo_elemento', 'subtipo', 'panel_id', 'servicio_id', 'codigo',
+        'tiempo_contrato', 'precio_unitario', 'costo_produccion', 'desc_costo', 'observaciones',
     ];
 
     protected $casts = [
-        'precio_unitario' => 'decimal:2',
+        'precio_unitario'  => 'decimal:2',
+        'costo_produccion' => 'decimal:2',
     ];
 
     public function cotizacion(): BelongsTo

@@ -11,13 +11,14 @@ class PanelDigital extends Model
 
     protected $fillable = [
         'codigo', 'nombre', 'direccion', 'medidas', 'resolucion',
-        'orientacion', 'tandas', 'foto', 'lat', 'lng', 'activo',
+        'orientacion', 'tandas', 'costo_produccion', 'foto', 'lat', 'lng', 'activo',
     ];
 
     protected $casts = [
-        'activo' => 'boolean',
-        'lat' => 'decimal:8',
-        'lng' => 'decimal:8',
+        'activo'           => 'boolean',
+        'lat'              => 'decimal:8',
+        'lng'              => 'decimal:8',
+        'costo_produccion' => 'decimal:2',
     ];
 
     public function empresas(): BelongsToMany

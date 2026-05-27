@@ -60,6 +60,12 @@
                     <label class="form-label">Tandas</label>
                     <input type="number" name="tandas" value="{{ old('tandas') }}" class="form-control" min="1">
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label">Costo de producción (S/.)</label>
+                    <input type="number" name="costo_produccion" value="{{ old('costo_produccion') }}"
+                        class="form-control" step="0.01" min="0" placeholder="0.00">
+                    <div class="form-hint">Incluye instalación y puesta en marcha.</div>
+                </div>
 
                 {{-- Mapa de ubicación --}}
                 <div class="col-12">
