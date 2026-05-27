@@ -25,12 +25,23 @@
     @csrf @method('PUT')
 
     <div class="card">
-        <div class="card-header"><span><i class="bi bi-person"></i>Datos del cliente</span></div>
+        <div class="card-header ch-blue"><span><i class="bi bi-person"></i>Datos del cliente</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-8">
-                    <label class="form-label">Nombre del cliente <span class="req">*</span></label>
-                    <input type="text" name="cliente_nombre" value="{{ old('cliente_nombre', $cotizacion->cliente_nombre) }}" class="form-control" required>
+                    <label class="form-label fw-medium">Empresa registrada en el sistema</label>
+                    <select name="empresa_id" id="edit_empresa_id" class="form-select">
+                        <option value="">— Cliente externo (no registrado) —</option>
+                        @foreach($empresas as $emp)
+                            <option value="{{ $emp->id }}"
+                                data-nombre="{{ $emp->nombre }}"
+                                data-encargado="{{ $emp->encargado ?? '' }}"
+                                {{ old('empresa_id', $cotizacion->empresa_id) == $emp->id ? 'selected' : '' }}>
+                                {{ $emp->nombre }}{{ $emp->encargado ? ' — '.$emp->encargado : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Al seleccionar, se completan automáticamente los campos de abajo.</div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Estado</label>
@@ -41,14 +52,18 @@
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Empresa del cliente</label>
-                    <input type="text" name="cliente_empresa" value="{{ old('cliente_empresa', $cotizacion->cliente_empresa) }}" class="form-control">
+                    <label class="form-label">Nombre del contacto</label>
+                    <input type="text" name="cliente_nombre" id="edit_cliente_nombre" value="{{ old('cliente_nombre', $cotizacion->cliente_nombre) }}" class="form-control" placeholder="Nombre completo">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-6">
+                    <label class="form-label">Empresa / Negocio</label>
+                    <input type="text" name="cliente_empresa" id="edit_cliente_empresa" value="{{ old('cliente_empresa', $cotizacion->cliente_empresa) }}" class="form-control" placeholder="Razón social">
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Teléfono</label>
                     <input type="text" name="cliente_telefono" value="{{ old('cliente_telefono', $cotizacion->cliente_telefono) }}" class="form-control">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <label class="form-label">Email</label>
                     <input type="email" name="cliente_email" value="{{ old('cliente_email', $cotizacion->cliente_email) }}" class="form-control">
                 </div>
@@ -57,7 +72,7 @@
     </div>
 
     <div class="card">
-        <div class="card-header"><span><i class="bi bi-file-invoice-dollar"></i>Detalles de la propuesta</span></div>
+        <div class="card-header ch-purple"><span><i class="bi bi-receipt"></i>Detalles de la propuesta</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
@@ -82,9 +97,9 @@
     </div>
 
     {{-- PANELES DE INTERÉS --}}
-    <div class="card border-0 shadow-sm mb-3">
-        <div class="cot-section-title"><i class="bi bi-geo-alt-fill"></i>Paneles de Interés</div>
-        <div class="p-4">
+    <div class="card mb-3">
+        <div class="card-header ch-amber"><span><i class="bi bi-geo-alt-fill"></i>Paneles de Interés</span></div>
+        <div class="card-body">
             {{-- Digitales --}}
             <div class="cot-panel-group mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-2">
@@ -209,9 +224,9 @@
         </div>
     </div>
 
-    <div class="action-bar">
+    <div class="d-flex gap-2 justify-content-end mb-4">
         <a href="{{ route('cotizaciones.show', $cotizacion) }}" class="btn btn-secondary">Cancelar</a>
-        <button type="submit" class="btn btn-warning"><i class="bi bi-check-lg"></i>Guardar cambios</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i>Guardar cambios</button>
     </div>
 </form>
 </div>
@@ -219,12 +234,49 @@
 
 @push('styles')
 <style>
-.cot-section-title { display:flex;align-items:center;gap:8px;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#374151;padding:10px 20px;background:#F8FAFC;border-bottom:1px solid #E2E8F0; }
-.cot-section-title i { color:var(--primary);font-size:14px; }
-.cot-add-btn { display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border:1px solid var(--primary);color:var(--primary);background:transparent;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer; }
-.cot-add-btn:hover { background:#FEF2F2; }
-.cot-empty { padding:12px;text-align:center;font-size:13px;color:#9CA3AF;border:1px dashed #D1D5DB;border-radius:8px; }
-.cot-panel-row { display:flex;align-items:center;gap:8px;padding:8px 12px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:6px; }
+.cot-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--primary-dark);
+    padding: 12px 20px;
+    background: linear-gradient(90deg, rgba(230,57,70,0.06), rgba(255,255,255,0.7));
+    border-left: 4px solid var(--primary);
+    border-bottom: 1px solid rgba(226,232,240,.6);
+}
+.cot-section-title i { color: var(--primary); font-size: 14px; }
+.cot-add-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border: 1.5px solid var(--primary);
+    color: var(--primary); background: transparent;
+    border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all .2s ease;
+}
+.cot-add-btn:hover {
+    background: var(--primary-lighter);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(230,57,70,.12);
+}
+.cot-empty {
+    padding: 16px; text-align: center; font-size: 13px;
+    color: var(--text-light); border: 1px dashed var(--border); border-radius: var(--radius-md);
+    background: rgba(255,255,255,.3);
+}
+.cot-panel-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 14px; background: rgba(255,255,255,.6);
+    border: 1px solid rgba(226,232,240,.8); border-radius: var(--radius-md); margin-bottom: 8px;
+    transition: all .2s ease;
+    backdrop-filter: blur(4px);
+}
+.cot-panel-row:hover {
+    border-color: rgba(230,57,70,.25);
+    box-shadow: var(--shadow-sm);
+}
 .cot-panel-row select { flex:2;min-width:0; }
 .cot-panel-row .f-cod { width:90px;flex-shrink:0; }
 .cot-panel-row .f-mes { width:80px;flex-shrink:0; }
@@ -331,6 +383,13 @@ function onSelectSrv(sel) {
     var row = sel.closest('.cot-panel-row');
     if (row && opt.dataset.monto) { row.querySelector('input[name="srv_precio[]"]').value = parseFloat(opt.dataset.monto).toFixed(2); recalcularTotales(); }
 }
+
+// Auto-rellenar desde empresa registrada
+document.getElementById('edit_empresa_id').addEventListener('change', function () {
+    var opt = this.options[this.selectedIndex];
+    document.getElementById('edit_cliente_nombre').value  = opt.dataset.encargado || '';
+    document.getElementById('edit_cliente_empresa').value = opt.dataset.nombre    || '';
+});
 
 // Calcular al cargar con valores existentes
 document.addEventListener('DOMContentLoaded', recalcularTotales);

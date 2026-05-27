@@ -6,12 +6,11 @@
 <div class="row justify-content-center">
 <div class="col-lg-9">
 
-<div class="d-flex align-items-center mb-3">
-    <a href="{{ route('cotizaciones.index') }}" class="btn btn-sm btn-outline-secondary me-3">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-    <h5 class="mb-0 fw-semibold">Nueva Cotización</h5>
-    <span class="badge bg-secondary ms-2 fw-normal">{{ $numero }}</span>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="{{ route('cotizaciones.index') }}" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <div class="page-title">Nueva Cotización <span class="badge badge-purple" style="font-size:12px;margin-left:8px">{{ $numero }}</span></div>
+    </div>
 </div>
 
 @if($errors->any())
@@ -26,11 +25,11 @@
 <input type="hidden" name="numero" value="{{ old('numero', $numero) }}">
 
 {{-- SECCIÓN 1: Datos del cliente --}}
-<div class="card border-0 shadow-sm mb-3">
-    <div class="cot-section-title">
-        <i class="bi bi-person-fill"></i> Datos del Cliente
+<div class="card mb-3">
+    <div class="card-header ch-blue">
+        <span><i class="bi bi-person"></i>Datos del Cliente</span>
     </div>
-    <div class="p-4">
+    <div class="card-body">
         <div class="row g-3">
             <div class="col-12">
                 <label class="form-label fw-medium">Empresa registrada en el sistema</label>
@@ -76,11 +75,11 @@
 </div>
 
 {{-- SECCIÓN 2: Datos de la cotización --}}
-<div class="card border-0 shadow-sm mb-3">
-    <div class="cot-section-title">
-        <i class="bi bi-file-invoice-dollar"></i> Datos de la Cotización
+<div class="card mb-3">
+    <div class="card-header ch-purple">
+        <span><i class="bi bi-receipt"></i>Datos de la Cotización</span>
     </div>
-    <div class="p-4">
+    <div class="card-body">
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label">Tipo de servicio</label>
@@ -118,11 +117,11 @@
 </div>
 
 {{-- SECCIÓN 3: Paneles de interés --}}
-<div class="card border-0 shadow-sm mb-3">
-    <div class="cot-section-title">
-        <i class="bi bi-geo-alt-fill"></i> Paneles de Interés
+<div class="card mb-3">
+    <div class="card-header ch-amber">
+        <span><i class="bi bi-geo-alt-fill"></i>Paneles de Interés</span>
     </div>
-    <div class="p-4">
+    <div class="card-body">
 
         {{-- Digitales --}}
         <div class="cot-panel-group mb-4">
@@ -197,9 +196,11 @@
 </div>
 
 {{-- Resumen de totales con IGV --}}
-<div class="card border-0 shadow-sm mb-3" id="resumen-totales" style="display:none">
-    <div class="cot-section-title"><i class="bi bi-calculator"></i> Resumen de Totales</div>
-    <div class="p-3">
+<div class="card mb-3" id="resumen-totales" style="display:none">
+    <div class="card-header ch-green">
+        <span><i class="bi bi-calculator"></i>Resumen de Totales</span>
+    </div>
+    <div class="card-body">
         <div class="d-flex justify-content-end">
             <table style="font-size:13px;min-width:260px">
                 <tr>
@@ -220,10 +221,10 @@
 </div>
 
 <div class="d-flex gap-2 justify-content-end mb-4">
-    <a href="{{ route('cotizaciones.index') }}" class="btn btn-outline-secondary">
+    <a href="{{ route('cotizaciones.index') }}" class="btn btn-secondary">
         <i class="bi bi-x-lg me-1"></i>Cancelar
     </a>
-    <button type="submit" class="btn btn-danger px-4">
+    <button type="submit" class="btn btn-primary px-4">
         <i class="bi bi-check-lg me-1"></i>Guardar Cotización
     </button>
 </div>
@@ -239,51 +240,47 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-weight: 600;
-    font-size: 12px;
+    font-weight: 700;
+    font-size: 11.5px;
     text-transform: uppercase;
-    letter-spacing: .6px;
-    color: #374151;
-    padding: 10px 20px;
-    background: #F8FAFC;
-    border-bottom: 1px solid #E2E8F0;
+    letter-spacing: .8px;
+    color: var(--primary-dark);
+    padding: 12px 20px;
+    background: linear-gradient(90deg, rgba(230,57,70,0.06), rgba(255,255,255,0.7));
+    border-left: 4px solid var(--primary);
+    border-bottom: 1px solid rgba(226,232,240,.6);
 }
 .cot-section-title i { color: var(--primary); font-size: 14px; }
 
 .cot-add-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 14px;
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background .15s;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border: 1.5px solid var(--primary);
+    color: var(--primary); background: transparent;
+    border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all .2s ease;
 }
-.cot-add-btn:hover { background: #FEF2F2; }
+.cot-add-btn:hover {
+    background: var(--primary-lighter);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(230,57,70,.12);
+}
 
 .cot-empty {
-    padding: 12px;
-    text-align: center;
-    font-size: 13px;
-    color: #9CA3AF;
-    border: 1px dashed #D1D5DB;
-    border-radius: 8px;
+    padding: 16px; text-align: center; font-size: 13px;
+    color: var(--text-light); border: 1px dashed var(--border); border-radius: var(--radius-md);
+    background: rgba(255,255,255,.3);
 }
 
 .cot-panel-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 14px; background: rgba(255,255,255,.6);
+    border: 1px solid rgba(226,232,240,.8); border-radius: var(--radius-md); margin-bottom: 8px;
+    transition: all .2s ease;
+    backdrop-filter: blur(4px);
+}
+.cot-panel-row:hover {
+    border-color: rgba(230,57,70,.25);
+    box-shadow: var(--shadow-sm);
 }
 .cot-panel-row select  { flex: 2; min-width: 0; }
 .cot-panel-row .f-cod  { width: 90px; flex-shrink: 0; }
@@ -350,7 +347,7 @@ function addPanel(tipo) {
     var idx  = counters[tipo]++;
     var opts = '<option value="">Seleccionar panel...</option>' +
         paneles[tipo].map(function(p) {
-            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '" data-costo="' + (p.costo||0) + '">' +
+            return '<option value="' + p.id + '" data-codigo="' + (p.codigo||'') + '" data-costo="' + (p.costo||0) + '" data-desc="' + (p.desc||'') + '">' +
                    (p.codigo ? p.codigo + ' — ' : '') + p.nombre + '</option>';
         }).join('');
 
@@ -386,7 +383,9 @@ function onSelect(sel, tipo, idx) {
         var btnFoto = document.getElementById('btnFoto-' + tipo + '-' + idx);
         if (btnFoto) btnFoto.style.display = sel.value ? '' : 'none';
         var costoInp = document.getElementById('costo-' + tipo + '-' + idx);
-        if (costoInp && opt.dataset.costo) costoInp.value = parseFloat(opt.dataset.costo).toFixed(2);
+        if (costoInp && opt.dataset.costo) costoInp.value = parseFloat(opt.dataset.costo||0).toFixed(2);
+        var descInp = row.querySelector('input[name="elemento_desc_costo[]"]');
+        if (descInp && opt.dataset.desc) descInp.value = opt.dataset.desc;
         recalcularTotales();
     }
 }

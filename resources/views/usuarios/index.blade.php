@@ -28,7 +28,7 @@
                 <tr>
                     <td>
                         <div class="flex flex-center gap-12">
-                            <div class="user-avatar">{{ strtoupper(substr($user->username, 0, 2)) }}</div>
+                            <div class="user-avatar" style="background:linear-gradient(135deg,{{ $user->rol === 'admin' ? 'var(--primary),#FF6B7A' : ($user->rol === 'gerencia' ? 'var(--purple),#A78BFA' : 'var(--blue),#60A5FA') }})">{{ strtoupper(substr($user->username, 0, 2)) }}</div>
                             <div class="fw-700" style="color:var(--text-dark)">{{ $user->username }}</div>
                         </div>
                     </td>

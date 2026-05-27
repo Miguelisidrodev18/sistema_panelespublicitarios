@@ -54,7 +54,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center text-muted py-4">No hay servicios registrados.</td></tr>
+                <tr><td colspan="5"><div class="empty-state"><i class="bi bi-box-seam"></i><p>No hay servicios registrados.</p></div></td></tr>
                 @endforelse
             </tbody>
         </table>

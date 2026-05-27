@@ -19,6 +19,10 @@
 </div>
 
 <div class="card">
+    <div class="card-header ch-blue">
+        <span><i class="bi bi-bar-chart-line"></i>Flujo de Caja Mensual</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text-light)">Año {{ $año }}</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>
@@ -50,7 +54,7 @@
                 @endforeach
             </tbody>
             <tfoot>
-                <tr style="font-weight:700;border-top:2px solid var(--border)">
+                <tr style="font-weight:700;font-size:15px;border-top:2px solid var(--border);background:linear-gradient(90deg,rgba(37,99,235,0.06),rgba(16,185,129,0.06))">
                     <td>Total</td>
                     <td style="color:#10B981">S/. {{ number_format($meses->sum('ingresos'), 0, ',', '.') }}</td>
                     <td style="color:var(--primary)">S/. {{ number_format($meses->sum('egresos'), 0, ',', '.') }}</td>

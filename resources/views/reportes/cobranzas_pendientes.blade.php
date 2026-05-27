@@ -11,6 +11,23 @@
     </div>
 </div>
 
+<div class="stats-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px">
+    <div class="stat-card">
+        <div class="stat-icon amber"><i class="bi bi-exclamation-triangle"></i></div>
+        <div>
+            <div class="stat-value" style="color:#D97706">{{ $empresas->count() }}</div>
+            <div class="stat-label">Empresas con deuda</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red"><i class="bi bi-cash-stack"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:20px;color:var(--primary)">S/. {{ number_format($empresas->sum(fn($e) => $e->cobranzas->sum('monto')), 0, ',', '.') }}</div>
+            <div class="stat-label">Total pendiente</div>
+        </div>
+    </div>
+</div>
+
 @forelse($empresas as $empresa)
 <div class="card" style="margin-bottom:16px">
     <div class="card-header">

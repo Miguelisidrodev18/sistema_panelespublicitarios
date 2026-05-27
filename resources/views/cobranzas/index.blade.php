@@ -10,6 +10,30 @@
     </div>
 </div>
 
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="bi bi-collection"></i></div>
+        <div>
+            <div class="stat-value">{{ $cobranzas->total() }}</div>
+            <div class="stat-label">Total cuotas</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+        <div>
+            <div class="stat-value" style="color:#D97706">{{ $cobranzas->where('estado', 'pendiente')->count() }}</div>
+            <div class="stat-label">Pendientes</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+        <div>
+            <div class="stat-value" style="color:#059669">{{ $cobranzas->where('estado', 'pagada')->count() }}</div>
+            <div class="stat-label">Pagadas</div>
+        </div>
+    </div>
+</div>
+
 <div class="filter-bar">
     <form style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%" method="GET">
         <input type="text" name="buscar" value="{{ request('buscar') }}" class="form-control" style="max-width:250px" placeholder="Buscar empresa...">

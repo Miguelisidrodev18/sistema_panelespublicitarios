@@ -36,6 +36,10 @@
 </form>
 
 <div class="card">
+    <div class="card-header ch-green">
+        <span><i class="bi bi-arrow-down-circle"></i>Registro de Ingresos</span>
+        <span style="font-size:12px;font-weight:500;color:var(--text-light)">{{ $ingresos->total() }} registro(s)</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead>

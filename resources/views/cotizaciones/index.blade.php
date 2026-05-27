@@ -5,9 +5,9 @@
 @section('content')
 
 {{-- Stats --}}
-<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+<div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon dark"><i class="bi bi-file-invoice-dollar"></i></div>
+        <div class="stat-icon purple"><i class="bi bi-receipt"></i></div>
         <div>
             <div class="stat-value">{{ $stats_cot['total'] }}</div>
             <div class="stat-label">Total</div>
@@ -37,7 +37,7 @@
 </div>
 
 {{-- Filtros + botón --}}
-<div class="card border-0 shadow-sm mb-3">
+<div class="card mb-3">
     <div class="card-body py-2">
         <form class="d-flex flex-wrap gap-2 align-items-center" method="GET">
             <input type="text" name="buscar" value="{{ request('buscar') }}" class="form-control"
@@ -50,20 +50,31 @@
                     </option>
                 @endforeach
             </select>
-            <div class="d-flex gap-1">
-                @foreach(['' => 'Todos', 'pendiente' => 'Pendiente', 'aprobada' => 'Aprobada', 'rechazada' => 'Rechazada', 'convertida' => 'Convertida'] as $val => $label)
+            <div class="d-flex gap-1 flex-wrap">
+                @php
+                $statusPills = [
+                    '' => ['label'=>'Todos','cls'=>'sp-all'],
+                    'pendiente'  => ['label'=>'Pendiente', 'cls'=>'sp-pen'],
+                    'aprobada'   => ['label'=>'Aprobada',  'cls'=>'sp-apr'],
+                    'rechazada'  => ['label'=>'Rechazada', 'cls'=>'sp-rec'],
+                    'convertida' => ['label'=>'Convertida','cls'=>'sp-con'],
+                ];
+                @endphp
+                @foreach($statusPills as $val => $pill)
                 <a href="{{ route('cotizaciones.index', array_merge(request()->except('estado','page'), $val ? ['estado'=>$val] : [])) }}"
-                   class="btn btn-sm {{ request('estado', '') === $val ? 'btn-danger' : 'btn-outline-secondary' }}">
-                    {{ $label }}
+                   class="status-pill {{ $pill['cls'] }} {{ request('estado','') === $val ? 'active' : '' }}">
+                    {{ $pill['label'] }}
                 </a>
                 @endforeach
             </div>
             @if(request()->hasAny(['buscar','empresa_id','estado']))
-            <a href="{{ route('cotizaciones.index') }}" class="btn btn-sm btn-outline-secondary">Limpiar</a>
+            <a href="{{ route('cotizaciones.index') }}" class="btn btn-sm btn-secondary">
+                <i class="bi bi-x-circle me-1"></i>Limpiar
+            </a>
             @endif
             <div class="ms-auto">
                 @if(auth()->user()->esAdmin())
-                <button type="button" class="btn btn-danger" onclick="abrirModal('modalNuevaCot')">
+                <button type="button" class="btn btn-primary" onclick="abrirModal('modalNuevaCot')">
                     <i class="bi bi-plus-lg me-1"></i>Nueva Cotización
                 </button>
                 @endif
@@ -73,7 +84,7 @@
 </div>
 
 {{-- Tabla --}}
-<div class="card border-0 shadow-sm" style="overflow:visible">
+<div class="card" style="overflow:visible">
     <div class="card-header">
         <span><i class="bi bi-list-ul" style="color:var(--primary);margin-right:8px"></i>Lista de Cotizaciones</span>
         <span class="text-muted small">{{ $cotizaciones->total() }} cotización(es)</span>
@@ -138,16 +149,16 @@
                         @php [$bc, $bl] = $estadoMap[$cot->estado] ?? ['secondary', ucfirst($cot->estado)]; @endphp
                         <span class="badge badge-{{ $bc }}">{{ $bl }}</span>
                     </td>
-                    <td class="text-end">
-                        <a href="{{ route('cotizaciones.show', $cot) }}" class="btn btn-sm btn-secondary" title="Ver">
+                    <td class="text-end" style="white-space:nowrap">
+                        <a href="{{ route('cotizaciones.show', $cot) }}" class="btn btn-sm btn-act btn-act-view" title="Ver detalle">
                             <i class="bi bi-eye"></i>
                         </a>
                         @if(auth()->user()->esAdmin())
-                        <a href="{{ route('cotizaciones.edit', $cot) }}" class="btn btn-sm btn-secondary ms-1" title="Editar">
+                        <a href="{{ route('cotizaciones.edit', $cot) }}" class="btn btn-sm btn-act btn-act-edit ms-1" title="Editar">
                             <i class="bi bi-pencil"></i>
                         </a>
                         @if(in_array($cot->estado, ['pendiente', 'aprobada']))
-                        <a href="{{ route('cotizaciones.convertir', $cot) }}" class="btn btn-sm btn-secondary ms-1" title="Convertir a Contrato">
+                        <a href="{{ route('cotizaciones.convertir', $cot) }}" class="btn btn-sm btn-act btn-act-conv ms-1" title="Convertir a Contrato">
                             <i class="bi bi-arrow-right-circle"></i>
                         </a>
                         @endif
@@ -158,10 +169,10 @@
                 <tr>
                     <td colspan="7">
                         <div class="empty-state" style="padding:40px">
-                            <i class="bi bi-file-invoice-dollar"></i>
+                            <i class="bi bi-receipt"></i>
                             <p>No hay cotizaciones registradas</p>
                             @if(auth()->user()->esAdmin())
-                            <button class="btn btn-danger btn-sm" onclick="abrirModal('modalNuevaCot')">
+                            <button class="btn btn-primary btn-sm" onclick="abrirModal('modalNuevaCot')">
                                 <i class="bi bi-plus-lg me-1"></i>Crear primera cotización
                             </button>
                             @endif
@@ -173,7 +184,7 @@
         </table>
     </div>
     @if($cotizaciones->hasPages())
-    <div class="card-footer bg-white">{{ $cotizaciones->withQueryString()->links() }}</div>
+    <div class="card-footer">{{ $cotizaciones->withQueryString()->links() }}</div>
     @endif
 </div>
 
@@ -187,7 +198,7 @@
 
     <div class="modal-header">
         <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-file-invoice-dollar" style="color:#FCD34D;font-size:22px"></i>
+            <i class="bi bi-receipt" style="color:var(--primary);font-size:22px"></i>
             <div>
                 <h5 class="mb-0">Nueva Cotización</h5>
                 <div style="font-size:12px;opacity:.7;margin-top:2px">
@@ -331,10 +342,10 @@
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" onclick="cerrarModal('modalNuevaCot')">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalNuevaCot')">
             <i class="bi bi-x-lg me-1"></i>Cancelar
         </button>
-        <button type="submit" class="btn btn-danger">
+        <button type="submit" class="btn btn-primary">
             <i class="bi bi-check-lg me-1"></i>Guardar Cotización
         </button>
     </div>
@@ -348,35 +359,75 @@
 
 @push('styles')
 <style>
+/* ── Status filter pills ─────────────────────────── */
+.status-pill {
+    display: inline-flex; align-items: center; border-radius: 20px;
+    font-size: 11.5px; padding: 5px 14px; font-weight: 600;
+    border: 1.5px solid transparent; cursor: pointer; text-decoration: none;
+    transition: all .18s ease;
+}
+.status-pill:hover { transform: translateY(-1px); text-decoration: none; }
+.status-pill.sp-all          { background:#F1F5F9; color:#64748B; border-color:#E2E8F0; }
+.status-pill.sp-all.active   { background:#334155; color:#fff; border-color:#334155; box-shadow:0 4px 10px rgba(51,65,85,.25); }
+.status-pill.sp-pen          { background:#FFFBEB; color:#92400E; border-color:#FDE68A; }
+.status-pill.sp-pen.active   { background:#D97706; color:#fff; border-color:#B45309; box-shadow:0 4px 10px rgba(217,119,6,.3); }
+.status-pill.sp-apr          { background:#F0FDF4; color:#166534; border-color:#BBF7D0; }
+.status-pill.sp-apr.active   { background:#16A34A; color:#fff; border-color:#15803D; box-shadow:0 4px 10px rgba(22,163,74,.3); }
+.status-pill.sp-rec          { background:#FFF1F2; color:#9F1239; border-color:#FECDD3; }
+.status-pill.sp-rec.active   { background:#E11D48; color:#fff; border-color:#BE123C; box-shadow:0 4px 10px rgba(225,29,72,.3); }
+.status-pill.sp-con          { background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE; }
+.status-pill.sp-con.active   { background:#2563EB; color:#fff; border-color:#1D4ED8; box-shadow:0 4px 10px rgba(37,99,235,.3); }
+/* ── Colored action buttons ──────────────────────── */
+.btn-act { border-radius: var(--radius-sm); font-size: 12px; padding: 5px 10px; border-width: 1.5px; border-style: solid; transition: all .18s ease; display: inline-flex; align-items: center; justify-content: center; }
+.btn-act:hover { transform: translateY(-1px); text-decoration: none; }
+.btn-act-view { color:#2563EB; border-color:#BFDBFE; background:rgba(219,234,254,.45); }
+.btn-act-view:hover { background:#DBEAFE; border-color:#93C5FD; color:#1D4ED8; box-shadow:0 4px 12px rgba(37,99,235,.18); }
+.btn-act-edit { color:#D97706; border-color:#FDE68A; background:rgba(254,243,199,.45); }
+.btn-act-edit:hover { background:#FEF3C7; border-color:#FCD34D; color:#B45309; box-shadow:0 4px 12px rgba(217,119,6,.18); }
+.btn-act-conv { color:#059669; border-color:#A7F3D0; background:rgba(209,250,229,.45); }
+.btn-act-conv:hover { background:#D1FAE5; border-color:#6EE7B7; color:#047857; box-shadow:0 4px 12px rgba(5,150,105,.18); }
+/* ── Modal section titles ────────────────────────── */
 .cot-sec-title {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-weight: 600;
-    font-size: 11px;
+    font-weight: 700;
+    font-size: 11.5px;
     text-transform: uppercase;
-    letter-spacing: .7px;
-    color: var(--primary);
-    padding: 10px 28px;
-    background: #FEF2F2;
-    border-top: 1px solid #FECACA;
-    border-bottom: 1px solid #FECACA;
+    letter-spacing: .8px;
+    color: var(--primary-dark);
+    padding: 12px 28px;
+    background: linear-gradient(90deg, rgba(230,57,70,0.06), rgba(255,255,255,0.7));
+    border-left: 4px solid var(--primary);
+    border-bottom: 1px solid rgba(226,232,240,.6);
 }
 .cot-add-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 12px; border: 1px solid var(--primary);
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border: 1.5px solid var(--primary);
     color: var(--primary); background: transparent;
-    border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;
+    border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all .2s ease;
 }
-.cot-add-btn:hover { background: #FEF2F2; }
+.cot-add-btn:hover {
+    background: var(--primary-lighter);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(230,57,70,.12);
+}
 .cot-empty {
-    padding: 10px; text-align: center; font-size: 12px;
-    color: #9CA3AF; border: 1px dashed #D1D5DB; border-radius: 8px;
+    padding: 16px; text-align: center; font-size: 13px;
+    color: var(--text-light); border: 1px dashed var(--border); border-radius: var(--radius-md);
+    background: rgba(255,255,255,.3);
 }
 .cot-panel-row {
-    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    padding: 8px 10px; background: #F8FAFC;
-    border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 14px; background: rgba(255,255,255,.6);
+    border: 1px solid rgba(226,232,240,.8); border-radius: var(--radius-md); margin-bottom: 8px;
+    transition: all .2s ease;
+    backdrop-filter: blur(4px);
+}
+.cot-panel-row:hover {
+    border-color: rgba(230,57,70,.25);
+    box-shadow: var(--shadow-sm);
 }
 .cot-panel-row select { flex: 3; min-width: 200px; }
 .cot-panel-row .f-cod  { width: 76px; flex-shrink: 0; }

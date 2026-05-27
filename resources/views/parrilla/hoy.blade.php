@@ -36,7 +36,7 @@
 
 <div class="card">
     <div class="card-header">
-        <span><i class="bi bi-calendar-check" style="color:var(--primary);margin-right:8px"></i>Campanas en aire — {{ $hoy->format('d/m/Y') }}</span>
+        <span><i class="bi bi-calendar-check" style="color:var(--primary);margin-right:8px"></i>Campañas en aire — {{ $hoy->format('d/m/Y') }} <span class="badge" style="background:linear-gradient(135deg,#EF4444,#F87171);color:#fff;margin-left:10px;animation:pulse-glow 2s ease infinite"><i class="bi bi-circle-fill" style="font-size:6px;margin-right:4px"></i>EN VIVO</span></span>
         <a href="{{ route('control-publicitario.index') }}" class="btn btn-sm btn-secondary">Ver control publicitario</a>
     </div>
     <div class="table-wrapper">

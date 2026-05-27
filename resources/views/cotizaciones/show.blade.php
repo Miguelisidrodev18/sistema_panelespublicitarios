@@ -30,7 +30,7 @@
 <div class="row g-3">
     <div class="col-lg-4">
         <div class="card" style="margin-bottom:20px">
-            <div class="card-header"><span><i class="bi bi-person" style="color:var(--primary);margin-right:8px"></i>Datos del cliente</span></div>
+            <div class="card-header ch-blue"><span><i class="bi bi-person"></i>Datos del cliente</span></div>
             <div class="card-body">
                 <div class="detail-grid">
                     @if($cotizacion->empresa)
@@ -57,7 +57,7 @@
         </div>
 
         <div class="card">
-            <div class="card-header"><span><i class="bi bi-file-invoice-dollar" style="color:var(--primary);margin-right:8px"></i>Propuesta</span></div>
+            <div class="card-header ch-purple"><span><i class="bi bi-receipt"></i>Propuesta</span></div>
             <div class="card-body">
                 <div class="detail-grid">
                     <div class="detail-row"><div class="detail-label">Tipo</div><div class="detail-value"><span class="badge badge-info">{{ $cotizacion->tipo_contrato ?? '—' }}</span></div></div>
@@ -88,8 +88,8 @@
         @endif
 
         <div class="card">
-            <div class="card-header">
-                <span><i class="bi bi-grid-3x3" style="color:var(--primary);margin-right:8px"></i>Paneles / Servicios cotizados</span>
+            <div class="card-header ch-amber">
+                <span><i class="bi bi-grid-3x3"></i>Paneles / Servicios cotizados</span>
                 <span class="badge badge-gray">{{ $cotizacion->elementos->count() }}</span>
             </div>
             <div class="table-wrapper">

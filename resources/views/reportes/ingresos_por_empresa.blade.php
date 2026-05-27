@@ -19,6 +19,10 @@
 </div>
 
 <div class="card">
+    <div class="card-header ch-green">
+        <span><i class="bi bi-trophy"></i>Ranking de Ingresos por Empresa</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text-light)">Año {{ $año }}</span>
+    </div>
     <div class="table-wrapper">
         <table>
             <thead><tr><th>#</th><th>Empresa</th><th>Total ingresos</th><th style="width:35%">Barra</th></tr></thead>
@@ -26,7 +30,15 @@
                 @php $max = $datos->max('total_ingresos') ?: 1; @endphp
                 @forelse($datos as $i => $empresa)
                 <tr>
-                    <td class="text-muted">{{ $i + 1 }}</td>
+                    @if($i === 0)
+                        <td><span style="font-size:18px">🥇</span></td>
+                    @elseif($i === 1)
+                        <td><span style="font-size:18px">🥈</span></td>
+                    @elseif($i === 2)
+                        <td><span style="font-size:18px">🥉</span></td>
+                    @else
+                        <td class="text-muted">{{ $i + 1 }}</td>
+                    @endif
                     <td class="fw-700" style="color:var(--text-dark)">{{ $empresa->nombre }}</td>
                     <td class="fw-700" style="color:#10B981">S/. {{ number_format($empresa->total_ingresos, 0, ',', '.') }}</td>
                     <td>

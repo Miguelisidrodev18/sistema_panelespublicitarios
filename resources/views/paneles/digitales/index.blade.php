@@ -29,7 +29,7 @@
                 @endif
             </div>
         @else
-            <div style="height:140px;background:linear-gradient(135deg,#1E293B 0%,#2D3B55 100%);display:flex;align-items:center;justify-content:center;position:relative">
+            <div style="height:140px;background:linear-gradient(135deg,#0F1117 0%,#1A1D2B 50%,#1E293B 100%);display:flex;align-items:center;justify-content:center;position:relative;border-bottom:2px solid rgba(59,130,246,.3)">
                 <i class="bi bi-display" style="font-size:44px;color:rgba(255,255,255,.2)"></i>
                 @if($panel->activo)
                     <span class="badge badge-success" style="position:absolute;top:10px;right:10px"><i class="bi bi-circle-fill dot"></i>Activo</span>

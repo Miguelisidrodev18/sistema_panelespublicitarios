@@ -5,6 +5,12 @@
 
 @section('content')
 
+<div class="page-header">
+    <div class="page-header-left">
+        <span style="font-size:13px;color:var(--text-light);font-weight:500">Registro completo de actividad del sistema</span>
+    </div>
+</div>
+
 <div class="filter-bar" style="margin-bottom:20px">
     <form style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%" method="GET">
             <select name="modulo" class="form-select" style="max-width:160px">
@@ -63,7 +69,7 @@
                     <td style="font-size:11px;color:var(--text-light)">{{ $log->ip ?? '—' }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center text-muted py-4">No hay registros de auditoría.</td></tr>
+                <tr><td colspan="6"><div class="empty-state"><i class="bi bi-shield-check"></i><p>No hay registros de auditoría.</p></div></td></tr>
                 @endforelse
             </tbody>
         </table>

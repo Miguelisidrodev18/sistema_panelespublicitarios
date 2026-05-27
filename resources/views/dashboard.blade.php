@@ -22,15 +22,20 @@
 @if(auth()->user()->esAdmin())
 
 {{-- Welcome banner --}}
-<div style="background:linear-gradient(135deg,var(--sidebar-bg) 0%,#2D3147 60%,#1E2035 100%);border-radius:var(--radius-lg);padding:24px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 8px 32px rgba(15,23,42,.18);">
-    <div>
-        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px">Panel de administración</div>
-        <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.3px">Bienvenido, {{ auth()->user()->nombre_completo }}</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px"><i class="bi bi-calendar3" style="margin-right:5px"></i>{{ now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</div>
+<div style="background:linear-gradient(135deg,#0F1117 0%,#1A1D2B 30%,#2D1B3D 60%,#1A2332 100%);border-radius:var(--radius-lg);padding:28px 36px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 12px 40px rgba(15,23,42,.22);position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-30%;right:-10%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(230,57,70,.15) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="position:absolute;bottom:-40%;left:20%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.1) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="position:relative;z-index:1">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+            <span style="width:24px;height:2px;background:linear-gradient(90deg,var(--primary),var(--primary-light));border-radius:1px;display:inline-block"></span>
+            Panel de administración
+        </div>
+        <div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px;line-height:1.2">Bienvenido, {{ auth()->user()->nombre_completo }}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.45);margin-top:6px;display:flex;align-items:center;gap:6px"><i class="bi bi-calendar3"></i>{{ now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</div>
     </div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <a href="{{ route('cotizaciones.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i>Nueva cotización</a>
-        <a href="{{ route('empresas.index') }}" class="btn btn-sm" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15)"><i class="bi bi-building"></i>Empresas</a>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;position:relative;z-index:1">
+        <a href="{{ route('cotizaciones.create') }}" class="btn btn-primary btn-sm" style="box-shadow:0 4px 16px rgba(230,57,70,.4)"><i class="bi bi-plus-lg"></i>Nueva cotización</a>
+        <a href="{{ route('empresas.index') }}" class="btn btn-sm" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px)"><i class="bi bi-building"></i>Empresas</a>
     </div>
 </div>
 
