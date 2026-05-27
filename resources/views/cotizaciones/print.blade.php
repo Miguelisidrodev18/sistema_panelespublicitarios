@@ -175,11 +175,85 @@
         .btn-toggle { background: #F59E0B; color: #fff; }
         .btn-action:hover { opacity: .88; }
 
+        /* ── Galería de fotos (anexo) ── */
+        .photo-annex-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 12mm 14mm;
+            background: #fff;
+            page-break-before: always;
+        }
+        .photo-annex-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid #DC1E2E;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+        .photo-annex-title {
+            font-size: 13px; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1.2px; color: #1A1D29;
+        }
+        .photo-annex-title span { color: #DC1E2E; }
+        .photo-annex-badge {
+            background: #DC1E2E; color: #fff;
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; padding: 4px 12px; border-radius: 20px;
+        }
+        .photo-annex-subtitle {
+            font-size: 9.5px; color: #64748B; margin-bottom: 18px; font-style: italic;
+        }
+        .photo-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+        .photo-card {
+            border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .photo-card img {
+            width: 100%; height: 145px; object-fit: cover; display: block;
+        }
+        .photo-card-no-img {
+            width: 100%; height: 145px; background: #F1F5FB;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px; color: #CBD5E1;
+        }
+        .photo-card-info {
+            padding: 8px 10px; background: #F8FAFC;
+            border-top: 2px solid #DC1E2E;
+        }
+        .photo-card-code {
+            font-size: 11.5px; font-weight: 900; color: #1A1D29; margin-bottom: 2px;
+        }
+        .photo-card-name {
+            font-size: 9px; color: #374151; margin-bottom: 4px; line-height: 1.3;
+        }
+        .photo-card-location {
+            font-size: 8.5px; color: #64748B; margin-bottom: 2px;
+        }
+        .photo-card-size {
+            font-size: 8.5px; color: #94A3B8;
+        }
+        .photo-annex-footer {
+            margin-top: 20px; background: #DC1E2E; color: #fff;
+            text-align: center; padding: 5px 14px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; font-style: italic;
+        }
+        .photo-page-num {
+            text-align: right; font-size: 8.5px; color: #94A3B8; margin-top: 10px;
+        }
+
         @media print {
             .print-btn-bar { display: none; }
             body { margin: 0; }
             .page { margin: 0; padding: 8mm 10mm; width: 100%; min-height: auto; }
             .detail-table tbody tr { page-break-inside: avoid; }
+            .photo-annex-page { margin: 0; padding: 8mm 10mm; width: 100%; min-height: auto; }
+            .photo-card { page-break-inside: avoid; }
         }
         @page { size: A4; margin: 0; }
     </style>
@@ -472,6 +546,82 @@
     </div>
 
 </div>
+
+{{-- ══════════════════ ANEXO: GALERÍA DE FOTOS DE PANELES ══════════════════ --}}
+@php
+    $elementos_con_foto = collect();
+    foreach ($cotizacion->elementos as $elem) {
+        if ($con_foto && isset($elem->panel) && $elem->panel && $elem->panel->foto) {
+            $elementos_con_foto->push($elem);
+        }
+    }
+    $grupos_foto = $elementos_con_foto->chunk(3);
+    $total_paginas_foto = $grupos_foto->count();
+@endphp
+
+@if($con_foto && $elementos_con_foto->count() > 0)
+    @foreach($grupos_foto as $gi => $grupo)
+    <div class="photo-annex-page">
+
+        {{-- Mini-cabecera en cada hoja de galería --}}
+        <div class="photo-annex-header">
+            <div class="photo-annex-title">
+                &#128247; Anexo: <span>Galería de Paneles</span>
+            </div>
+            <div style="text-align:right">
+                <div class="photo-annex-badge">COT. {{ $cotizacion->numero }}</div>
+                <div style="font-size:8.5px;color:#94A3B8;margin-top:4px">
+                    Hoja {{ $gi + 1 }} de {{ $total_paginas_foto }}
+                </div>
+            </div>
+        </div>
+
+        @if($gi === 0)
+        <p class="photo-annex-subtitle">
+            Imágenes de referencia de los paneles incluidos en esta cotización.
+            Los paneles se muestran con sus datos de identificación y ubicación.
+        </p>
+        @endif
+
+        {{-- Grilla de hasta 3 fotos --}}
+        <div class="photo-grid-3">
+            @foreach($grupo as $elem)
+            @php
+                $panel       = $elem->panel;
+                $foto_url    = Storage::url($panel->foto);
+                $nombre_item = $panel->nombre ?? $elem->codigo;
+                $ubicacion   = $panel->direccion ?? '—';
+                $medidas     = $panel->medidas ?? '—';
+            @endphp
+            <div class="photo-card">
+                <img src="{{ $foto_url }}" alt="{{ $nombre_item }}">
+                <div class="photo-card-info">
+                    <div class="photo-card-code">{{ $elem->codigo }}</div>
+                    @if($nombre_item && $nombre_item !== $elem->codigo)
+                        <div class="photo-card-name">{{ $nombre_item }}</div>
+                    @endif
+                    <div class="photo-card-location">&#128205; {{ $ubicacion }}</div>
+                    @if($medidas && $medidas !== '—')
+                        <div class="photo-card-size">&#128207; {{ $medidas }}</div>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+
+            {{-- Relleno si hay menos de 3 en la última fila --}}
+            @for($pad = $grupo->count(); $pad < 3; $pad++)
+                <div></div>
+            @endfor
+        </div>
+
+        {{-- Footer de la hoja --}}
+        <div class="photo-annex-footer">
+            ¡{{ $empresa_propia['slogan'] }}! — {{ $empresa_propia['web'] }}
+        </div>
+
+    </div>
+    @endforeach
+@endif
 
 </body>
 </html>
