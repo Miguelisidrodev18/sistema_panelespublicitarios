@@ -63,6 +63,17 @@
                     </span>
                 @endif
             </div>
+            @if($panel->costo_produccion)
+            <div style="margin-top:8px;padding:6px 10px;background:#FEF3C7;border-radius:6px;border:1px solid #FDE68A;font-size:11.5px;color:#92400E;display:flex;align-items:center;gap:6px">
+                <i class="bi bi-tag-fill" style="color:#D97706"></i>
+                <div>
+                    <strong>Costo: S/. {{ number_format($panel->costo_produccion, 2) }}</strong>
+                    @if($panel->desc_costo)
+                        <span style="color:#B45309;font-size:10.5px"> — {{ $panel->desc_costo }}</span>
+                    @endif
+                </div>
+            </div>
+            @endif
         </div>
         @if(auth()->user()->esAdmin())
         <div class="wh-footer">

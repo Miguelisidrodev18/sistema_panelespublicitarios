@@ -65,7 +65,13 @@
                     <input type="number" name="costo_produccion"
                         value="{{ old('costo_produccion', $panelDigital->costo_produccion) }}"
                         class="form-control" step="0.01" min="0" placeholder="0.00">
-                    <div class="form-hint">Incluye instalación y puesta en marcha.</div>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Descripción del costo</label>
+                    <input type="text" name="desc_costo"
+                        value="{{ old('desc_costo', $panelDigital->desc_costo ?? 'Instalación y puesta en marcha') }}"
+                        class="form-control" placeholder="Ej: Instalación y puesta en marcha" maxlength="255">
+                    <div class="form-hint">Describe qué incluye el costo de producción.</div>
                 </div>
 
                 {{-- Mapa de ubicación --}}

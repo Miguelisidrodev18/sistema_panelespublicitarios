@@ -11,7 +11,7 @@ class PanelDigital extends Model
 
     protected $fillable = [
         'codigo', 'nombre', 'direccion', 'medidas', 'resolucion',
-        'orientacion', 'tandas', 'costo_produccion', 'foto', 'lat', 'lng', 'activo',
+        'orientacion', 'tandas', 'costo_produccion', 'desc_costo', 'foto', 'lat', 'lng', 'activo',
     ];
 
     protected $casts = [

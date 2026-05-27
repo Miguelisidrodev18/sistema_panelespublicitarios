@@ -10,7 +10,7 @@ class PanelUbicacion extends Model
     protected $table = 'paneles_ubicaciones';
 
     protected $fillable = [
-        'codigo', 'nombre', 'direccion', 'caras', 'medidas', 'costo_produccion', 'gramaje_lonas', 'foto', 'lat', 'lng', 'activo',
+        'codigo', 'nombre', 'direccion', 'caras', 'medidas', 'costo_produccion', 'desc_costo', 'gramaje_lonas', 'foto', 'lat', 'lng', 'activo',
     ];
 
     protected $casts = [

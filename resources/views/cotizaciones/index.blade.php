@@ -246,7 +246,7 @@
         <div class="cot-sec-title"><i class="bi bi-file-invoice-dollar"></i> Datos de la Cotización</div>
         <div style="padding:20px 28px;border-bottom:1px solid var(--border)">
             <div class="row g-3">
-                <div class="col-md-5">
+                <div class="col-md-8">
                     <label class="form-label" style="font-size:13px">Tipo de servicio</label>
                     <input type="text" name="tipo_contrato" class="form-control form-control-sm"
                         list="modal_tipos" placeholder="Panel Digital, Tradicional...">
@@ -258,11 +258,6 @@
                     </datalist>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label" style="font-size:13px">Monto propuesto (S/.)</label>
-                    <input type="number" name="monto_propuesto" value="0"
-                        class="form-control form-control-sm" step="1" min="0">
-                </div>
-                <div class="col-md-3">
                     <label class="form-label" style="font-size:13px">Válida hasta</label>
                     <input type="date" name="fecha_vencimiento" class="form-control form-control-sm">
                 </div>
@@ -315,6 +310,26 @@
         </div>
     </div>{{-- /modal-body --}}
 
+    {{-- Resumen IGV --}}
+    <div style="padding:10px 28px;background:#F8FAFC;border-top:1px solid #E2E8F0">
+        <div style="display:flex;justify-content:flex-end">
+            <table style="font-size:12px;min-width:240px">
+                <tr>
+                    <td style="padding:3px 12px 3px 0;color:#64748B">Subtotal neto</td>
+                    <td style="font-weight:600;text-align:right">S/. <span id="m-sub">0.00</span></td>
+                </tr>
+                <tr>
+                    <td style="padding:3px 12px 3px 0;color:#64748B">IGV (18%)</td>
+                    <td style="font-weight:600;text-align:right">S/. <span id="m-igv">0.00</span></td>
+                </tr>
+                <tr style="border-top:2px solid #E2E8F0">
+                    <td style="padding:6px 12px 0 0;font-weight:700;font-size:13px">TOTAL CON IGV</td>
+                    <td style="font-weight:800;text-align:right;font-size:13px;color:#059669;padding-top:6px">S/. <span id="m-total">0.00</span></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
     <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" onclick="cerrarModal('modalNuevaCot')">
             <i class="bi bi-x-lg me-1"></i>Cancelar
@@ -359,14 +374,15 @@
     color: #9CA3AF; border: 1px dashed #D1D5DB; border-radius: 8px;
 }
 .cot-panel-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 7px 10px; background: #F8FAFC;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 8px 10px; background: #F8FAFC;
     border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 6px;
 }
-.cot-panel-row select { flex: 2; min-width: 0; }
-.cot-panel-row .f-cod { width: 80px; flex-shrink: 0; }
-.cot-panel-row .f-mes { width: 72px; flex-shrink: 0; }
-.cot-panel-row .f-pre { width: 100px; flex-shrink: 0; }
+.cot-panel-row select { flex: 3; min-width: 200px; }
+.cot-panel-row .f-cod  { width: 76px; flex-shrink: 0; }
+.cot-panel-row .f-mes  { width: 70px; flex-shrink: 0; }
+.cot-panel-row .f-pre  { width: 96px; flex-shrink: 0; }
+.cot-panel-row .f-desc { flex: 2; min-width: 150px; }
 </style>
 @endpush
 
@@ -382,10 +398,21 @@ function cerrarModal(id) {
 }
 
 var mPaneles = {
-    digital:     @json($paneles_digitales->map(fn($p) => ['id'=>$p->id,'codigo'=>$p->codigo,'nombre'=>$p->nombre])),
-    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id'=>$p->id,'codigo'=>$p->codigo,'nombre'=>$p->nombre]))
+    digital:     @json($paneles_digitales->map(fn($p) => ['id'=>$p->id,'codigo'=>$p->codigo,'nombre'=>$p->nombre,'costo'=>$p->costo_produccion ?? 0,'desc'=>$p->desc_costo ?? 'Instalación y puesta en marcha'])),
+    tradicional: @json($paneles_tradicionales->map(fn($p) => ['id'=>$p->id,'codigo'=>$p->codigo,'nombre'=>$p->nombre,'costo'=>$p->costo_produccion ?? 0,'desc'=>$p->desc_costo ?? 'Producción de lona e instalación']))
 };
 var mCounters = { digital: 0, tradicional: 0 };
+var M_IGV = 0.18;
+
+function mRecalc() {
+    var sub = 0;
+    document.querySelectorAll('#modalNuevaCot input[name="elemento_precio[]"]').forEach(function(i){ sub += parseFloat(i.value)||0; });
+    document.querySelectorAll('#modalNuevaCot input[name="elemento_costo[]"]').forEach(function(i){ sub += parseFloat(i.value)||0; });
+    var igv = sub * M_IGV;
+    document.getElementById('m-sub').textContent    = sub.toFixed(2);
+    document.getElementById('m-igv').textContent    = igv.toFixed(2);
+    document.getElementById('m-total').textContent  = (sub + igv).toFixed(2);
+}
 
 function mUpdateCount(tipo) {
     document.getElementById('m-cnt-' + tipo).textContent =
@@ -399,17 +426,20 @@ function mAddPanel(tipo) {
     var idx  = mCounters[tipo]++;
     var opts = '<option value="">Seleccionar panel...</option>' +
         mPaneles[tipo].map(function(p) {
-            return '<option value="'+p.id+'" data-codigo="'+p.codigo+'">'+p.codigo+' — '+p.nombre+'</option>';
+            return '<option value="'+p.id+'" data-codigo="'+(p.codigo||'')+'" data-costo="'+(p.costo||0)+'" data-desc="'+(p.desc||'')+'">'+(p.codigo ? p.codigo+' — ' : '')+p.nombre+'</option>';
         }).join('');
+    var descDefault = tipo === 'tradicional' ? 'Producción de lona e instalación' : 'Instalación y puesta en marcha';
     var row = document.createElement('div');
-    row.className = 'cot-panel-row';
+    row.className = 'cot-panel-row flex-wrap';
     row.id = 'm-row-'+tipo+'-'+idx;
     row.innerHTML =
-        '<select name="elemento_panel_id[]" class="form-select form-select-sm" onchange="mOnSelect(this,\''+tipo+'\','+idx+')">'+opts+'</select>'+
+        '<select name="elemento_panel_id[]" class="form-select form-select-sm" style="flex:3;min-width:200px" onchange="mOnSelect(this,\''+tipo+'\','+idx+')">'+opts+'</select>'+
         '<input type="hidden" name="elemento_tipo[]" value="'+tipo+'">'+
         '<input type="text"   name="elemento_codigo[]" class="form-control form-control-sm f-cod" placeholder="Código" readonly>'+
-        '<input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" placeholder="Meses" min="1">'+
-        '<input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="1">'+
+        '<input type="number" name="elemento_tiempo[]" class="form-control form-control-sm f-mes" placeholder="Meses" min="1" oninput="mRecalc()">'+
+        '<input type="number" name="elemento_precio[]" class="form-control form-control-sm f-pre" placeholder="S/. Precio" min="0" step="0.01" oninput="mRecalc()">'+
+        '<input type="number" name="elemento_costo[]"  class="form-control form-control-sm f-pre" placeholder="S/. Costo" min="0" step="0.01" oninput="mRecalc()">'+
+        '<input type="text"   name="elemento_desc_costo[]" class="form-control form-control-sm f-desc" placeholder="Desc. costo" value="'+descDefault+'">'+
         '<button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0" onclick="mRemovePanel(\''+tipo+'\','+idx+')"><i class="bi bi-trash"></i></button>';
     cont.appendChild(row);
     mUpdateCount(tipo);
@@ -418,7 +448,13 @@ function mAddPanel(tipo) {
 function mOnSelect(sel, tipo, idx) {
     var opt = sel.options[sel.selectedIndex];
     var row = document.getElementById('m-row-'+tipo+'-'+idx);
-    if (row) row.querySelector('.f-cod').value = opt.dataset.codigo || '';
+    if (!row) return;
+    row.querySelector('[name="elemento_codigo[]"]').value = opt.dataset.codigo || '';
+    var costoInp = row.querySelector('[name="elemento_costo[]"]');
+    if (costoInp && opt.dataset.costo !== undefined) costoInp.value = parseFloat(opt.dataset.costo||0).toFixed(2);
+    var descInp = row.querySelector('[name="elemento_desc_costo[]"]');
+    if (descInp && opt.dataset.desc) descInp.value = opt.dataset.desc;
+    mRecalc();
 }
 
 function mRemovePanel(tipo, idx) {
@@ -428,6 +464,7 @@ function mRemovePanel(tipo, idx) {
     if (!cont.querySelector('.cot-panel-row'))
         document.getElementById('m-empty-'+tipo).style.display = '';
     mUpdateCount(tipo);
+    mRecalc();
 }
 
 document.getElementById('modal_empresa_id').addEventListener('change', function () {

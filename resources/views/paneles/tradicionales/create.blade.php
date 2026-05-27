@@ -67,6 +67,12 @@
                     <label class="form-label">Costo de producción (S/.)</label>
                     <input type="number" name="costo_produccion" value="{{ old('costo_produccion') }}" class="form-control" step="0.01" min="0" placeholder="0.00">
                 </div>
+                <div class="col-md-8">
+                    <label class="form-label">Descripción del costo</label>
+                    <input type="text" name="desc_costo" value="{{ old('desc_costo', 'Producción de lona e instalación') }}"
+                        class="form-control" placeholder="Ej: Producción de lona e instalación" maxlength="255">
+                    <div class="form-hint">Describe qué incluye el costo de producción.</div>
+                </div>
 
                 {{-- Mapa de ubicación --}}
                 <div class="col-12">
