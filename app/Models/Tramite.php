@@ -7,12 +7,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tramite extends Model
 {
+    /**
+     * Fuente única de verdad para los estados del trámite.
+     * Añadir o editar estados aquí se refleja en el select, badges y filtros automáticamente.
+     */
+    const ESTADOS = [
+        'en_tramite'     => ['label' => 'En trámite',    'color' => 'warning'],
+        'observado'      => ['label' => 'Observado',      'color' => 'danger'],
+        'firma_final'    => ['label' => 'Firma final',    'color' => 'info'],
+        'mesa_de_partes' => ['label' => 'Mesa de Partes', 'color' => 'primary'],
+        'aprobado'       => ['label' => 'Aprobado',       'color' => 'success'],
+        'rechazado'      => ['label' => 'Rechazado',      'color' => 'gray'],
+    ];
+
+    /** Devuelve [value => label] para usar en un <select> */
+    public static function estadosParaSelect(): array
+    {
+        return array_map(fn($e) => $e['label'], self::ESTADOS);
+    }
+
     protected $table = 'tramites';
 
     protected $fillable = [
         'numero', 'tipo', 'entidad_nombre', 'entidad_expediente', 'codigo_tramite',
         'area_actual', 'encargado', 'doc_presentado', 'encargado_area',
-        'contacto', 'apunte_adicional', 'fecha_ingreso', 'fecha_modificacion',
+        'contacto', 'apunte_adicional', 'archivo_pdf', 'fecha_ingreso', 'fecha_modificacion',
         'fecha_vencimiento', 'estado', 'activo',
     ];
 
@@ -35,27 +54,11 @@ class Tramite extends Model
 
     public function getBadgeColorAttribute(): string
     {
-        return match($this->estado) {
-            'en_tramite'    => 'warning',
-            'observado'     => 'danger',
-            'firma_final'   => 'info',
-            'mesa_de_partes'=> 'primary',
-            'aprobado'      => 'success',
-            'rechazado'     => 'gray',
-            default         => 'gray',
-        };
+        return self::ESTADOS[$this->estado]['color'] ?? 'gray';
     }
 
     public function getBadgeLabelAttribute(): string
     {
-        return match($this->estado) {
-            'en_tramite'    => 'En trámite',
-            'observado'     => 'Observado',
-            'firma_final'   => 'Firma final',
-            'mesa_de_partes'=> 'Mesa de Partes',
-            'aprobado'      => 'Aprobado',
-            'rechazado'     => 'Rechazado',
-            default         => ucfirst($this->estado),
-        };
+        return self::ESTADOS[$this->estado]['label'] ?? ucfirst($this->estado);
     }
 }

@@ -131,6 +131,88 @@ class ContratoController extends Controller
         return redirect()->route('contratos.show', $contrato)->with('success', 'Contrato actualizado.');
     }
 
+    public function generarCuotas(Request $request, Contrato $contrato)
+    {
+        $request->validate([
+            'num_cuotas'    => 'required|integer|min:1|max:120',
+            'primera_fecha' => 'required|date',
+        ]);
+
+        $saldo          = (float)$contrato->saldo_pendiente;
+        $numCuotas      = (int)$request->num_cuotas;
+        $monto_cuota    = round($saldo / $numCuotas, 2);
+        $fecha          = \Carbon\Carbon::parse($request->primera_fecha);
+        $mesesIntervalo = $contrato->mesesFrecuencia();
+
+        for ($i = 1; $i <= $numCuotas; $i++) {
+            Cobranza::create([
+                'empresa_id'        => $contrato->empresa_id,
+                'contrato_id'       => $contrato->id,
+                'numero_cuota'      => $i,
+                'monto'             => $monto_cuota,
+                'fecha_vencimiento' => $fecha->copy(),
+                'estado'            => 'pendiente',
+                'concepto'          => "Contrato {$contrato->numero_contrato} — Cuota {$i}/{$numCuotas}",
+            ]);
+            $fecha->addMonths($mesesIntervalo);
+        }
+
+        return back()->with('success', "Se generaron {$numCuotas} cuota(s) de S/. " . number_format($monto_cuota, 2) . " cada una.");
+    }
+
+    public function importarDeCotizacion(Request $request, Contrato $contrato)
+    {
+        $request->validate(['cotizacion_id' => 'required|exists:cotizaciones,id']);
+
+        $cotizacion = \App\Models\Cotizacion::with('elementos')->find($request->cotizacion_id);
+
+        $importados = 0;
+        foreach ($cotizacion->elementos as $elem) {
+            if (!in_array($elem->tipo_elemento, ['digital', 'tradicional'])) continue;
+
+            // Evitar duplicados: omitir si ya existe el mismo codigo+tipo
+            $existe = $contrato->elementos()
+                ->where('tipo_elemento', $elem->tipo_elemento)
+                ->where('codigo', $elem->codigo)
+                ->exists();
+            if ($existe) continue;
+
+            ContratoElemento::create([
+                'contrato_id'        => $contrato->id,
+                'tipo_elemento'      => $elem->tipo_elemento,
+                'panel_id'           => $elem->panel_id,
+                'codigo'             => $elem->codigo,
+                'tiempo_contrato'    => $elem->tiempo_contrato,
+                'observaciones'      => $elem->observaciones,
+                'estado_instalacion' => 'pendiente_instalacion',
+            ]);
+            $importados++;
+        }
+
+        // Vincular la cotizacion a este contrato si no estaba vinculado
+        if (!$contrato->cotizacion_id) {
+            $contrato->update(['cotizacion_id' => $cotizacion->id]);
+        }
+
+        // Registrar el adelanto como cobro si existe y aún no hay un cobro de tipo Adelanto
+        $adelanto = (float)($contrato->adelanto ?? 0);
+        $yaExisteAdelanto = $contrato->cobros()->where('tipo_cobro', 'Adelanto')->exists();
+
+        if ($adelanto > 0 && !$yaExisteAdelanto) {
+            ContratoCobro::create([
+                'contrato_id' => $contrato->id,
+                'tipo_cobro'  => 'Adelanto',
+                'monto'       => $adelanto,
+                'fecha_cobro' => $contrato->fecha_inicio?->toDateString() ?? now()->toDateString(),
+                'notas'       => 'Adelanto importado desde cotización ' . $cotizacion->numero,
+            ]);
+            $msgAdelanto = " y adelanto de S/. " . number_format($adelanto, 2) . " registrado";
+        }
+
+        $msg = "Se importaron {$importados} elemento(s) desde {$cotizacion->numero}" . ($msgAdelanto ?? '') . ".";
+        return back()->with('success', $msg);
+    }
+
     public function registrarCobro(Request $request, Contrato $contrato)
     {
         $validated = $request->validate([

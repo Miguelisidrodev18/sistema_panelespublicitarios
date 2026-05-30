@@ -26,7 +26,7 @@
 </div>
 @endif
 
-<form method="POST" action="{{ route('tramites.update', $tramite) }}">
+<form method="POST" action="{{ route('tramites.update', $tramite) }}" enctype="multipart/form-data">
 @csrf @method('PUT')
 
 {{-- ── Sección 1: Datos del trámite ── --}}
@@ -80,7 +80,7 @@
 
             {{-- Expediente --}}
             <div class="col-md-6">
-                <label class="form-label">Expediente de entidad <span class="text-muted">(opcional)</span></label>
+                <label class="form-label">Expediente matriz <span class="text-muted">(opcional)</span></label>
                 <input type="text" name="entidad_expediente" value="{{ old('entidad_expediente', $tramite->entidad_expediente) }}"
                        class="form-control" placeholder="Ej: EXP 00185-2026-0-1890-CH-CO-07">
             </div>
@@ -94,7 +94,7 @@
 
             {{-- Área actual --}}
             <div class="col-md-4">
-                <label class="form-label">Área actual</label>
+                <label class="form-label">Área</label>
                 <input type="text" name="area_actual" value="{{ old('area_actual', $tramite->area_actual) }}"
                        class="form-control" placeholder="Ej: Gerencia de Des. Urbano"
                        list="areas-list">
@@ -153,6 +153,24 @@
                           placeholder="Notas, observaciones o información extra relevante...">{{ old('apunte_adicional', $tramite->apunte_adicional) }}</textarea>
             </div>
 
+            {{-- PDF --}}
+            <div class="col-12">
+                <label class="form-label">Archivo PDF <span class="text-muted">(máx. 5 MB)</span></label>
+                @if($tramite->archivo_pdf)
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 12px;background:#EDE9FE;border-radius:8px">
+                    <i class="bi bi-file-earmark-pdf-fill" style="color:#7C3AED;font-size:18px"></i>
+                    <a href="{{ Storage::url($tramite->archivo_pdf) }}" target="_blank"
+                       style="color:#7C3AED;font-weight:600;font-size:13px;text-decoration:none;flex:1">
+                        Ver PDF actual
+                    </a>
+                    <span style="font-size:11px;color:var(--text-light)">Sube uno nuevo para reemplazarlo</span>
+                </div>
+                @endif
+                <input type="file" name="archivo_pdf" accept=".pdf" class="form-control"
+                       @error('archivo_pdf') style="border-color:var(--primary)" @enderror>
+                @error('archivo_pdf')<div style="font-size:12px;color:var(--primary);margin-top:4px">{{ $message }}</div>@enderror
+            </div>
+
         </div>
     </div>
 </div>
@@ -184,6 +202,15 @@
 
 </form>
 
+@php
+$_pasosData = $tramite->procesos->map(fn($p) => [
+    'area'               => $p->area,
+    'numero_notificacion'=> $p->numero_notificacion,
+    'observacion'        => $p->observacion,
+    'estado'             => $p->estado,
+])->values();
+@endphp
+
 @push('scripts')
 <script>
 const estadosPaso = {
@@ -198,12 +225,7 @@ const areasComunes = [
 ];
 
 // Pasos existentes inyectados desde PHP
-const pasosExistentes = @json($tramite->procesos->map(fn($p) => [
-    'area'               => $p->area,
-    'numero_notificacion'=> $p->numero_notificacion,
-    'observacion'        => $p->observacion,
-    'estado'             => $p->estado,
-]));
+const pasosExistentes = @json($_pasosData);
 
 let pasoIdx = 0;
 

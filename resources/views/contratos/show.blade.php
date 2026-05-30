@@ -132,6 +132,49 @@
         </div>
 
         @if(auth()->user()->esAdmin() && $contrato->estado === 'activo')
+        @php $cuotasExistentes = \App\Models\Cobranza::where('contrato_id', $contrato->id)->count(); @endphp
+        <div class="card" style="margin-bottom:20px">
+            <div class="card-header">
+                <span><i class="bi bi-calendar-check" style="color:#2563EB;margin-right:8px"></i>Generar cuotas de cobro</span>
+                @if($cuotasExistentes > 0)
+                    <span class="badge badge-info">{{ $cuotasExistentes }} cuota(s) generadas</span>
+                @endif
+            </div>
+            <div class="card-body">
+                @if($cuotasExistentes > 0)
+                <div style="font-size:13px;color:var(--text-light);margin-bottom:10px">
+                    Ya hay cuotas generadas. <a href="{{ route('cobranzas.index') }}" style="color:var(--primary)">Ver en Cobranzas →</a>
+                </div>
+                @endif
+                <form action="{{ route('contratos.generar-cuotas', $contrato) }}" method="POST">
+                    @csrf
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:12px">N° de cuotas</label>
+                            <input type="number" name="num_cuotas" class="form-control" min="1" max="120"
+                                   placeholder="Ej: 7" required
+                                   value="{{ $cuotasExistentes > 0 ? '' : '' }}">
+                            @if($contrato->saldo_pendiente > 0)
+                            <div style="font-size:11px;color:var(--text-light);margin-top:3px">
+                                Saldo: S/. {{ number_format($contrato->saldo_pendiente, 2) }}
+                            </div>
+                            @endif
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:12px">Primera fecha venc.</label>
+                            <input type="date" name="primera_fecha" class="form-control"
+                                   value="{{ $contrato->fecha_inicio?->format('Y-m-d') ?? date('Y-m-d') }}" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100" style="margin-top:10px"
+                            {{ $cuotasExistentes > 0 ? 'onclick="return confirm(\'Ya existen cuotas. ¿Generar cuotas adicionales?\')"' : '' }}>
+                        <i class="bi bi-calendar-plus"></i>
+                        {{ $cuotasExistentes > 0 ? 'Generar más cuotas' : 'Generar cuotas en Cobranzas' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
                 <span><i class="bi bi-cash-coin" style="color:#10B981;margin-right:8px"></i>Registrar cobro</span>
@@ -183,6 +226,53 @@
 
     {{-- Columna derecha: elementos y cobros --}}
     <div class="col-lg-8">
+
+        {{-- Banner de importar cotización (solo admin, solo si no tiene elementos) --}}
+        @php
+            $faltaAdelanto = ($contrato->adelanto ?? 0) > 0
+                && !$contrato->cobros->where('tipo_cobro','Adelanto')->count();
+        @endphp
+        @if(auth()->user()->esAdmin() && ($contrato->elementos->count() === 0 || $faltaAdelanto))
+        <div style="margin-bottom:16px;padding:14px 18px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+                <div style="font-weight:700;font-size:13px;color:#92400E">
+                    <i class="bi bi-exclamation-triangle-fill" style="margin-right:6px"></i>
+                    Datos incompletos del contrato
+                </div>
+                <div style="font-size:12px;color:#78350F;margin-top:2px">
+                    @if($contrato->elementos->count() === 0)Faltan elementos. @endif
+                    @if($faltaAdelanto)El adelanto (S/. {{ number_format($contrato->adelanto,2) }}) no está en el historial de cobros. @endif
+                    Selecciona la cotización de origen para importarlos.
+                </div>
+            </div>
+            <form action="{{ route('contratos.importar-cotizacion', $contrato) }}" method="POST"
+                  style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                @csrf
+                @php
+                    $cotizacionesConvertidas = \App\Models\Cotizacion::where('estado','convertida')
+                        ->orderByDesc('created_at')->get();
+                @endphp
+                <select name="cotizacion_id" class="form-control form-control-sm" style="min-width:220px" required>
+                    <option value="">Seleccionar cotización...</option>
+                    @if($contrato->cotizacion_id)
+                    <option value="{{ $contrato->cotizacion_id }}" selected>
+                        Cotización vinculada ({{ \App\Models\Cotizacion::find($contrato->cotizacion_id)?->numero ?? '#'.$contrato->cotizacion_id }})
+                    </option>
+                    @endif
+                    @foreach($cotizacionesConvertidas as $cot)
+                        @if($cot->id !== $contrato->cotizacion_id)
+                        <option value="{{ $cot->id }}">{{ $cot->numero }} — {{ $cot->cliente_nombre ?? $cot->cliente_empresa ?? 'Sin nombre' }}</option>
+                        @endif
+                    @endforeach
+                </select>
+                <button type="submit"
+                        style="background:#EA580C;color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+                    <i class="bi bi-download"></i> Importar elementos
+                </button>
+            </form>
+        </div>
+        @endif
+
         <div class="card" style="margin-bottom:20px">
             <div class="card-header">
                 <span><i class="bi bi-grid-3x3" style="color:var(--primary);margin-right:8px"></i>Elementos del contrato</span>

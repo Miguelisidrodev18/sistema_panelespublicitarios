@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Contrato extends Model
 {
     protected $fillable = [
-        'numero_contrato', 'empresa_id', 'contratante', 'doc_tipo', 'doc_numero',
+        'cotizacion_id', 'numero_contrato', 'empresa_id', 'contratante', 'doc_tipo', 'doc_numero',
         'direccion', 'tipo_contrato', 'monto_total', 'adelanto', 'saldo_pendiente',
         'fecha_inicio', 'fecha_fin', 'descripcion', 'estado', 'frecuencia_cobro',
     ];
@@ -25,6 +25,11 @@ class Contrato extends Model
     public function empresa(): BelongsTo
     {
         return $this->belongsTo(Empresa::class);
+    }
+
+    public function cotizacion(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Cotizacion::class);
     }
 
     public function elementos(): HasMany

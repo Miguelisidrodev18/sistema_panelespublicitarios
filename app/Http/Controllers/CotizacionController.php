@@ -40,6 +40,7 @@ class CotizacionController extends Controller
         $empresas              = Empresa::activas()->orderBy('nombre')->get();
         $paneles_digitales     = PanelDigital::where('activo', true)->orderBy('codigo')->get();
         $paneles_tradicionales = PanelUbicacion::where('activo', true)->orderBy('codigo')->get();
+        $servicios             = Servicio::activos()->orderBy('nombre')->get();
         $numero                = 'COT-' . date('Y') . '-' . str_pad(Cotizacion::whereYear('created_at', date('Y'))->count() + 1, 4, '0', STR_PAD_LEFT);
 
         $stats_cot = [
@@ -50,7 +51,7 @@ class CotizacionController extends Controller
         ];
 
         return view('cotizaciones.index', compact(
-            'cotizaciones', 'empresas', 'paneles_digitales', 'paneles_tradicionales', 'numero', 'stats_cot'
+            'cotizaciones', 'empresas', 'paneles_digitales', 'paneles_tradicionales', 'servicios', 'numero', 'stats_cot'
         ));
     }
 
@@ -151,6 +152,24 @@ class CotizacionController extends Controller
     {
         $cotizacion->load('elementos', 'empresa');
         return view('cotizaciones.show', compact('cotizacion'));
+    }
+
+    public function imprimirCarta(Cotizacion $cotizacion)
+    {
+        $cotizacion->load(['elementos.servicio', 'empresa']);
+
+        foreach ($cotizacion->elementos as $elem) {
+            if ($elem->tipo_elemento === 'digital' && $elem->panel_id) {
+                $elem->panel = PanelDigital::find($elem->panel_id);
+            } elseif ($elem->tipo_elemento === 'tradicional' && $elem->panel_id) {
+                $elem->panel = PanelUbicacion::find($elem->panel_id);
+            }
+        }
+
+        $empresa_propia = config('empresa');
+        $ciudad = explode(',', $empresa_propia['direccion'])[0] ?? 'Huancayo';
+
+        return view('cotizaciones.print-carta', compact('cotizacion', 'empresa_propia', 'ciudad'));
     }
 
     public function imprimir(Request $request, Cotizacion $cotizacion)
@@ -302,14 +321,47 @@ class CotizacionController extends Controller
             'fecha_inicio'    => 'nullable|date',
             'fecha_fin'       => 'nullable|date',
             'descripcion'     => 'nullable|string',
+            'frecuencia_cobro'=> 'nullable|in:mensual,bimestral,trimestral,semestral,anual',
         ]);
 
-        $validated['saldo_pendiente'] = $validated['monto_total'] - ($validated['adelanto'] ?? 0);
+        $adelanto = (float)($validated['adelanto'] ?? 0);
+        $validated['saldo_pendiente']  = $validated['monto_total'] - $adelanto;
+        $validated['frecuencia_cobro'] = $validated['frecuencia_cobro'] ?? 'mensual';
+        $validated['cotizacion_id']    = $cotizacion->id;
 
-        Contrato::create($validated);
+        $contrato = Contrato::create($validated);
+
+        // Transferir elementos de paneles de la cotización al contrato
+        $cotizacion->load('elementos');
+        foreach ($cotizacion->elementos as $elem) {
+            if (!in_array($elem->tipo_elemento, ['digital', 'tradicional'])) {
+                continue; // servicios no se trasladan como elementos de panel
+            }
+            \App\Models\ContratoElemento::create([
+                'contrato_id'        => $contrato->id,
+                'tipo_elemento'      => $elem->tipo_elemento,
+                'panel_id'           => $elem->panel_id,
+                'codigo'             => $elem->codigo,
+                'tiempo_contrato'    => $elem->tiempo_contrato,
+                'observaciones'      => $elem->observaciones,
+                'estado_instalacion' => 'pendiente_instalacion',
+            ]);
+        }
+
+        // Registrar adelanto como cobro si existe
+        if ($adelanto > 0) {
+            \App\Models\ContratoCobro::create([
+                'contrato_id' => $contrato->id,
+                'tipo_cobro'  => 'Adelanto',
+                'monto'       => $adelanto,
+                'fecha_cobro' => $validated['fecha_inicio'] ?? now()->toDateString(),
+                'notas'       => 'Adelanto registrado al convertir cotización ' . $cotizacion->numero,
+            ]);
+        }
 
         $cotizacion->update(['estado' => 'convertida']);
 
-        return redirect()->route('contratos.index')->with('success', 'Contrato creado a partir de la cotización.');
+        return redirect()->route('contratos.show', $contrato)
+            ->with('success', 'Contrato creado correctamente a partir de la cotización ' . $cotizacion->numero . '.');
     }
 }

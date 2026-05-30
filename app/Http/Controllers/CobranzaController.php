@@ -11,7 +11,7 @@ class CobranzaController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Cobranza::with('empresa');
+        $query = Cobranza::with(['empresa', 'contrato']);
 
         if ($user->esEmpresa()) {
             $query->where('empresa_id', $user->empresa_id);
@@ -56,5 +56,13 @@ class CobranzaController extends Controller
     {
         $cobranza->delete();
         return back()->with('success', 'Cuota eliminada.');
+    }
+
+    public function recibo(Cobranza $cobranza, string $formato = 'a4')
+    {
+        $cobranza->load(['empresa', 'contrato']);
+        $empresa_propia = config('empresa');
+        $view = $formato === '80mm' ? 'cobranzas.recibo-80mm' : 'cobranzas.recibo-a4';
+        return view($view, compact('cobranza', 'empresa_propia'));
     }
 }

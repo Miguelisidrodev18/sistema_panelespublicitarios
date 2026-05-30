@@ -6,17 +6,10 @@ use App\Models\Tramite;
 use App\Models\TramiteProceso;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TramiteController extends Controller
 {
-    private array $estados = [
-        'en_tramite'     => 'En trámite',
-        'observado'      => 'Observado',
-        'firma_final'    => 'Firma final',
-        'mesa_de_partes' => 'Mesa de Partes',
-        'aprobado'       => 'Aprobado',
-        'rechazado'      => 'Rechazado',
-    ];
 
     public function index(Request $request)
     {
@@ -36,7 +29,7 @@ class TramiteController extends Controller
             });
         }
 
-        $tramites = $query->paginate(20);
+        $tramites = $query->with('procesos')->paginate(20);
 
         $stats = [
             'total'      => Tramite::count(),
@@ -45,7 +38,7 @@ class TramiteController extends Controller
             'aprobados'  => Tramite::where('estado', 'aprobado')->count(),
         ];
 
-        $estados = $this->estados;
+        $estados = Tramite::estadosParaSelect();
 
         return view('tramites.index', compact('tramites', 'stats', 'estados'));
     }
@@ -53,7 +46,7 @@ class TramiteController extends Controller
     public function create()
     {
         $numero  = $this->generarNumero();
-        $estados = $this->estados;
+        $estados = Tramite::estadosParaSelect();
         return view('tramites.create', compact('numero', 'estados'));
     }
 
@@ -70,6 +63,7 @@ class TramiteController extends Controller
             'encargado_area'      => 'nullable|string|max:200',
             'contacto'            => 'nullable|string|max:200',
             'apunte_adicional'    => 'nullable|string',
+            'archivo_pdf'         => 'nullable|file|mimes:pdf|max:5120',
             'fecha_ingreso'       => 'nullable|date',
             'fecha_modificacion'  => 'nullable|date',
             'fecha_vencimiento'   => 'nullable|date',
@@ -79,6 +73,10 @@ class TramiteController extends Controller
         $validated['numero']        = $this->generarNumero();
         $validated['fecha_ingreso'] = $validated['fecha_ingreso'] ?? now()->toDateString();
         $validated['activo']        = true;
+
+        if ($request->hasFile('archivo_pdf')) {
+            $validated['archivo_pdf'] = $request->file('archivo_pdf')->store('tramites/pdf', 'public');
+        }
 
         $tramite = Tramite::create($validated);
 
@@ -100,7 +98,7 @@ class TramiteController extends Controller
     public function edit(Tramite $tramite)
     {
         $tramite->load('procesos');
-        $estados = $this->estados;
+        $estados = Tramite::estadosParaSelect();
         return view('tramites.edit', compact('tramite', 'estados'));
     }
 
@@ -117,6 +115,7 @@ class TramiteController extends Controller
             'encargado_area'      => 'nullable|string|max:200',
             'contacto'            => 'nullable|string|max:200',
             'apunte_adicional'    => 'nullable|string',
+            'archivo_pdf'         => 'nullable|file|mimes:pdf|max:5120',
             'fecha_ingreso'       => 'nullable|date',
             'fecha_modificacion'  => 'nullable|date',
             'fecha_vencimiento'   => 'nullable|date',
@@ -124,6 +123,13 @@ class TramiteController extends Controller
         ]);
 
         $validated['fecha_modificacion'] = now()->toDateString();
+
+        if ($request->hasFile('archivo_pdf')) {
+            if ($tramite->archivo_pdf) {
+                Storage::disk('public')->delete($tramite->archivo_pdf);
+            }
+            $validated['archivo_pdf'] = $request->file('archivo_pdf')->store('tramites/pdf', 'public');
+        }
 
         $tramite->update($validated);
 
@@ -142,6 +148,73 @@ class TramiteController extends Controller
         $tramite->delete();
         return redirect()->route('tramites.index')
             ->with('success', 'Trámite eliminado.');
+    }
+
+    public function subirPdf(Request $request, Tramite $tramite)
+    {
+        $request->validate(['archivo_pdf' => 'required|file|mimes:pdf|max:5120']);
+
+        if ($tramite->archivo_pdf) {
+            Storage::disk('public')->delete($tramite->archivo_pdf);
+        }
+
+        $tramite->update([
+            'archivo_pdf' => $request->file('archivo_pdf')->store('tramites/pdf', 'public'),
+        ]);
+
+        return response()->json(['ok' => true, 'url' => Storage::url($tramite->archivo_pdf)]);
+    }
+
+    public function eliminarPdf(Tramite $tramite)
+    {
+        if ($tramite->archivo_pdf) {
+            Storage::disk('public')->delete($tramite->archivo_pdf);
+            $tramite->update(['archivo_pdf' => null]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function agregarPaso(Request $request, Tramite $tramite)
+    {
+        $request->validate([
+            'area'               => 'required|string|max:200',
+            'numero_notificacion'=> 'nullable|string|max:100',
+            'observacion'        => 'nullable|string|max:500',
+            'estado'             => 'required|in:pendiente,en_proceso,finalizado',
+        ]);
+
+        $orden = $tramite->procesos()->max('orden') + 1;
+
+        $paso = TramiteProceso::create([
+            'tramite_id'          => $tramite->id,
+            'area'                => $request->area,
+            'numero_notificacion' => $request->numero_notificacion,
+            'observacion'         => $request->observacion,
+            'estado'              => $request->estado,
+            'orden'               => $orden,
+        ]);
+
+        return response()->json([
+            'ok'          => true,
+            'paso'        => [
+                'id'                 => $paso->id,
+                'orden'              => $paso->orden,
+                'area'               => $paso->area,
+                'numero_notificacion'=> $paso->numero_notificacion,
+                'observacion'        => $paso->observacion,
+                'estado'             => $paso->estado,
+                'badge_color'        => $paso->badge_color,
+                'badge_label'        => $paso->badge_label,
+            ],
+        ]);
+    }
+
+    public function imprimirProceso(Tramite $tramite)
+    {
+        $tramite->load('procesos');
+        $empresa_propia = config('empresa');
+        return view('tramites.print-proceso', compact('tramite', 'empresa_propia'));
     }
 
     // ── Helpers ──────────────────────────────────────────────

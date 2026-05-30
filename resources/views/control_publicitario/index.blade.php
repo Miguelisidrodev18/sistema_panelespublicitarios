@@ -176,9 +176,16 @@
                             @if($reg->fecha_fin)
                                 <div class="text-muted" style="font-size:12px">al {{ $reg->fecha_fin->format('d/m/Y') }}</div>
                                 @if($reg->estado === 'activo')
-                                    @php $dias = (int) now()->diffInDays($reg->fecha_fin, false) @endphp
+                                    @php
+                                        // Comparar solo fechas calendario (sin hora) para evitar desfases de horas
+                                        $hoy  = \Carbon\Carbon::today('America/Lima');
+                                        $fin  = \Carbon\Carbon::instance($reg->fecha_fin)->startOfDay();
+                                        $dias = (int) $hoy->diffInDays($fin, false);
+                                    @endphp
                                     @if($dias < 0)
                                         <span class="badge badge-vencida" style="margin-top:3px">Vencida</span>
+                                    @elseif($dias === 0)
+                                        <span class="badge badge-urgente" style="margin-top:3px">Vence hoy</span>
                                     @elseif($dias <= 3)
                                         <span class="badge badge-urgente" style="margin-top:3px">Vence en {{ $dias }}d</span>
                                     @elseif($dias <= 15)

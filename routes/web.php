@@ -46,6 +46,8 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('admin');
     Route::delete('/cobranzas/{cobranza}', [CobranzaController::class, 'destroy'])->name('cobranzas.destroy')
         ->middleware('admin');
+    Route::get('/cobranzas/{cobranza}/recibo/{formato?}', [CobranzaController::class, 'recibo'])
+        ->name('cobranzas.recibo')->middleware('can-permiso:cobranzas');
 
     // Ingresos
     Route::get('/ingresos', [IngresoController::class, 'index'])->name('ingresos.index')
@@ -82,6 +84,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('contratos', ContratoController::class)->middleware('can-permiso:contratos');
     Route::post('/contratos/{contrato}/cobro', [ContratoController::class, 'registrarCobro'])
         ->name('contratos.cobro')->middleware('can-permiso:contratos');
+    Route::post('/contratos/{contrato}/importar-cotizacion', [ContratoController::class, 'importarDeCotizacion'])
+        ->name('contratos.importar-cotizacion')->middleware('admin');
+    Route::post('/contratos/{contrato}/generar-cuotas', [ContratoController::class, 'generarCuotas'])
+        ->name('contratos.generar-cuotas')->middleware('admin');
     Route::patch('/contratos/{contrato}/elemento/{elemento}/instalacion',
         [ContratoController::class, 'actualizarInstalacion'])
         ->name('contratos.elemento.instalacion')->middleware('admin');
@@ -108,6 +114,8 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can-permiso:cotizaciones');
     Route::get('/cotizaciones/{cotizacion}/imprimir', [CotizacionController::class, 'imprimir'])
         ->name('cotizaciones.imprimir')->middleware('can-permiso:cotizaciones');
+    Route::get('/cotizaciones/{cotizacion}/imprimir-carta', [CotizacionController::class, 'imprimirCarta'])
+        ->name('cotizaciones.imprimir-carta')->middleware('can-permiso:cotizaciones');
     Route::get('/cotizaciones/{cotizacion}/convertir', [CotizacionController::class, 'convertirAContrato'])
         ->name('cotizaciones.convertir')->middleware('admin');
     Route::post('/cotizaciones/{cotizacion}/convertir', [CotizacionController::class, 'guardarContrato'])
@@ -117,6 +125,14 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('tramites', TramiteController::class)
         ->parameters(['tramites' => 'tramite'])
         ->middleware('can-permiso:tramites');
+    Route::get('/tramites/{tramite}/proceso', [TramiteController::class, 'imprimirProceso'])
+        ->name('tramites.proceso')->middleware('can-permiso:tramites');
+    Route::post('/tramites/{tramite}/pdf', [TramiteController::class, 'subirPdf'])
+        ->name('tramites.subir-pdf')->middleware('can-permiso:tramites');
+    Route::delete('/tramites/{tramite}/pdf', [TramiteController::class, 'eliminarPdf'])
+        ->name('tramites.eliminar-pdf')->middleware('can-permiso:tramites');
+    Route::post('/tramites/{tramite}/pasos', [TramiteController::class, 'agregarPaso'])
+        ->name('tramites.agregar-paso')->middleware('can-permiso:tramites');
 
     // Almacenes
     Route::resource('almacenes', AlmacenController::class)
@@ -143,6 +159,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Servicios (solo admin)
     Route::resource('servicios', ServicioController::class)->middleware('admin');
+    Route::post('/servicios/quick', [ServicioController::class, 'storeQuick'])
+        ->name('servicios.quick')->middleware('admin');
 
     // Auditoría (solo admin/gerencia)
     Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index')->middleware('admin');

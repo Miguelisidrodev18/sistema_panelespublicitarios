@@ -52,6 +52,17 @@
                 @if($panel->gramaje_lonas)<span class="badge badge-gray">{{ $panel->gramaje_lonas }}</span>@endif
                 <span class="badge badge-gray"><i class="bi bi-building"></i>{{ $panel->empresas->count() }}</span>
             </div>
+            @if($panel->costo_produccion)
+            <div style="margin-top:8px;padding:7px 10px;background:var(--amber-light);border-radius:7px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <span style="font-size:11px;color:var(--amber-dark);font-weight:600">
+                    <i class="bi bi-cash-coin" style="margin-right:4px"></i>
+                    {{ $panel->desc_costo ?? 'Costo de producción' }}
+                </span>
+                <span style="font-size:13px;font-weight:800;color:var(--amber-dark);white-space:nowrap">
+                    S/ {{ number_format($panel->costo_produccion, 2, '.', ',') }}
+                </span>
+            </div>
+            @endif
         </div>
         @if(auth()->user()->esAdmin())
         <div class="wh-footer">

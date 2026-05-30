@@ -55,6 +55,24 @@ class ServicioController extends Controller
         return redirect()->route('servicios.index')->with('success', 'Servicio actualizado correctamente.');
     }
 
+    public function storeQuick(Request $request)
+    {
+        $validated = $request->validate([
+            'nombre'      => 'required|string|max:100',
+            'descripcion' => 'nullable|string|max:500',
+            'icono'       => 'nullable|string|max:50',
+            'monto'       => 'nullable|numeric|min:0',
+        ]);
+        $validated['activo'] = true;
+
+        $servicio = Servicio::create($validated);
+
+        return response()->json([
+            'ok'      => true,
+            'servicio'=> ['id' => $servicio->id, 'nombre' => $servicio->nombre, 'monto' => (float)$servicio->monto, 'icono' => $servicio->icono ?? 'box'],
+        ]);
+    }
+
     public function destroy(Servicio $servicio)
     {
         $servicio->update(['activo' => false]);

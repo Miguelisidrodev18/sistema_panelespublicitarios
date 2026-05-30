@@ -115,21 +115,23 @@
         /* User badge */
         .sidebar-user {
             margin: 16px 16px 0;
-            padding: 12px 14px;
+            padding: 14px 14px 12px;
             background: linear-gradient(135deg, rgba(230,57,70,.12) 0%, rgba(139,92,246,.08) 100%);
             border: 1px solid rgba(230,57,70,.2);
             border-radius: var(--radius-md);
             position: relative;
-            overflow: hidden;
+            border-top: 2px solid transparent;
+            background-clip: padding-box;
         }
         .sidebar-user::before {
             content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            position: absolute; top: -2px; left: -1px; right: -1px; height: 3px;
             background: linear-gradient(90deg, var(--primary), var(--purple), var(--primary-light));
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
         }
         .sidebar-user-name {
             font-size: 13px; font-weight: 600; color: #fff;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            word-break: break-word; line-height: 1.35;
         }
         .sidebar-user-role {
             font-size: 11px; font-weight: 500;

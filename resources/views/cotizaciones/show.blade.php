@@ -18,6 +18,7 @@
     </div>
     <div class="flex gap-8">
         <a href="{{ route('cotizaciones.imprimir', $cotizacion) }}" target="_blank" class="btn btn-secondary"><i class="bi bi-printer"></i>Imprimir</a>
+        <a href="{{ route('cotizaciones.imprimir-carta', $cotizacion) }}" target="_blank" class="btn btn-secondary" title="Imprimir formato carta de propuesta"><i class="bi bi-envelope-paper"></i>Carta</a>
         @if(auth()->user()->esAdmin())
         @if(in_array($cotizacion->estado, ['pendiente', 'aprobada']))
         <a href="{{ route('cotizaciones.convertir', $cotizacion) }}" class="btn btn-success"><i class="bi bi-arrow-right-circle"></i>Convertir a Contrato</a>

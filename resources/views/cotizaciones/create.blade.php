@@ -32,18 +32,23 @@
     <div class="card-body">
         <div class="row g-3">
             <div class="col-12">
-                <label class="form-label fw-medium">Empresa registrada en el sistema</label>
-                <select name="empresa_id" id="empresa_id" class="form-select">
-                    <option value="">— Cliente externo (no registrado) —</option>
-                    @foreach($empresas as $emp)
-                        <option value="{{ $emp->id }}"
-                            data-nombre="{{ $emp->nombre }}"
-                            data-encargado="{{ $emp->encargado ?? '' }}"
-                            {{ old('empresa_id') == $emp->id ? 'selected' : '' }}>
-                            {{ $emp->nombre }}{{ $emp->encargado ? ' — '.$emp->encargado : '' }}
-                        </option>
-                    @endforeach
-                </select>
+                <label class="form-label fw-medium">Empresa del sistema</label>
+                <input type="hidden" name="empresa_id" id="empresa_id" value="{{ old('empresa_id') }}">
+                <div style="position:relative">
+                    <div id="create-emp-chip" style="display:none;margin-bottom:6px;padding:7px 12px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;align-items:center;gap:10px">
+                        <i class="bi bi-building" style="color:#059669;font-size:15px;flex-shrink:0"></i>
+                        <span id="create-emp-chip-name" style="flex:1;font-size:13px;font-weight:600;color:#065F46"></span>
+                        <span id="create-emp-chip-ruc" style="font-size:11px;color:#64748B"></span>
+                        <button type="button" onclick="empClear('create')"
+                                style="background:none;border:none;cursor:pointer;color:#94A3B8;font-size:16px;line-height:1;padding:0">&times;</button>
+                    </div>
+                    <input type="text" id="create-emp-search" autocomplete="off"
+                           class="form-control"
+                           placeholder="Buscar empresa por nombre, RUC o encargado..."
+                           oninput="empSearch(this.value,'create')"
+                           onfocus="empSearch(this.value,'create')">
+                    <div id="create-emp-drop" class="emp-drop" style="display:none"></div>
+                </div>
                 <div class="form-text">Al seleccionar, se completan automáticamente los campos de abajo.</div>
             </div>
             <div class="col-md-6">
@@ -236,6 +241,18 @@
 
 @push('styles')
 <style>
+.emp-drop {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: #fff; border: 1px solid #E2E8F0; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 999;
+    max-height: 260px; overflow-y: auto;
+}
+.emp-drop-item {
+    padding: 10px 14px; cursor: pointer;
+    border-bottom: 1px solid #F8FAFC; transition: background .12s;
+}
+.emp-drop-item:last-child { border-bottom: none; }
+.emp-drop-item:hover { background: #F0FDF4; }
 .cot-section-title {
     display: flex;
     align-items: center;
@@ -469,11 +486,93 @@ function removeServicio(idx) {
     recalcularTotales();
 }
 
-// Auto-rellenar empresa
-document.getElementById('empresa_id').addEventListener('change', function () {
-    var opt = this.options[this.selectedIndex];
-    document.getElementById('cliente_nombre').value  = opt.dataset.encargado || '';
-    document.getElementById('cliente_empresa').value = opt.dataset.nombre    || '';
+// ── Búsqueda dinámica de empresa ─────────────────────────────
+@php
+$_cEmpresas = $empresas->map(fn($e) => [
+    'id'       => $e->id,
+    'nombre'   => $e->nombre,
+    'ruc'      => $e->ruc ?? '',
+    'encargado'=> $e->encargado ?? '',
+    'celular'  => $e->celular ?? '',
+    'correo'   => $e->correo ?? '',
+])->values();
+@endphp
+var mEmpresas = @json($_cEmpresas);
+
+function empSearch(q, ctx) {
+    var drop  = document.getElementById(ctx+'-emp-drop');
+    var lower = q.toLowerCase().trim();
+    var list  = lower
+        ? mEmpresas.filter(function(e){
+            return e.nombre.toLowerCase().includes(lower)
+                || e.ruc.toLowerCase().includes(lower)
+                || e.encargado.toLowerCase().includes(lower);
+          })
+        : mEmpresas.slice(0, 12);
+
+    if (list.length === 0) {
+        drop.innerHTML = '<div style="padding:10px 14px;font-size:12px;color:#94A3B8">Sin empresas encontradas</div>';
+    } else {
+        drop.innerHTML = list.map(function(e){
+            var sub = [e.ruc ? 'RUC: '+e.ruc : '', e.encargado].filter(Boolean).join(' · ');
+            return '<div class="emp-drop-item" onclick="empSelect('+e.id+',\''+ctx+'\')">'+
+                '<div style="font-weight:600;font-size:13px;color:#0F172A">'+esc2(e.nombre)+'</div>'+
+                (sub ? '<div style="font-size:11px;color:#94A3B8;margin-top:1px">'+esc2(sub)+'</div>' : '')+
+                '</div>';
+        }).join('');
+    }
+    drop.style.display = 'block';
+}
+
+function empSelect(id, ctx) {
+    var e = mEmpresas.find(function(x){ return x.id === id; });
+    if (!e) return;
+
+    document.getElementById('empresa_id').value = e.id;
+    document.getElementById(ctx+'-emp-search').value = '';
+    document.getElementById(ctx+'-emp-drop').style.display = 'none';
+
+    var chip = document.getElementById(ctx+'-emp-chip');
+    chip.style.display = 'flex';
+    document.getElementById(ctx+'-emp-chip-name').textContent = e.nombre;
+    document.getElementById(ctx+'-emp-chip-ruc').textContent  = e.ruc ? 'RUC: '+e.ruc : '';
+
+    var n = document.getElementById('cliente_nombre');
+    var c = document.getElementById('cliente_empresa');
+    var t = document.querySelector('[name="cliente_telefono"]');
+    var m = document.querySelector('[name="cliente_email"]');
+    if (n && !n.value) n.value = e.encargado || '';
+    if (c && !c.value) c.value = e.nombre    || '';
+    if (t && !t.value) t.value = e.celular   || '';
+    if (m && !m.value) m.value = e.correo    || '';
+}
+
+function empClear(ctx) {
+    document.getElementById('empresa_id').value = '';
+    document.getElementById(ctx+'-emp-chip').style.display = 'none';
+    document.getElementById(ctx+'-emp-search').value = '';
+}
+
+function esc2(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.addEventListener('click', function(e) {
+    var drop  = document.getElementById('create-emp-drop');
+    var input = document.getElementById('create-emp-search');
+    if (drop && input && !input.contains(e.target) && !drop.contains(e.target))
+        drop.style.display = 'none';
 });
+
+// Pre-seleccionar si viene con old('empresa_id')
+@if(old('empresa_id'))
+(function(){
+    var id = {{ old('empresa_id') }};
+    var e = mEmpresas.find(function(x){ return x.id === id; });
+    if (e) {
+        document.getElementById('create-emp-chip').style.display = 'flex';
+        document.getElementById('create-emp-chip-name').textContent = e.nombre;
+        document.getElementById('create-emp-chip-ruc').textContent  = e.ruc ? 'RUC: '+e.ruc : '';
+    }
+})();
+@endif
 </script>
 @endpush

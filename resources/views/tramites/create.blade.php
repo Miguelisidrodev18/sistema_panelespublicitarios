@@ -22,7 +22,7 @@
 </div>
 @endif
 
-<form method="POST" action="{{ route('tramites.store') }}">
+<form method="POST" action="{{ route('tramites.store') }}" enctype="multipart/form-data">
 @csrf
 
 {{-- ── Sección 1: Datos del trámite ── --}}
@@ -75,7 +75,7 @@
 
             {{-- Expediente --}}
             <div class="col-md-6">
-                <label class="form-label">Expediente de entidad <span class="text-muted">(opcional)</span></label>
+                <label class="form-label">Expediente matriz <span class="text-muted">(opcional)</span></label>
                 <input type="text" name="entidad_expediente" value="{{ old('entidad_expediente') }}"
                        class="form-control" placeholder="Ej: EXP 00185-2026-0-1890-CH-CO-07">
             </div>
@@ -89,7 +89,7 @@
 
             {{-- Área actual --}}
             <div class="col-md-4">
-                <label class="form-label">Área actual</label>
+                <label class="form-label">Área</label>
                 <input type="text" name="area_actual" value="{{ old('area_actual') }}"
                        class="form-control" placeholder="Ej: Gerencia de Des. Urbano"
                        list="areas-list">
@@ -145,6 +145,14 @@
                 <label class="form-label">Apunte adicional <span class="text-muted">(opcional)</span></label>
                 <textarea name="apunte_adicional" class="form-control" rows="2"
                           placeholder="Notas, observaciones o información extra relevante...">{{ old('apunte_adicional') }}</textarea>
+            </div>
+
+            {{-- PDF --}}
+            <div class="col-12">
+                <label class="form-label">Archivo PDF <span class="text-muted">(opcional, máx. 5 MB)</span></label>
+                <input type="file" name="archivo_pdf" accept=".pdf" class="form-control"
+                       @error('archivo_pdf') style="border-color:var(--primary)" @enderror>
+                @error('archivo_pdf')<div style="font-size:12px;color:var(--primary);margin-top:4px">{{ $message }}</div>@enderror
             </div>
 
         </div>

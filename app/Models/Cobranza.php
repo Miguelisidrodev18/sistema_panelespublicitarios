@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Cobranza extends Model
 {
     protected $fillable = [
-        'empresa_id', 'numero_cuota', 'monto', 'fecha_vencimiento', 'estado', 'concepto',
+        'empresa_id', 'contrato_id', 'numero_cuota', 'monto', 'fecha_vencimiento', 'estado', 'concepto',
     ];
 
     protected $casts = [
@@ -19,6 +19,11 @@ class Cobranza extends Model
     public function empresa(): BelongsTo
     {
         return $this->belongsTo(Empresa::class);
+    }
+
+    public function contrato(): BelongsTo
+    {
+        return $this->belongsTo(Contrato::class);
     }
 
     public function scopePendientes($query)

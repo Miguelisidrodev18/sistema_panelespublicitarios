@@ -276,11 +276,9 @@
     <div class="header">
         <div class="header-left">
             <div class="header-logo">
-                @if(file_exists(public_path('images/logo.png')))
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo">
-                @else
-                    <div class="header-logo-placeholder">B</div>
-                @endif
+                <img src="{{ asset('images/logo.png') }}" alt="Logo"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="header-logo-placeholder" style="display:none">B</div>
             </div>
             <div>
                 <div class="header-company-name"><span>BÚHO</span> Publicidad</div>
