@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(head -50)"
+    ],
+    "additionalDirectories": [
+      "c:\\xampp\\htdocs\\sistema-libreria\\resources\\views\\clients"
+    ]
+  }
+}

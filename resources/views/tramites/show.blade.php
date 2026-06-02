@@ -24,9 +24,12 @@
     <div class="flex gap-8">
         @if($tramite->archivo_pdf)
         <a href="{{ Storage::url($tramite->archivo_pdf) }}" target="_blank" class="btn btn-secondary">
-            <i class="bi bi-file-earmark-pdf"></i>Ver PDF
+            <i class="bi bi-paperclip"></i>Adjunto
         </a>
         @endif
+        <a href="{{ route('tramites.proceso', $tramite) }}" target="_blank" class="btn btn-secondary">
+            <i class="bi bi-file-earmark-pdf"></i>Ver PDF
+        </a>
         @if(auth()->user()->esAdmin())
         <a href="{{ route('tramites.edit', $tramite) }}" class="btn btn-warning">
             <i class="bi bi-pencil"></i>Editar
@@ -149,10 +152,6 @@
                 <span><i class="bi bi-diagram-3" style="color:#7C3AED;margin-right:8px"></i>Proceso</span>
                 <div style="display:flex;gap:8px;align-items:center">
                     <span class="badge badge-gray" id="contador-pasos">{{ $tramite->procesos->count() }} paso(s)</span>
-                    <a href="{{ route('tramites.proceso', $tramite) }}" target="_blank"
-                       class="btn btn-sm btn-secondary btn-icon" title="Imprimir proceso">
-                        <i class="bi bi-printer"></i>
-                    </a>
                     <button type="button" onclick="abrirModalPaso()"
                             class="btn btn-sm btn-icon"
                             style="background:#7C3AED;color:#fff;border:none"

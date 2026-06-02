@@ -15,7 +15,7 @@ return [
     'telefono'       => '(064) XXX XXX',
     'celular'        => '999 XXX XXX',
     'email'          => 'ventas@buhopublicidad.pe',
-    'web'            => 'www.buhopublicidad.pe',
+    'web'            => 'www.buhoo.com',
     'slogan'         => 'Publicidad con Calle',
 
     // Métodos de pago
