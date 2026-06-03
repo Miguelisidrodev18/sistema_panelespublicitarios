@@ -168,6 +168,7 @@
                             <th>ÁREA</th>
                             <th>N° NOTIFICACIÓN</th>
                             <th>OBSERVACIÓN</th>
+                            <th style="width:110px">INGRESO / SALIDA</th>
                             <th style="width:100px">ESTADO</th>
                             <th class="td-end" style="width:110px">ACCIONES</th>
                         </tr>
@@ -188,7 +189,25 @@
                             </td>
                             <td class="fw-600">{{ $paso->area ?? '—' }}</td>
                             <td style="font-size:12.5px;color:var(--text-light)">{{ $paso->numero_notificacion ?? '—' }}</td>
-                            <td style="font-size:12.5px;color:var(--text-medium);max-width:200px">{{ $paso->observacion ?? '—' }}</td>
+                            <td style="font-size:12.5px;color:var(--text-medium);max-width:180px">{{ $paso->observacion ?? '—' }}</td>
+                            <td style="white-space:nowrap">
+                                @if($paso->fecha_ingreso)
+                                    <div style="font-size:11px;color:var(--text-dark)">
+                                        <i class="bi bi-box-arrow-in-right" style="color:#16A34A;font-size:10px"></i>
+                                        {{ $paso->fecha_ingreso->format('d/m/Y') }}
+                                    </div>
+                                @else
+                                    <div style="font-size:11px;color:var(--text-lighter)"><i class="bi bi-box-arrow-in-right" style="font-size:10px"></i> —</div>
+                                @endif
+                                @if($paso->fecha_salida)
+                                    <div style="font-size:11px;color:var(--text-dark);margin-top:2px">
+                                        <i class="bi bi-box-arrow-right" style="color:#DC2626;font-size:10px"></i>
+                                        {{ $paso->fecha_salida->format('d/m/Y') }}
+                                    </div>
+                                @else
+                                    <div style="font-size:11px;color:var(--text-lighter);margin-top:2px"><i class="bi bi-box-arrow-right" style="font-size:10px"></i> —</div>
+                                @endif
+                            </td>
                             <td><span class="badge badge-{{ $paso->badge_color }}">{{ $paso->badge_label }}</span></td>
                             <td class="td-end">
                                 <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
@@ -218,7 +237,7 @@
                         </tr>
                         @empty
                         <tr id="empty-row">
-                            <td colspan="6">
+                            <td colspan="7">
                                 <div class="empty-state" style="padding:28px">
                                     <i class="bi bi-diagram-3"></i>
                                     <p>Sin pasos de proceso registrados</p>
@@ -277,6 +296,22 @@
                 <i class="bi bi-chat-left-text" style="margin-right:4px"></i>Observación
             </div>
             <div id="pp-obs" style="font-size:13px;color:var(--text-medium);background:#F8FAFC;padding:8px 10px;border-radius:6px;border:1px solid var(--border);min-height:44px">—</div>
+        </div>
+
+        {{-- Fechas ingreso / salida --}}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+            <div style="background:#F0FDF4;border-radius:8px;padding:10px 12px;border:1px solid #BBF7D0">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#15803D;letter-spacing:.5px;margin-bottom:4px">
+                    <i class="bi bi-box-arrow-in-right"></i> Ingreso doc.
+                </div>
+                <div id="pp-fecha-ingreso" style="font-size:13px;font-weight:600;color:#14532D">—</div>
+            </div>
+            <div style="background:#FEF2F2;border-radius:8px;padding:10px 12px;border:1px solid #FECACA">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#DC2626;letter-spacing:.5px;margin-bottom:4px">
+                    <i class="bi bi-box-arrow-right"></i> Salida doc.
+                </div>
+                <div id="pp-fecha-salida" style="font-size:13px;font-weight:600;color:#7F1D1D">—</div>
+            </div>
         </div>
 
         {{-- Archivo PDF del paso --}}
@@ -363,6 +398,20 @@
                     <label class="form-label">Observación <span style="color:var(--text-light);font-weight:400">(opcional)</span></label>
                     <input id="mp-obs" type="text" class="form-control" placeholder="Observación o detalle...">
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <i class="bi bi-box-arrow-in-right" style="color:#16A34A"></i>
+                        Fecha ingreso doc. <span style="color:var(--text-light);font-weight:400">(opcional)</span>
+                    </label>
+                    <input id="mp-fecha-ingreso" type="date" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <i class="bi bi-box-arrow-right" style="color:#DC2626"></i>
+                        Fecha salida doc. <span style="color:var(--text-light);font-weight:400">(opcional)</span>
+                    </label>
+                    <input id="mp-fecha-salida" type="date" class="form-control">
+                </div>
             </div>
             <div id="mp-error" style="display:none;color:var(--primary);font-size:13px;margin-top:10px;padding:8px 12px;background:#FEF2F2;border-radius:6px"></div>
             <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
@@ -390,6 +439,8 @@ $_pasosData = $tramite->procesos->map(fn($p) => [
     'badge_label'         => $p->badge_label,
     'badge_color'         => $p->badge_color,
     'archivo_pdf'         => $p->archivo_pdf ? Storage::url($p->archivo_pdf) : null,
+    'fecha_ingreso'       => $p->fecha_ingreso?->format('d/m/Y'),
+    'fecha_salida'        => $p->fecha_salida?->format('d/m/Y'),
 ])->keyBy('id');
 @endphp
 
@@ -414,10 +465,12 @@ const circleColors = {
 
 // ── Modal agregar paso ────────────────────────────────────
 function abrirModalPaso() {
-    document.getElementById('mp-area').value   = '';
-    document.getElementById('mp-notif').value  = '';
-    document.getElementById('mp-obs').value    = '';
-    document.getElementById('mp-estado').value = 'pendiente';
+    document.getElementById('mp-area').value          = '';
+    document.getElementById('mp-notif').value         = '';
+    document.getElementById('mp-obs').value           = '';
+    document.getElementById('mp-estado').value        = 'pendiente';
+    document.getElementById('mp-fecha-ingreso').value = '';
+    document.getElementById('mp-fecha-salida').value  = '';
     document.getElementById('mp-error').style.display = 'none';
     document.getElementById('modal-add-paso').style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -434,11 +487,13 @@ document.getElementById('modal-add-paso').addEventListener('click', function(e) 
 });
 
 document.getElementById('btn-mp-guardar').addEventListener('click', async () => {
-    const area   = document.getElementById('mp-area').value.trim();
-    const notif  = document.getElementById('mp-notif').value.trim();
-    const obs    = document.getElementById('mp-obs').value.trim();
-    const estado = document.getElementById('mp-estado').value;
-    const errDiv = document.getElementById('mp-error');
+    const area         = document.getElementById('mp-area').value.trim();
+    const notif        = document.getElementById('mp-notif').value.trim();
+    const obs          = document.getElementById('mp-obs').value.trim();
+    const estado       = document.getElementById('mp-estado').value;
+    const fechaIngreso = document.getElementById('mp-fecha-ingreso').value;
+    const fechaSalida  = document.getElementById('mp-fecha-salida').value;
+    const errDiv       = document.getElementById('mp-error');
 
     if (!area) {
         errDiv.textContent = 'El campo Área es obligatorio.';
@@ -456,7 +511,8 @@ document.getElementById('btn-mp-guardar').addEventListener('click', async () => 
         const res  = await fetch(_pasoUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': _csrfToken },
-            body: JSON.stringify({ area, numero_notificacion: notif, observacion: obs, estado }),
+            body: JSON.stringify({ area, numero_notificacion: notif, observacion: obs, estado,
+                                   fecha_ingreso: fechaIngreso || null, fecha_salida: fechaSalida || null }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Error al guardar el paso.');
@@ -467,7 +523,17 @@ document.getElementById('btn-mp-guardar').addEventListener('click', async () => 
         const emptyRow = document.getElementById('empty-row');
         if (emptyRow) emptyRow.remove();
 
+        pasosData[p.id].fecha_ingreso = p.fecha_ingreso || null;
+        pasosData[p.id].fecha_salida  = p.fecha_salida  || null;
+
         const cc = circleColors[p.estado] || circleColors.pendiente;
+        const fi = p.fecha_ingreso
+            ? `<div style="font-size:11px;color:var(--text-dark)"><i class="bi bi-box-arrow-in-right" style="color:#16A34A;font-size:10px"></i> ${esc(p.fecha_ingreso)}</div>`
+            : `<div style="font-size:11px;color:var(--text-lighter)"><i class="bi bi-box-arrow-in-right" style="font-size:10px"></i> —</div>`;
+        const fs = p.fecha_salida
+            ? `<div style="font-size:11px;color:var(--text-dark);margin-top:2px"><i class="bi bi-box-arrow-right" style="color:#DC2626;font-size:10px"></i> ${esc(p.fecha_salida)}</div>`
+            : `<div style="font-size:11px;color:var(--text-lighter);margin-top:2px"><i class="bi bi-box-arrow-right" style="font-size:10px"></i> —</div>`;
+
         const tr = document.createElement('tr');
         tr.dataset.pasoId = p.id;
         tr.innerHTML = `
@@ -476,7 +542,8 @@ document.getElementById('btn-mp-guardar').addEventListener('click', async () => 
             </td>
             <td class="fw-600">${esc(p.area)}</td>
             <td style="font-size:12.5px;color:var(--text-light)">${esc(p.numero_notificacion || '—')}</td>
-            <td style="font-size:12.5px;color:var(--text-medium);max-width:200px">${esc(p.observacion || '—')}</td>
+            <td style="font-size:12.5px;color:var(--text-medium);max-width:180px">${esc(p.observacion || '—')}</td>
+            <td style="white-space:nowrap">${fi}${fs}</td>
             <td><span class="badge ${badgeClasses[p.estado] || 'badge-gray'}">${badgeLabels[p.estado] || p.estado}</span></td>
             <td class="td-end">
                 <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
@@ -521,10 +588,12 @@ function abrirPanelPaso(id) {
     if (!p) return;
     _pasoActivoId = id;
 
-    document.getElementById('pp-orden').textContent = '#' + p.orden;
-    document.getElementById('pp-area').textContent  = p.area || '—';
-    document.getElementById('pp-notif').textContent = p.numero_notificacion || '—';
-    document.getElementById('pp-obs').textContent   = p.observacion || '—';
+    document.getElementById('pp-orden').textContent         = '#' + p.orden;
+    document.getElementById('pp-area').textContent          = p.area || '—';
+    document.getElementById('pp-notif').textContent         = p.numero_notificacion || '—';
+    document.getElementById('pp-obs').textContent           = p.observacion || '—';
+    document.getElementById('pp-fecha-ingreso').textContent = p.fecha_ingreso || '—';
+    document.getElementById('pp-fecha-salida').textContent  = p.fecha_salida  || '—';
 
     // Estado badge en el header
     const badgeStyleMap = {
@@ -675,6 +744,8 @@ body{font-family:Arial,sans-serif;font-size:11px;color:#1a1a1a;padding:20mm 18mm
         <div class="row"><div class="lbl">Área:</div><div class="val"><strong>${esc(p.area||'—')}</strong></div></div>
         <div class="row"><div class="lbl">N° Notificación:</div><div class="val" style="color:#5B21B6;font-weight:600">${esc(p.numero_notificacion||'—')}</div></div>
         <div class="row"><div class="lbl">Observación:</div><div class="val">${esc(p.observacion||'—')}</div></div>
+        <div class="row"><div class="lbl">Ingreso doc.:</div><div class="val" style="color:#15803D;font-weight:600">${esc(p.fecha_ingreso||'—')}</div></div>
+        <div class="row"><div class="lbl">Salida doc.:</div><div class="val" style="color:#DC2626;font-weight:600">${esc(p.fecha_salida||'—')}</div></div>
         <div class="row"><div class="lbl">Estado:</div><div class="val"><span class="badge" style="${badgeCss[p.estado]||badgeCss.pendiente}">${esc(p.badge_label)}</span></div></div>
         ${pdfSection}
     </div>

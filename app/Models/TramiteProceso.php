@@ -11,6 +11,12 @@ class TramiteProceso extends Model
 
     protected $fillable = [
         'tramite_id', 'area', 'numero_notificacion', 'observacion', 'estado', 'orden', 'archivo_pdf',
+        'fecha_ingreso', 'fecha_salida',
+    ];
+
+    protected $casts = [
+        'fecha_ingreso' => 'date',
+        'fecha_salida'  => 'date',
     ];
 
     public function tramite(): BelongsTo

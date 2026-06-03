@@ -182,6 +182,8 @@ class TramiteController extends Controller
             'numero_notificacion'=> 'nullable|string|max:100',
             'observacion'        => 'nullable|string|max:500',
             'estado'             => 'required|in:pendiente,en_proceso,finalizado',
+            'fecha_ingreso'      => 'nullable|date',
+            'fecha_salida'       => 'nullable|date',
         ]);
 
         $orden = $tramite->procesos()->max('orden') + 1;
@@ -193,11 +195,13 @@ class TramiteController extends Controller
             'observacion'         => $request->observacion,
             'estado'              => $request->estado,
             'orden'               => $orden,
+            'fecha_ingreso'       => $request->fecha_ingreso,
+            'fecha_salida'        => $request->fecha_salida,
         ]);
 
         return response()->json([
-            'ok'          => true,
-            'paso'        => [
+            'ok'  => true,
+            'paso' => [
                 'id'                 => $paso->id,
                 'orden'              => $paso->orden,
                 'area'               => $paso->area,
@@ -206,6 +210,8 @@ class TramiteController extends Controller
                 'estado'             => $paso->estado,
                 'badge_color'        => $paso->badge_color,
                 'badge_label'        => $paso->badge_label,
+                'fecha_ingreso'      => $paso->fecha_ingreso?->format('d/m/Y'),
+                'fecha_salida'       => $paso->fecha_salida?->format('d/m/Y'),
             ],
         ]);
     }
@@ -255,10 +261,12 @@ class TramiteController extends Controller
 
     private function sincronizarProcesos(Request $request, Tramite $tramite): void
     {
-        $areas         = $request->input('proc_area', []);
+        $areas          = $request->input('proc_area', []);
         $notificaciones = $request->input('proc_notificacion', []);
         $observaciones  = $request->input('proc_observacion', []);
         $estadosPasos   = $request->input('proc_estado', []);
+        $fechasIngreso  = $request->input('proc_fecha_ingreso', []);
+        $fechasSalida   = $request->input('proc_fecha_salida', []);
 
         foreach ($areas as $i => $area) {
             if (!$area) continue;
@@ -269,6 +277,8 @@ class TramiteController extends Controller
                 'observacion'         => $observaciones[$i] ?? null,
                 'estado'              => $estadosPasos[$i] ?? 'pendiente',
                 'orden'               => $i + 1,
+                'fecha_ingreso'       => $fechasIngreso[$i] ?? null,
+                'fecha_salida'        => $fechasSalida[$i] ?? null,
             ]);
         }
     }
