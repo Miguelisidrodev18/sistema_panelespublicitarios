@@ -298,20 +298,33 @@
             <div id="pp-obs" style="font-size:13px;color:var(--text-medium);background:#F8FAFC;padding:8px 10px;border-radius:6px;border:1px solid var(--border);min-height:44px">—</div>
         </div>
 
-        {{-- Fechas ingreso / salida --}}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-            <div style="background:#F0FDF4;border-radius:8px;padding:10px 12px;border:1px solid #BBF7D0">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#15803D;letter-spacing:.5px;margin-bottom:4px">
-                    <i class="bi bi-box-arrow-in-right"></i> Ingreso doc.
-                </div>
-                <div id="pp-fecha-ingreso" style="font-size:13px;font-weight:600;color:#14532D">—</div>
+        {{-- Fechas ingreso / salida (editables) --}}
+        <div style="margin-bottom:16px;background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-light);letter-spacing:.6px;margin-bottom:10px">
+                <i class="bi bi-calendar-event" style="margin-right:4px"></i>Fechas del documento
             </div>
-            <div style="background:#FEF2F2;border-radius:8px;padding:10px 12px;border:1px solid #FECACA">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#DC2626;letter-spacing:.5px;margin-bottom:4px">
-                    <i class="bi bi-box-arrow-right"></i> Salida doc.
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                <div>
+                    <label style="font-size:10px;font-weight:700;color:#15803D;display:block;margin-bottom:4px">
+                        <i class="bi bi-box-arrow-in-right"></i> Ingreso doc.
+                    </label>
+                    <input id="pp-fecha-ingreso" type="date"
+                           style="width:100%;padding:6px 8px;border:1.5px solid #BBF7D0;border-radius:7px;font-size:12px;background:#F0FDF4;color:#14532D;font-weight:600;outline:none">
                 </div>
-                <div id="pp-fecha-salida" style="font-size:13px;font-weight:600;color:#7F1D1D">—</div>
+                <div>
+                    <label style="font-size:10px;font-weight:700;color:#DC2626;display:block;margin-bottom:4px">
+                        <i class="bi bi-box-arrow-right"></i> Salida doc.
+                    </label>
+                    <input id="pp-fecha-salida" type="date"
+                           style="width:100%;padding:6px 8px;border:1.5px solid #FECACA;border-radius:7px;font-size:12px;background:#FEF2F2;color:#7F1D1D;font-weight:600;outline:none">
+                </div>
             </div>
+            <button onclick="guardarFechasPaso()"
+                    id="btn-guardar-fechas"
+                    style="width:100%;background:#7C3AED;color:#fff;border:none;padding:7px 12px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                <i class="bi bi-floppy"></i> Guardar fechas
+            </button>
+            <div id="pp-fechas-msg" style="display:none;font-size:11px;margin-top:6px;text-align:center"></div>
         </div>
 
         {{-- Archivo PDF del paso --}}
@@ -441,6 +454,8 @@ $_pasosData = $tramite->procesos->map(fn($p) => [
     'archivo_pdf'         => $p->archivo_pdf ? Storage::url($p->archivo_pdf) : null,
     'fecha_ingreso'       => $p->fecha_ingreso?->format('d/m/Y'),
     'fecha_salida'        => $p->fecha_salida?->format('d/m/Y'),
+    'fecha_ingreso_raw'   => $p->fecha_ingreso?->format('Y-m-d'),
+    'fecha_salida_raw'    => $p->fecha_salida?->format('Y-m-d'),
 ])->keyBy('id');
 @endphp
 
@@ -588,12 +603,15 @@ function abrirPanelPaso(id) {
     if (!p) return;
     _pasoActivoId = id;
 
-    document.getElementById('pp-orden').textContent         = '#' + p.orden;
-    document.getElementById('pp-area').textContent          = p.area || '—';
-    document.getElementById('pp-notif').textContent         = p.numero_notificacion || '—';
-    document.getElementById('pp-obs').textContent           = p.observacion || '—';
-    document.getElementById('pp-fecha-ingreso').textContent = p.fecha_ingreso || '—';
-    document.getElementById('pp-fecha-salida').textContent  = p.fecha_salida  || '—';
+    document.getElementById('pp-orden').textContent  = '#' + p.orden;
+    document.getElementById('pp-area').textContent   = p.area || '—';
+    document.getElementById('pp-notif').textContent  = p.numero_notificacion || '—';
+    document.getElementById('pp-obs').textContent    = p.observacion || '—';
+
+    // inputs de fecha (formato YYYY-MM-DD para el input[type=date])
+    document.getElementById('pp-fecha-ingreso').value = p.fecha_ingreso_raw || '';
+    document.getElementById('pp-fecha-salida').value  = p.fecha_salida_raw  || '';
+    document.getElementById('pp-fechas-msg').style.display = 'none';
 
     // Estado badge en el header
     const badgeStyleMap = {
@@ -627,6 +645,59 @@ function cerrarPanelPaso() {
     document.getElementById('panel-overlay').style.display = 'none';
     document.body.style.overflow = '';
     _pasoActivoId = null;
+}
+
+// ── Guardar fechas del paso ───────────────────────────────
+async function guardarFechasPaso() {
+    const fi     = document.getElementById('pp-fecha-ingreso').value;
+    const fs     = document.getElementById('pp-fecha-salida').value;
+    const msgDiv = document.getElementById('pp-fechas-msg');
+    const btn    = document.getElementById('btn-guardar-fechas');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass"></i> Guardando...';
+
+    try {
+        const res  = await fetch(`${_pasosPdfBase}/${_pasoActivoId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': _csrfToken },
+            body: JSON.stringify({ fecha_ingreso: fi || null, fecha_salida: fs || null }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Error al guardar');
+
+        // Actualizar cache local
+        pasosData[_pasoActivoId].fecha_ingreso     = data.paso.fecha_ingreso;
+        pasosData[_pasoActivoId].fecha_salida      = data.paso.fecha_salida;
+        pasosData[_pasoActivoId].fecha_ingreso_raw = data.paso.fecha_ingreso_raw;
+        pasosData[_pasoActivoId].fecha_salida_raw  = data.paso.fecha_salida_raw;
+
+        // Actualizar celda en la tabla
+        const row = document.querySelector(`tr[data-paso-id="${_pasoActivoId}"]`);
+        if (row) {
+            const celdaFecha = row.cells[4];
+            if (celdaFecha) {
+                const fi_fmt = data.paso.fecha_ingreso;
+                const fs_fmt = data.paso.fecha_salida;
+                celdaFecha.innerHTML =
+                    `<div style="font-size:11px;color:var(--text-dark)"><i class="bi bi-box-arrow-in-right" style="color:#16A34A;font-size:10px"></i> ${fi_fmt || '—'}</div>` +
+                    `<div style="font-size:11px;color:var(--text-dark);margin-top:2px"><i class="bi bi-box-arrow-right" style="color:#DC2626;font-size:10px"></i> ${fs_fmt || '—'}</div>`;
+            }
+        }
+
+        msgDiv.textContent = '¡Fechas guardadas!';
+        msgDiv.style.color = '#059669';
+        msgDiv.style.display = 'block';
+        setTimeout(() => msgDiv.style.display = 'none', 2500);
+
+    } catch(e) {
+        msgDiv.textContent = e.message;
+        msgDiv.style.color = 'var(--primary)';
+        msgDiv.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-floppy"></i> Guardar fechas';
+    }
 }
 
 // ── PDF por paso ──────────────────────────────────────────

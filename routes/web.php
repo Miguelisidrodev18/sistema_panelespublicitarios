@@ -133,6 +133,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('tramites.eliminar-pdf')->middleware('can-permiso:tramites');
     Route::post('/tramites/{tramite}/pasos', [TramiteController::class, 'agregarPaso'])
         ->name('tramites.agregar-paso')->middleware('can-permiso:tramites');
+    Route::patch('/tramites/{tramite}/pasos/{paso}', [TramiteController::class, 'actualizarPaso'])
+        ->name('tramites.pasos.actualizar')->middleware('can-permiso:tramites');
     Route::post('/tramites/{tramite}/pasos/{paso}/pdf', [TramiteController::class, 'subirPdfPaso'])
         ->name('tramites.pasos.subir-pdf')->middleware('can-permiso:tramites');
     Route::delete('/tramites/{tramite}/pasos/{paso}/pdf', [TramiteController::class, 'eliminarPdfPaso'])

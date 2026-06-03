@@ -216,6 +216,41 @@ class TramiteController extends Controller
         ]);
     }
 
+    public function actualizarPaso(Request $request, Tramite $tramite, $paso)
+    {
+        $pasoModel = TramiteProceso::where('id', $paso)->where('tramite_id', $tramite->id)->firstOrFail();
+
+        $request->validate([
+            'area'               => 'sometimes|required|string|max:200',
+            'numero_notificacion'=> 'nullable|string|max:100',
+            'observacion'        => 'nullable|string|max:500',
+            'estado'             => 'nullable|in:pendiente,en_proceso,finalizado',
+            'fecha_ingreso'      => 'nullable|date',
+            'fecha_salida'       => 'nullable|date',
+        ]);
+
+        $pasoModel->update($request->only([
+            'area', 'numero_notificacion', 'observacion', 'estado', 'fecha_ingreso', 'fecha_salida',
+        ]));
+
+        return response()->json([
+            'ok'   => true,
+            'paso' => [
+                'id'                 => $pasoModel->id,
+                'area'               => $pasoModel->area,
+                'numero_notificacion'=> $pasoModel->numero_notificacion,
+                'observacion'        => $pasoModel->observacion,
+                'estado'             => $pasoModel->estado,
+                'badge_color'        => $pasoModel->badge_color,
+                'badge_label'        => $pasoModel->badge_label,
+                'fecha_ingreso'      => $pasoModel->fecha_ingreso?->format('d/m/Y'),
+                'fecha_salida'       => $pasoModel->fecha_salida?->format('d/m/Y'),
+                'fecha_ingreso_raw'  => $pasoModel->fecha_ingreso?->format('Y-m-d'),
+                'fecha_salida_raw'   => $pasoModel->fecha_salida?->format('Y-m-d'),
+            ],
+        ]);
+    }
+
     public function subirPdfPaso(Request $request, Tramite $tramite, $paso)
     {
         $pasoModel = TramiteProceso::where('id', $paso)->where('tramite_id', $tramite->id)->firstOrFail();
