@@ -10,7 +10,7 @@ class TramiteProceso extends Model
     protected $table = 'tramite_procesos';
 
     protected $fillable = [
-        'tramite_id', 'area', 'numero_notificacion', 'observacion', 'estado', 'orden',
+        'tramite_id', 'area', 'numero_notificacion', 'observacion', 'estado', 'orden', 'archivo_pdf',
     ];
 
     public function tramite(): BelongsTo

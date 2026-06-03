@@ -210,6 +210,34 @@ class TramiteController extends Controller
         ]);
     }
 
+    public function subirPdfPaso(Request $request, Tramite $tramite, $paso)
+    {
+        $pasoModel = TramiteProceso::where('id', $paso)->where('tramite_id', $tramite->id)->firstOrFail();
+        $request->validate(['archivo_pdf' => 'required|file|mimes:pdf|max:5120']);
+
+        if ($pasoModel->archivo_pdf) {
+            Storage::disk('public')->delete($pasoModel->archivo_pdf);
+        }
+
+        $pasoModel->update([
+            'archivo_pdf' => $request->file('archivo_pdf')->store('tramites/pasos/pdf', 'public'),
+        ]);
+
+        return response()->json(['ok' => true, 'url' => Storage::url($pasoModel->archivo_pdf)]);
+    }
+
+    public function eliminarPdfPaso(Tramite $tramite, $paso)
+    {
+        $pasoModel = TramiteProceso::where('id', $paso)->where('tramite_id', $tramite->id)->firstOrFail();
+
+        if ($pasoModel->archivo_pdf) {
+            Storage::disk('public')->delete($pasoModel->archivo_pdf);
+            $pasoModel->update(['archivo_pdf' => null]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     public function imprimirProceso(Tramite $tramite)
     {
         $tramite->load('procesos');

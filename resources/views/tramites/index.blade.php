@@ -87,6 +87,9 @@
         <span><i class="bi bi-file-earmark-check" style="color:#7C3AED;margin-right:8px"></i>Lista de trámites</span>
         <span style="font-size:12px;font-weight:500;color:var(--text-light)">{{ $tramites->total() }} registro(s)</span>
     </div>
+    @php
+        $grupos = $tramites->getCollection()->groupBy(fn($t) => $t->entidad_nombre ?? 'Sin entidad');
+    @endphp
     <div class="table-wrapper">
         <table>
             <thead>
@@ -101,9 +104,46 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($tramites as $tramite)
+                @if($tramites->isEmpty())
                 <tr>
-                    <td class="fw-700" style="color:var(--text-dark);white-space:nowrap">{{ $tramite->numero }}</td>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-file-earmark-check"></i>
+                            <p>No hay trámites registrados</p>
+                            @if(auth()->user()->esAdmin())
+                                <a href="{{ route('tramites.create') }}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-plus-lg"></i>Nuevo trámite
+                                </a>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @else
+                @foreach($grupos as $entidadNombre => $grupoTramites)
+                @php
+                    $gId       = 'g'.$loop->index;
+                    $collapsed = $grupoTramites->count() > 1;
+                @endphp
+                {{-- ── Fila cabecera de carpeta ── --}}
+                <tr onclick="toggleGrupo('{{ $gId }}')"
+                    style="cursor:pointer;background:#F5F3FF;user-select:none;border-left:3px solid #7C3AED">
+                    <td colspan="7" style="padding:9px 16px;border-bottom:1px solid #E9D5FF">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <i id="icon-{{ $gId }}" class="bi {{ $collapsed ? 'bi-folder' : 'bi-folder2-open' }}"
+                               style="color:#7C3AED;font-size:17px;flex-shrink:0"></i>
+                            <span style="font-weight:700;color:#374151;font-size:13px">{{ $entidadNombre }}</span>
+                            <span style="font-size:11px;font-weight:600;color:#7C3AED;background:#EDE9FE;padding:2px 9px;border-radius:12px;flex-shrink:0">
+                                {{ $grupoTramites->count() }} {{ $grupoTramites->count() === 1 ? 'trámite' : 'trámites' }}
+                            </span>
+                            <i id="arrow-{{ $gId }}" class="bi {{ $collapsed ? 'bi-chevron-right' : 'bi-chevron-down' }}"
+                               style="color:#7C3AED;font-size:12px;margin-left:auto;flex-shrink:0"></i>
+                        </div>
+                    </td>
+                </tr>
+                {{-- ── Filas de trámites del grupo ── --}}
+                @foreach($grupoTramites as $tramite)
+                <tr class="gfila-{{ $gId }}" style="{{ $collapsed ? 'display:none' : '' }}">
+                    <td class="fw-700" style="color:var(--text-dark);white-space:nowrap;padding-left:24px">{{ $tramite->numero }}</td>
                     <td>
                         <div class="fw-600" style="color:var(--primary)">{{ $tramite->tipo ?? '—' }}</div>
                         <div style="font-size:12px;color:var(--text-light)">{{ $tramite->entidad_nombre ?? '—' }}</div>
@@ -165,21 +205,9 @@
                         </div>
                     </td>
                 </tr>
-                @empty
-                <tr>
-                    <td colspan="7">
-                        <div class="empty-state">
-                            <i class="bi bi-file-earmark-check"></i>
-                            <p>No hay trámites registrados</p>
-                            @if(auth()->user()->esAdmin())
-                                <a href="{{ route('tramites.create') }}" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-plus-lg"></i>Nuevo trámite
-                                </a>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-                @endforelse
+                @endforeach
+                @endforeach
+                @endif
             </tbody>
         </table>
     </div>
@@ -326,6 +354,16 @@ $_tramitesProcesosData = $tramites->map(fn($t) => [
 const tramitesProcesos = @json($_tramitesProcesosData);
 
 const printBaseUrl = '{{ url("/tramites") }}';
+
+function toggleGrupo(gId) {
+    const rows  = document.querySelectorAll('.gfila-' + gId);
+    const icon  = document.getElementById('icon-'  + gId);
+    const arrow = document.getElementById('arrow-' + gId);
+    const abrir = rows.length > 0 && rows[0].style.display === 'none';
+    rows.forEach(r => r.style.display = abrir ? '' : 'none');
+    if (icon)  icon.className  = 'bi ' + (abrir ? 'bi-folder2-open' : 'bi-folder');
+    if (arrow) arrow.className = 'bi ' + (abrir ? 'bi-chevron-down' : 'bi-chevron-right');
+}
 
 function verProceso(id) {
     const t = tramitesProcesos[id];
