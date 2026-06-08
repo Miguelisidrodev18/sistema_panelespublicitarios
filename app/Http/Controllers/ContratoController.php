@@ -99,6 +99,32 @@ class ContratoController extends Controller
         return view('contratos.show', compact('contrato'));
     }
 
+    public function imprimir(Contrato $contrato)
+    {
+        $contrato->load(['empresa', 'elementos', 'cobros']);
+
+        foreach ($contrato->elementos as $elem) {
+            if ($elem->panel_id) {
+                $elem->panel = \App\Models\PanelUbicacion::find($elem->panel_id);
+            }
+        }
+
+        $empresa_contrato = [
+            'nombre'            => 'PORTAL PUBLICITARIO S.A.C.',
+            'ruc'               => '20612827801',
+            'domicilio'         => 'Av. Ferrocarril #774 - Chilca',
+            'representante'     => 'KARINA HINOSTROZA MARAVĪ',
+            'dni_representante' => '70345903',
+            'ciudad'            => 'Huancayo',
+            'banco'             => 'Interbank',
+            'cta'               => '500 – 3006259715',
+            'cci'               => '003 – 500 – 003006259715 – 65',
+            'cta_detraccion'    => '00 – 381 – 457834',
+        ];
+
+        return view('contratos.print', compact('contrato', 'empresa_contrato'));
+    }
+
     public function edit(Contrato $contrato)
     {
         $empresas = Empresa::activas()->orderBy('nombre')->get();

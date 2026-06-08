@@ -91,6 +91,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/contratos/{contrato}/elemento/{elemento}/instalacion',
         [ContratoController::class, 'actualizarInstalacion'])
         ->name('contratos.elemento.instalacion')->middleware('admin');
+    Route::get('/contratos/{contrato}/imprimir', [ContratoController::class, 'imprimir'])
+        ->name('contratos.imprimir')->middleware('can-permiso:contratos');
 
     // Control Publicitario
     Route::get('/control-publicitario', [ControlPublicitarioController::class, 'index'])

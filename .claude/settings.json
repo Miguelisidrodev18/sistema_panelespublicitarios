@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(head -50)"
+      "PowerShell(head -50)",
+      "Bash(grep -E \"\\\\.\\(php|blade|js|css\\)$\")"
     ],
     "additionalDirectories": [
       "c:\\xampp\\htdocs\\sistema-libreria\\resources\\views\\clients"

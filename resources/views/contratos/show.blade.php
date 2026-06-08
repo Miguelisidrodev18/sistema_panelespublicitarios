@@ -30,11 +30,16 @@
             </div>
         </div>
     </div>
-    @if(auth()->user()->esAdmin())
-    <a href="{{ route('contratos.edit', $contrato) }}" class="btn btn-warning">
-        <i class="bi bi-pencil"></i>Editar
-    </a>
-    @endif
+    <div style="display:flex;gap:8px;align-items:center">
+        <a href="{{ route('contratos.imprimir', $contrato) }}" target="_blank" class="btn btn-secondary">
+            <i class="bi bi-printer"></i>Imprimir / PDF
+        </a>
+        @if(auth()->user()->esAdmin())
+        <a href="{{ route('contratos.edit', $contrato) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i>Editar
+        </a>
+        @endif
+    </div>
 </div>
 
 <div class="row g-3">
