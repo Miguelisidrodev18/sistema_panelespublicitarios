@@ -8,195 +8,216 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: Arial, sans-serif;
-            font-size: 11pt;
+            font-family: Calibri, 'Calibri', sans-serif;
+            font-size: 12pt;
             color: #1a1a1a;
-            background: #fff;
+            background: #D1D5DB;
             line-height: 1.6;
         }
 
         .page {
             width: 210mm;
             min-height: 297mm;
-            margin: 0 auto;
-            padding: 25mm 25mm 20mm;
+            margin: 20px auto;
+            padding: 20mm 22mm 18mm;
             background: #fff;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            position: relative;
         }
+
+        /* ── Sello de agua ── */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            width: 340px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.07;
+            filter: grayscale(100%) contrast(200%);
+            user-select: none;
+        }
+
+        .page > *:not(.watermark) { position: relative; z-index: 1; }
 
         /* ── Encabezado ── */
         .header {
             display: flex;
             align-items: center;
-            gap: 18px;
-            margin-bottom: 18px;
-            border-bottom: 3px solid #DC1E2E;
-            padding-bottom: 14px;
+            gap: 14px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #CC1A1A;
+            padding-bottom: 12px;
         }
-        .header-logo img { height: 70px; width: auto; }
+        .header-logo img { height: 64px; width: auto; }
         .header-logo-placeholder {
-            height: 70px; width: 100px;
-            background: #DC1E2E; border-radius: 8px;
+            height: 64px; width: 80px;
+            background: #CC1A1A; border-radius: 6px;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 900; font-size: 22px;
-        }
-        .header-company {
-            flex: 1;
+            color: #fff; font-weight: 900; font-size: 18px;
         }
         .header-company-name {
-            font-size: 17px; font-weight: 900; color: #1a1a1a; line-height: 1.1;
+            font-size: 16px; font-weight: 900; letter-spacing: 0.5px; color: #1a1a1a;
         }
         .header-company-sub {
-            font-size: 9.5px; color: #64748B; text-transform: uppercase;
-            letter-spacing: 1.2px; margin-top: 3px;
+            font-size: 9pt; color: #666; text-transform: uppercase;
+            letter-spacing: 1px; margin-top: 2px;
         }
         .header-company-ruc {
-            font-size: 10px; color: #374151; margin-top: 5px;
+            font-size: 9pt; color: #444; margin-top: 4px;
         }
 
         /* ── Título del contrato ── */
         .contract-title {
             text-align: center;
-            font-size: 13pt;
-            font-weight: 900;
+            font-size: 11pt;
+            font-weight: 700;
+            font-style: italic;
+            text-decoration: underline;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 18px 0 20px;
-            padding: 10px 0;
-            border-top: 1px solid #E2E8F0;
-            border-bottom: 1px solid #E2E8F0;
+            margin: 18px 0 18px;
         }
 
-        /* ── Partes del contrato ── */
-        .partes-box {
-            background: #F8FAFC;
-            border: 1px solid #E2E8F0;
-            border-left: 4px solid #DC1E2E;
-            border-radius: 4px;
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            font-size: 10.5pt;
+        /* ── Párrafo introductorio de partes ── */
+        .intro-partes {
+            font-size: 12pt;
+            font-style: italic;
+            text-align: justify;
+            margin-bottom: 18px;
+            line-height: 1.7;
         }
-        .partes-box p { margin-bottom: 6px; }
-        .partes-box p:last-child { margin-bottom: 0; }
-        .parte-label { font-weight: 700; color: #DC1E2E; }
 
         /* ── Cláusulas ── */
         .clausula {
-            margin-bottom: 18px;
-            page-break-inside: avoid;
+            margin-bottom: 16px;
         }
         .clausula-title {
             font-weight: 700;
             font-style: italic;
             text-decoration: underline;
-            font-size: 11pt;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            color: #1a1a1a;
+            font-size: 10pt;
+            margin-bottom: 6px;
         }
         .clausula-body {
-            font-size: 10.5pt;
+            font-size: 10pt;
+            font-style: italic;
             text-align: justify;
             line-height: 1.7;
         }
-        .clausula-body p { margin-bottom: 8px; }
-        .clausula-body p:last-child { margin-bottom: 0; }
+        .clausula-body p { margin-bottom: 6px; }
 
-        /* ── Listas de servicios ── */
-        .servicio-item {
-            border: 1px solid #E2E8F0;
-            border-left: 3px solid #1a1a1a;
-            border-radius: 4px;
-            padding: 10px 14px;
-            margin-bottom: 10px;
-            background: #FAFAFA;
+        /* ── Lista de servicios (numerada con bullets) ── */
+        .servicios-list {
+            margin: 8px 0 8px 14px;
         }
-        .servicio-tipo {
+        .servicio-num {
             font-weight: 700;
-            font-size: 10.5pt;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        .servicio-detalle {
-            font-size: 10pt;
-            line-height: 1.8;
-            padding-left: 14px;
-        }
-        .servicio-detalle .row { display: flex; gap: 8px; }
-        .servicio-detalle .lbl { font-weight: 700; min-width: 130px; }
-
-        /* ── Aclaratorio de vigencia ── */
-        .aclaratorio-item {
-            margin-bottom: 8px;
-            font-size: 10pt;
-            padding-left: 14px;
-        }
-        .aclaratorio-item .ac-name { font-weight: 700; }
-        .aclaratorio-item .ac-dates { color: #374151; }
-
-        /* ── Monto ── */
-        .monto-box {
-            display: inline-block;
-            background: #1a1a1a;
-            color: #fff;
-            padding: 8px 20px;
-            border-radius: 6px;
-            font-size: 13pt;
-            font-weight: 900;
-            margin: 8px 0;
-        }
-        .monto-letras {
-            font-size: 10.5pt;
             font-style: italic;
-            color: #374151;
+            margin-bottom: 2px;
         }
+        .servicio-bullets {
+            list-style: none;
+            margin: 2px 0 8px 20px;
+        }
+        .servicio-bullets li::before { content: "• "; font-weight: 700; }
+        .servicio-bullets li {
+            font-style: italic;
+            font-size: 10pt;
+            line-height: 1.6;
+        }
+
+        /* ── Aclaratorio ── */
+        .aclaratorio-title {
+            font-weight: 700;
+            font-style: italic;
+            text-decoration: underline;
+            margin: 8px 0 4px 0;
+        }
+        .aclaratorio-list {
+            margin-left: 14px;
+        }
+        .aclaratorio-num {
+            font-weight: 700;
+            font-style: italic;
+            margin-bottom: 2px;
+        }
+        .aclaratorio-bullets {
+            list-style: none;
+            margin: 2px 0 8px 20px;
+        }
+        .aclaratorio-bullets li::before { content: "• "; font-weight: 700; }
+        .aclaratorio-bullets li { font-style: italic; font-size: 10pt; line-height: 1.6; }
 
         /* ── Datos bancarios ── */
-        .banco-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-        .banco-table td { padding: 5px 10px; font-size: 10.5pt; border: 1px solid #E2E8F0; }
-        .banco-table .lbl { font-weight: 700; background: #F8FAFC; width: 160px; }
-
-        /* ── Lista de obligaciones ── */
-        .obligaciones-list {
-            padding-left: 20px;
-            margin-top: 6px;
+        .banco-data {
+            font-style: italic;
+            font-size: 10pt;
+            margin: 6px 0;
+            line-height: 1.9;
         }
-        .obligaciones-list li {
-            margin-bottom: 5px;
-            font-size: 10.5pt;
+
+        /* ── Lista de obligaciones (bullets) ── */
+        .oblig-list {
+            list-style: none;
+            margin: 4px 0 8px 10px;
+        }
+        .oblig-list li::before { content: "• "; font-weight: 700; }
+        .oblig-list li {
+            font-style: italic;
+            font-size: 10pt;
+            line-height: 1.6;
             text-align: justify;
+            margin-bottom: 2px;
         }
 
         /* ── Firma ── */
         .firma-section {
-            margin-top: 40px;
+            margin-top: 30px;
             page-break-inside: avoid;
         }
         .firma-intro {
-            font-size: 10.5pt;
+            font-size: 11pt;
+            font-style: italic;
             text-align: justify;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         .firma-ciudad {
-            font-size: 10.5pt;
-            margin-bottom: 40px;
-            font-weight: 600;
+            font-size: 11pt;
+            font-style: italic;
+            text-align: right;
+            margin-bottom: 50px;
         }
         .firma-cols {
             display: flex;
-            justify-content: space-around;
-            gap: 40px;
+            justify-content: space-between;
+            gap: 30px;
         }
         .firma-col {
             flex: 1;
             text-align: center;
         }
+        .firma-espacio { height: 48px; }
         .firma-linea {
-            border-top: 1.5px solid #1a1a1a;
-            margin-bottom: 8px;
+            border-top: 1px solid #1a1a1a;
+            margin-bottom: 5px;
         }
-        .firma-nombre { font-weight: 700; font-size: 10.5pt; }
-        .firma-empresa { font-size: 10pt; color: #374151; margin-top: 3px; }
+        .firma-label {
+            font-weight: 700;
+            font-style: italic;
+            font-size: 10.5pt;
+            text-transform: uppercase;
+        }
+        .firma-nombre {
+            font-weight: 700;
+            font-style: italic;
+            font-size: 10.5pt;
+        }
+        .firma-cargo {
+            font-style: italic;
+            font-size: 10pt;
+            text-transform: uppercase;
+        }
 
         /* ── Barra de acción (solo pantalla) ── */
         .print-btn-bar {
@@ -208,15 +229,26 @@
             font-size: 13px; font-weight: 700; cursor: pointer;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
         }
-        .btn-print { background: #DC1E2E; color: #fff; box-shadow: 0 4px 12px rgba(220,30,46,.35); }
+        .btn-print { background: #CC1A1A; color: #fff; box-shadow: 0 4px 12px rgba(204,26,26,.35); }
         .btn-back  { background: #374151; color: #fff; }
         .btn-action:hover { opacity: .88; }
 
         @media print {
             .print-btn-bar { display: none; }
-            body { margin: 0; }
-            .page { margin: 0; padding: 18mm 20mm; width: 100%; min-height: auto; }
-            .clausula { page-break-inside: avoid; }
+            body { margin: 0; background: #fff; }
+            .page {
+                margin: 0;
+                padding: 15mm 18mm;
+                width: 100%;
+                min-height: auto;
+                box-shadow: none;
+            }
+            .clausula { page-break-inside: auto; }
+            .clausula-title { page-break-after: avoid; }
+            .servicio-item, .aclaratorio-item { page-break-inside: avoid; }
+            .firma-section { page-break-before: avoid; margin-top: 16px; }
+            .firma-cols { page-break-inside: avoid; }
+            p, li { orphans: 3; widows: 3; }
         }
         @page { size: A4; margin: 0; }
     </style>
@@ -233,11 +265,9 @@
                      'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
         $centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS',
                      'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
-
-        $entero   = (int) $numero;
-        $decimal  = round(($numero - $entero) * 100);
-
-        $convertir = function(int $n) use ($unidades, $decenas, $centenas, &$convertir): string {
+        $entero  = (int) $numero;
+        $decimal = round(($numero - $entero) * 100);
+        $conv = function(int $n) use ($unidades, $decenas, $centenas, &$conv): string {
             if ($n === 0)   return '';
             if ($n === 100) return 'CIEN';
             if ($n < 20)    return $unidades[$n];
@@ -247,31 +277,30 @@
             }
             if ($n < 1000) {
                 $c = intdiv($n, 100); $r = $n % 100;
-                return $centenas[$c] . ($r ? ' ' . $convertir($r) : '');
+                return $centenas[$c] . ($r ? ' ' . $conv($r) : '');
             }
-            if ($n < 1000000) {
-                $m = intdiv($n, 1000); $r = $n % 1000;
-                $miles = $m === 1 ? 'MIL' : $convertir($m) . ' MIL';
-                return $miles . ($r ? ' ' . $convertir($r) : '');
-            }
-            return (string) $n;
+            $m = intdiv($n, 1000); $r = $n % 1000;
+            $miles = $m === 1 ? 'MIL' : $conv($m) . ' MIL';
+            return $miles . ($r ? ' ' . $conv($r) : '');
         };
-
-        $texto = $entero === 0 ? 'CERO' : $convertir($entero);
-        return $texto . ' CON ' . str_pad($decimal, 2, '0', STR_PAD_LEFT) . '/100';
+        $texto = $entero === 0 ? 'CERO' : $conv($entero);
+        return ucfirst(strtolower($texto)) . ' con ' . str_pad($decimal, 2, '0', STR_PAD_LEFT) . '/100';
     }
 
     $montoLetras  = montoALetras((float)$contrato->monto_total);
-    $anioContrato = $contrato->fecha_inicio?->format('Y') ?? now()->format('Y');
+    $anio         = $contrato->fecha_inicio?->format('Y') ?? now()->format('Y');
     $duracionMeses = 1;
     if ($contrato->fecha_inicio && $contrato->fecha_fin) {
-        $duracionMeses = (int) $contrato->fecha_inicio->diffInMonths($contrato->fecha_fin);
-        if ($duracionMeses < 1) $duracionMeses = 1;
+        $d = (int) $contrato->fecha_inicio->diffInMonths($contrato->fecha_fin);
+        if ($d >= 1) $duracionMeses = $d;
     }
-    $fechaFirma = now()->locale('es')->isoFormat('D [de] MMMM [del] YYYY');
+    $fechaInicioTexto = $contrato->fecha_inicio
+        ? $contrato->fecha_inicio->locale('es')->isoFormat('D [de] MMMM [del] YYYY')
+        : '—';
+    $fechaFirmaTexto = now()->locale('es')->isoFormat('D [de] MMMM [del] YYYY');
 @endphp
 
-{{-- ── Barra de acciones (solo pantalla) ── --}}
+{{-- ── Barra de acciones ── --}}
 <div class="print-btn-bar">
     <a href="{{ route('contratos.show', $contrato) }}" class="btn-action btn-back">&#8592; Volver</a>
     <button class="btn-action btn-print" onclick="window.print()">&#128424; Imprimir / PDF</button>
@@ -279,140 +308,111 @@
 
 <div class="page">
 
-    {{-- ══════════════════ ENCABEZADO ══════════════════ --}}
+    {{-- ══ SELLO DE AGUA ══ --}}
+    <img src="{{ asset('images/logo.png') }}" class="watermark" alt="">
+
+    {{-- ══ ENCABEZADO ══ --}}
     <div class="header">
         <div class="header-logo">
             <img src="{{ asset('images/logo.png') }}" alt="Logo"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div class="header-logo-placeholder" style="display:none">PP</div>
         </div>
-        <div class="header-company">
+        <div>
             <div class="header-company-name">{{ $empresa_contrato['nombre'] }}</div>
-            <div class="header-company-sub">Servicios Publicitarios</div>
+            <div class="header-company-sub">Arte Visual &amp; Diseño</div>
             <div class="header-company-ruc">
                 RUC: {{ $empresa_contrato['ruc'] }} &nbsp;|&nbsp; {{ $empresa_contrato['domicilio'] }}
             </div>
         </div>
     </div>
 
-    {{-- ══════════════════ TÍTULO ══════════════════ --}}
+    {{-- ══ TÍTULO ══ --}}
     <div class="contract-title">
-        CONTRATO N.º {{ $contrato->numero_contrato }} – PPSAC/{{ $anioContrato }}<br>
-        DE SERVICIOS PUBLICITARIOS
+        CONTRATO N.º {{ $contrato->numero_contrato }} – PPSAC/{{ $anio }} DE SERVICIOS PUBLICITARIOS
     </div>
 
-    {{-- ══════════════════ IDENTIFICACIÓN DE PARTES ══════════════════ --}}
-    <div class="partes-box">
-        <p>
-            <span class="parte-label">"LA EMPRESA":</span>
-            {{ $empresa_contrato['nombre'] }}, con RUC N.º {{ $empresa_contrato['ruc'] }},
-            con domicilio en {{ $empresa_contrato['domicilio'] }},
-            representada por {{ $empresa_contrato['representante'] }},
-            identificado(a) con DNI N.º {{ $empresa_contrato['dni_representante'] }},
-            en su calidad de Gerente General.
-        </p>
-        <p>
-            <span class="parte-label">"EL CONTRATANTE":</span>
-            {{ $contrato->contratante }}@if($contrato->doc_tipo && $contrato->doc_numero),
-            con {{ $contrato->doc_tipo }} N.º {{ $contrato->doc_numero }}@endif@if($contrato->direccion),
-            con domicilio en {{ $contrato->direccion }}@endif.
-        </p>
-        <p style="margin-top:8px;font-size:10pt;color:#374151">
-            Ambas partes acuerdan celebrar el presente Contrato de Servicios Publicitarios,
-            bajo las siguientes cláusulas y condiciones:
-        </p>
-    </div>
+    {{-- ══ PÁRRAFO DE PARTES ══ --}}
+    <p class="intro-partes">
+        Conste por el presente documento un Contrato de Publicidad, que celebramos de una parte
+        <strong>{{ $empresa_contrato['nombre'] }}</strong> con RUC. N°{{ $empresa_contrato['ruc'] }},
+        con domicilio en {{ $empresa_contrato['domicilio'] }} representado por su Gerente General
+        <strong>{{ $empresa_contrato['representante'] }}</strong>,
+        identificada con D.N.I. N°{{ $empresa_contrato['dni_representante'] }},
+        a quien en adelante se le denominará <strong>"LA EMPRESA"</strong>,
+        y de la otra parte debidamente representado por
+        <strong>{{ strtoupper($contrato->contratante) }}</strong>{{ ($contrato->doc_tipo && $contrato->doc_numero) ? ', identificado con '.$contrato->doc_tipo.' N°'.$contrato->doc_numero : '' }}{{ $contrato->direccion ? ', domiciliado en '.strtoupper($contrato->direccion) : '' }}
+        – a quien en lo sucesivo se le denominará <strong>"EL CONTRATANTE"</strong>,
+        en los términos y condiciones siguientes:
+    </p>
 
-    {{-- ══════════════════ CLÁUSULA PRIMERA ══════════════════ --}}
+    {{-- ══ CLÁUSULA PRIMERA ══ --}}
     <div class="clausula">
-        <div class="clausula-title">Cláusula Primera – Antecedentes</div>
+        <div class="clausula-title">CLÁUSULA PRIMERA. - ANTECEDENTES</div>
         <div class="clausula-body">
             <p>
-                "LA EMPRESA" es una persona jurídica cuyo objeto principal es brindar servicio
-                de publicidad visual en pantalla LED, paneles publicitarios y otros servicios
-                afines a favor de sus clientes. En el presente contrato, presta sus servicios
-                a favor de "EL CONTRATANTE" <strong>{{ strtoupper($contrato->contratante) }}</strong>.
+                <strong>"LA EMPRESA"</strong>, es una persona jurídica cuyo objeto es brindar servicio de publicidad
+                visual en pantalla LED, paneles publicitarios y otros servicios a favor de
+                <strong>"EL CONTRATANTE"</strong> <strong>{{ strtoupper($contrato->contratante) }}</strong>
             </p>
-            @if($contrato->descripcion)
-            <p>
-                <em>Antecedentes adicionales:</em> {{ $contrato->descripcion }}
-            </p>
-            @endif
         </div>
     </div>
 
-    {{-- ══════════════════ CLÁUSULA SEGUNDA ══════════════════ --}}
+    {{-- ══ CLÁUSULA SEGUNDA ══ --}}
     <div class="clausula">
-        <div class="clausula-title">Cláusula Segunda – Objeto</div>
+        <div class="clausula-title">CLÁUSULA SEGUNDA. - OBJETO</div>
         <div class="clausula-body">
             <p>
-                "LA EMPRESA" se obliga a prestar a "EL CONTRATANTE"
-                <strong>{{ strtoupper($contrato->contratante) }}</strong>
-                el siguiente servicio de Publicidad Exterior:
+                <strong>"LA EMPRESA"</strong>, se obliga a prestar el servicio de publicidad a
+                <strong>"EL CONTRATANTE"</strong> <strong>{{ strtoupper($contrato->contratante) }}</strong>
+                de acuerdo a los términos y detalles establecidos en el presente contrato.
             </p>
+            <p>Servicio de Publicidad Exterior <strong>"{{ $empresa_contrato['nombre'] }}"</strong></p>
 
-            @forelse($contrato->elementos as $elem)
-            @php
-                $panel     = $elem->panel ?? null;
-                $ubicacion = $panel ? ($panel->direccion ?? $panel->nombre ?? $elem->codigo) : $elem->codigo;
-                $medidas   = $panel ? ($panel->medidas ?? null) : null;
-                $tipoLabel = match($elem->tipo_elemento) {
-                    'digital'     => 'PANTALLA LED',
-                    'tradicional' => 'PANEL TRADICIONAL',
-                    default       => strtoupper($elem->tipo_elemento),
-                };
-            @endphp
-            <div class="servicio-item">
-                <div class="servicio-tipo">
-                    Servicio de Publicidad Exterior "{{ $empresa_contrato['nombre'] }}"
+            <div class="servicios-list">
+                @forelse($contrato->elementos as $i => $elem)
+                @php
+                    $panel     = $elem->panel ?? null;
+                    $ubicacion = $panel ? ($panel->nombre ?? $panel->direccion ?? null) : null;
+                    $medidas   = $panel ? ($panel->medidas ?? null) : null;
+                    $tipoLabel = match($elem->tipo_elemento) {
+                        'digital'     => 'PANTALLA LED',
+                        'tradicional' => 'VALLA / PANEL',
+                        default       => strtoupper($elem->tipo_elemento),
+                    };
+                @endphp
+                <div class="servicio-num">
+                    {{ $i + 1 }}. {{ $tipoLabel }}
+                    @if($ubicacion) - Ubicado: {{ strtoupper($ubicacion) }}@endif
+                    @if(!$ubicacion && $elem->codigo) – Código: {{ $elem->codigo }}@endif
                 </div>
-                <div class="servicio-detalle">
-                    <div class="row">
-                        <span class="lbl">– {{ $tipoLabel }}:</span>
-                        <span>Código <strong>{{ $elem->codigo }}</strong></span>
-                    </div>
-                    @if($ubicacion && $ubicacion !== $elem->codigo)
-                    <div class="row">
-                        <span class="lbl">&nbsp;&nbsp;Ubicado:</span>
-                        <span>{{ $ubicacion }}</span>
-                    </div>
-                    @endif
+                <ul class="servicio-bullets">
                     @if($medidas)
-                    <div class="row">
-                        <span class="lbl">&nbsp;&nbsp;Medidas:</span>
-                        <span>{{ $medidas }}</span>
-                    </div>
+                    <li>MEDIDAS: {{ $medidas }}</li>
                     @endif
                     @if($elem->tiempo_contrato)
-                    <div class="row">
-                        <span class="lbl">&nbsp;&nbsp;Tiempo:</span>
-                        <span>{{ $elem->tiempo_contrato }} mes{{ $elem->tiempo_contrato > 1 ? 'es' : '' }}</span>
-                    </div>
+                    <li>TIEMPO DE CONTRATO: {{ $elem->tiempo_contrato }} {{ $elem->tiempo_contrato == 1 ? 'mes' : 'meses' }}</li>
                     @endif
                     @if($elem->observaciones)
-                    <div class="row">
-                        <span class="lbl">&nbsp;&nbsp;Observaciones:</span>
-                        <span>{{ $elem->observaciones }}</span>
-                    </div>
+                    <li>{{ strtoupper($elem->observaciones) }}</li>
                     @endif
-                </div>
+                </ul>
+                @empty
+                <p><em>Sin elementos registrados en el contrato.</em></p>
+                @endforelse
             </div>
-            @empty
-            <p><em>Sin elementos registrados en el contrato.</em></p>
-            @endforelse
         </div>
     </div>
 
-    {{-- ══════════════════ CLÁUSULA TERCERA ══════════════════ --}}
+    {{-- ══ CLÁUSULA TERCERA ══ --}}
     <div class="clausula">
-        <div class="clausula-title">Cláusula Tercera – Vigencia del Contrato</div>
+        <div class="clausula-title">CLÁUSULA TERCERA. - VIGENCIA DEL CONTRATO</div>
         <div class="clausula-body">
             <p>
                 El presente contrato tendrá una duración de
-                <strong>{{ $duracionMeses }} mes{{ $duracionMeses > 1 ? 'es' : '' }}</strong>,
-                a partir del <strong>{{ $contrato->fecha_inicio?->format('d/m/Y') ?? '—' }}</strong>
-                hasta el <strong>{{ $contrato->fecha_fin?->format('d/m/Y') ?? '—' }}</strong>.
-                El usuario podrá elegir en qué meses ingresará a una de las pantallas.
+                <strong>{{ $duracionMeses }} {{ $duracionMeses == 1 ? 'mes' : 'meses' }}</strong>,
+                a partir del {{ $fechaInicioTexto }} como primer mes.
+                EL usuario podrá elegir en qué meses ingresará a una de las pantallas.
             </p>
 
             @php
@@ -421,185 +421,159 @@
                 );
             @endphp
             @if($elementosConFechas->count() > 0)
-            <p><strong>ACLARATORIO:</strong></p>
-            @foreach($elementosConFechas as $elem)
-            @php
-                $panel     = $elem->panel ?? null;
-                $ubicacion = $panel ? ($panel->nombre ?? $panel->direccion ?? $elem->codigo) : $elem->codigo;
-                $tipoLabel = match($elem->tipo_elemento) {
-                    'digital'     => 'PANTALLA LED',
-                    'tradicional' => 'PANEL TRADICIONAL',
-                    default       => strtoupper($elem->tipo_elemento),
-                };
-            @endphp
-            <div class="aclaratorio-item">
-                <div class="ac-name">– {{ $tipoLabel }} – {{ $ubicacion }}</div>
-                <div class="ac-dates">
-                    &nbsp;&nbsp;FECHA INICIO:
-                    <strong>{{ $elem->fecha_instalacion?->format('d/m/Y') ?? $contrato->fecha_inicio?->format('d/m/Y') ?? '—' }}</strong>
-                    &nbsp;&nbsp;&nbsp;&nbsp;FECHA FINAL:
-                    <strong>{{ $elem->fecha_retiro?->format('d/m/Y') ?? $contrato->fecha_fin?->format('d/m/Y') ?? '—' }}</strong>
+            <div class="aclaratorio-title">ACLARATORIO:</div>
+            <div class="aclaratorio-list">
+                @foreach($elementosConFechas as $j => $elem)
+                @php
+                    $panel     = $elem->panel ?? null;
+                    $ubicacion = $panel ? ($panel->nombre ?? $panel->direccion ?? $elem->codigo) : $elem->codigo;
+                    $tipoLabel = match($elem->tipo_elemento) {
+                        'digital'     => 'PANTALLA LED',
+                        'tradicional' => 'VALLA / PANEL',
+                        default       => strtoupper($elem->tipo_elemento),
+                    };
+                    $fInicio = $elem->fecha_instalacion?->format('d/m/Y')
+                        ?? $contrato->fecha_inicio?->format('d/m/Y') ?? '—';
+                    $fFin    = $elem->fecha_retiro?->format('d/m/Y')
+                        ?? $contrato->fecha_fin?->format('d/m/Y') ?? '—';
+                @endphp
+                <div class="aclaratorio-num">
+                    {{ $j + 1 }}. {{ $tipoLabel }} - Ubicado: {{ strtoupper($ubicacion) }}
                 </div>
+                <ul class="aclaratorio-bullets">
+                    <li>
+                        <strong>FECHA INICIO:</strong> {{ $fInicio }}
+                        &nbsp;&nbsp;&nbsp;
+                        <strong>FECHA FINAL:</strong> {{ $fFin }}
+                    </li>
+                </ul>
+                @endforeach
             </div>
-            @endforeach
-            @endif
-        </div>
-    </div>
-
-    {{-- ══════════════════ CLÁUSULA CUARTA ══════════════════ --}}
-    <div class="clausula">
-        <div class="clausula-title">Cláusula Cuarta – Monto Contractual</div>
-        <div class="clausula-body">
+            @else
             <p>
-                El monto de servicio de publicidad pactado entre las partes es de:
-            </p>
-            <div style="text-align:center;margin:10px 0">
-                <div class="monto-box">
-                    S/ {{ number_format((float)$contrato->monto_total, 2, '.', ',') }}
-                </div>
-                <div class="monto-letras">
-                    ({{ $montoLetras }} SOLES)
-                </div>
-            </div>
-            @if(($contrato->adelanto ?? 0) > 0)
-            <p>
-                Se pactó un adelanto de <strong>S/ {{ number_format((float)$contrato->adelanto, 2, '.', ',') }}</strong>
-                al inicio del contrato, quedando un saldo de
-                <strong>S/ {{ number_format((float)$contrato->saldo_pendiente, 2, '.', ',') }}</strong>.
+                FECHA INICIO: <strong>{{ $contrato->fecha_inicio?->format('d/m/Y') ?? '—' }}</strong>
+                &nbsp;&nbsp;&nbsp;
+                FECHA FINAL: <strong>{{ $contrato->fecha_fin?->format('d/m/Y') ?? '—' }}</strong>
             </p>
             @endif
         </div>
     </div>
 
-    {{-- ══════════════════ CLÁUSULA QUINTA ══════════════════ --}}
+    {{-- ══ CLÁUSULA CUARTA ══ --}}
     <div class="clausula">
-        <div class="clausula-title">Cláusula Quinta – Forma de Pago</div>
+        <div class="clausula-title">CLÁUSULA CUARTA. – MONTO CONTRACTUAL</div>
         <div class="clausula-body">
             <p>
-                El monto dinerario especificado es definitivo, y "LA EMPRESA" no tiene derecho,
-                bajo ninguna circunstancia, a exigir otros montos adicionales. Los precios
-                incluyen derechos de uso de espacio publicitario, en caso corresponda.
-            </p>
-            <p>El monto será abonado a la Cuenta del Banco {{ $empresa_contrato['banco'] }}:</p>
-            <table class="banco-table">
-                <tr>
-                    <td class="lbl">Cuenta</td>
-                    <td>{{ $empresa_contrato['cta'] }}</td>
-                </tr>
-                <tr>
-                    <td class="lbl">CCI</td>
-                    <td>{{ $empresa_contrato['cci'] }}</td>
-                </tr>
-                <tr>
-                    <td class="lbl">Cta. Detracción</td>
-                    <td>{{ $empresa_contrato['cta_detraccion'] }}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-
-    {{-- ══════════════════ CLÁUSULA SEXTA ══════════════════ --}}
-    <div class="clausula">
-        <div class="clausula-title">Cláusula Sexta – Resolución</div>
-        <div class="clausula-body">
-            <p>
-                Cualquiera de las partes podrá resolver el presente contrato, sin expresión de causa,
-                mediante comunicación escrita con un mínimo de <strong>15 días calendario</strong> de
-                anticipación. En caso de resolución anticipada imputable a "EL CONTRATANTE",
-                el adelanto abonado no será devuelto, salvo acuerdo expreso entre las partes.
-            </p>
-            <p>
-                En caso de resolución por incumplimiento de pago, "LA EMPRESA" quedará facultada
-                para proceder al retiro inmediato del material publicitario instalado, sin responsabilidad
-                alguna frente a "EL CONTRATANTE".
+                El monto de servicio de publicidad es de
+                <strong>S/{{ number_format((float)$contrato->monto_total, 2, '.', ',') }}</strong>
+                ({{ $montoLetras }} soles)
             </p>
         </div>
     </div>
 
-    {{-- ══════════════════ CLÁUSULA SÉPTIMA ══════════════════ --}}
+    {{-- ══ CLÁUSULA QUINTA ══ --}}
     <div class="clausula">
-        <div class="clausula-title">Cláusula Séptima – Obligaciones de las Partes</div>
+        <div class="clausula-title">CLÁUSULA QUINTA. - FORMA DE PAGO</div>
         <div class="clausula-body">
-            <p><strong>Obligaciones de "LA EMPRESA":</strong></p>
-            <ul class="obligaciones-list">
-                <li>Brindar el servicio publicitario en los términos y condiciones pactados.</li>
-                <li>Mantener operativos los equipos y espacios publicitarios contratados durante
-                    la vigencia del contrato.</li>
-                <li>Notificar oportunamente cualquier inconveniente técnico que afecte la prestación
-                    del servicio.</li>
-                <li>Emitir los comprobantes de pago correspondientes.</li>
+            <ul class="oblig-list">
+                <li>El monto dinerario especificado es definitivo, y <strong>LA EMPRESA</strong> no tiene derecho bajo
+                    ninguna circunstancia a exigir otros montos adicionales.</li>
+                <li>Los precios incluyen, derechos de uso de espacio, en caso corresponda.</li>
             </ul>
-            <p style="margin-top:10px"><strong>Obligaciones de "EL CONTRATANTE":</strong></p>
-            <ul class="obligaciones-list">
-                <li>Abonar puntualmente el monto pactado en las fechas acordadas.</li>
-                <li>Proporcionar el material publicitario (artes, archivos) con un mínimo de
-                    <strong>3 días hábiles</strong> de anticipación a la fecha de inicio del servicio.</li>
-                <li>El material deberá cumplir con los requisitos técnicos indicados por "LA EMPRESA".</li>
-                <li>En caso de incumplimiento de pago, "LA EMPRESA" procederá a la desinstalación
-                    del material publicitario, sin responsabilidad frente a "EL CONTRATANTE".</li>
-            </ul>
+            <p>El monto será abonado a la Cuenta del Banco {{ $empresa_contrato['banco'] }}</p>
+            <div class="banco-data">
+                CTA: {{ $empresa_contrato['cta'] }}<br>
+                CCI: {{ $empresa_contrato['cci'] }}<br>
+                Cta. Detracción: {{ $empresa_contrato['cta_detraccion'] }}
+            </div>
         </div>
     </div>
 
-    {{-- ══════════════════ CLÁUSULA OCTAVA ══════════════════ --}}
+    {{-- ══ CLÁUSULA SEXTA ══ --}}
     <div class="clausula">
-        <div class="clausula-title">Cláusula Octava – Penalidades</div>
+        <div class="clausula-title">CLÁUSULA SEXTA. RESOLUCIÓN</div>
         <div class="clausula-body">
             <p>
-                En caso de mora en el pago por parte de "EL CONTRATANTE", se aplicará un interés
-                moratorio equivalente al <strong>2% mensual</strong> sobre el monto adeudado por
-                cada mes de retraso.
-            </p>
-            <p>
-                Si "EL CONTRATANTE" incumpliera con la entrega del material publicitario en los
-                plazos establecidos, y como consecuencia de ello el servicio no pudiera prestarse
-                en la fecha acordada, dicho período se computará igualmente como parte del tiempo
-                contratado, sin derecho a reclamo ni compensación.
-            </p>
-            <p>
-                Cualquier controversia derivada del presente contrato será resuelta por las partes
-                de manera directa y amigable. De no llegarse a un acuerdo, ambas partes se someten
-                a la jurisdicción de los Juzgados y Tribunales de <strong>{{ $empresa_contrato['ciudad'] }}</strong>.
+                El <strong>ARRENDATARIO</strong> podrá resolver el presente contrato antes de su término, comunicando
+                por escrito a <strong>"EL CONTRATANTE"</strong> con un plazo de no menor a 10 días calendarios a la
+                fecha de vencimiento. En caso de la referida resolución anticipada del contrato, así
+                como de su suspensión por cualquier motivo, el <strong>ARRENDATARIO</strong> solo pagará a
+                <strong>"EL CONTRATANTE"</strong> por los días y servicios efectivamente prestados.
             </p>
         </div>
     </div>
 
-    {{-- ══════════════════ PIE DE FIRMA ══════════════════ --}}
+    {{-- ══ CLÁUSULA SÉPTIMA ══ --}}
+    <div class="clausula">
+        <div class="clausula-title">CLÁUSULA SÉPTIMA. - OBLIGACIONES DE LAS PARTES</div>
+        <div class="clausula-body">
+            <p><strong>LA EMPRESA</strong> se obliga a:</p>
+            <ul class="oblig-list">
+                <li>Ejecutar la prestación, según lo establecido en el presente contrato y en sus partes integrantes.</li>
+                <li>A reconocer que es exclusivo responsable de sujetarse a las disposiciones legales
+                    vigentes en materia de contenidos publicitarios respecto de la publicidad que se
+                    difunda a través de los espacios publicitarios.</li>
+                <li>La empresa es exclusivamente responsable por el contenido de la publicidad que
+                    se difunda en los espacios publicitarios en virtud del presente contrato.</li>
+            </ul>
+            <p>
+                En caso que no se cumpla con el pago acordado, establecido en la cláusula quinta;
+                <strong>LA EMPRESA</strong> queda facultado para desinstalar el módulo de venta del espacio
+                publicitario, quedando expedito su derecho a interponer las acciones legales
+                correspondientes respecto a los daños y perjuicios por incumplimiento de
+                <strong>"EL CONTRATANTE"</strong>
+            </p>
+        </div>
+    </div>
+
+    {{-- ══ CLÁUSULA OCTAVA ══ --}}
+    <div class="clausula">
+        <div class="clausula-title">CLÁUSULA OCTAVA. - PENALIDADES</div>
+        <div class="clausula-body">
+            <p>
+                En caso de incumplimiento parcial o total a sus obligaciones por parte de <strong>"LA EMPRESA"</strong>
+                o del <strong>"EL CONTRATANTE"</strong>, la parte afectada podrá exponer los agravios y perjuicios y
+                exigir el pago de la relación civil correspondiente al incumplimiento de la obligación
+                pecuniaria y demás daños ocasionados a los intereses de un contrato de servicios
+                empresariales, pudiendo así iniciar las acciones legales en la vía arbitral o judicial
+                para hacer efectivo el cobro de dichas obligaciones e indemnizaciones.
+            </p>
+        </div>
+    </div>
+
+    {{-- ══ FIRMA ══ --}}
     <div class="firma-section">
-        <div class="firma-intro">
-            Las partes firman el presente contrato en señal de conformidad con todas y cada una
-            de las cláusulas precedentes, en dos (2) ejemplares de igual tenor y valor, en la
-            ciudad de {{ $empresa_contrato['ciudad'] }}.
-        </div>
-        <div class="firma-ciudad">
-            {{ $empresa_contrato['ciudad'] }}, {{ $fechaFirma }}
-        </div>
+        <p class="firma-intro">Las partes firman por duplicado en señal de conformidad.</p>
+        <p class="firma-ciudad">{{ $empresa_contrato['ciudad'] }}, {{ $fechaFirmaTexto }}</p>
         <div class="firma-cols">
+            {{-- Columna EL CONTRATANTE --}}
             <div class="firma-col">
-                <div style="height:50px"></div>
+                <div class="firma-espacio"></div>
                 <div class="firma-linea"></div>
-                <div class="firma-nombre">LA EMPRESA</div>
-                <div class="firma-empresa">{{ $empresa_contrato['nombre'] }}</div>
-                <div class="firma-empresa">{{ $empresa_contrato['representante'] }}</div>
-                <div class="firma-empresa" style="font-size:9.5pt;color:#64748B">
-                    DNI: {{ $empresa_contrato['dni_representante'] }}
-                </div>
-            </div>
-            <div class="firma-col">
-                <div style="height:50px"></div>
-                <div class="firma-linea"></div>
-                <div class="firma-nombre">EL CONTRATANTE</div>
-                <div class="firma-empresa">{{ strtoupper($contrato->contratante) }}</div>
+                <div class="firma-label">EL CONTRATANTE</div>
+                <div class="firma-nombre">{{ strtoupper($contrato->contratante) }}</div>
                 @if($contrato->doc_tipo && $contrato->doc_numero)
-                <div class="firma-empresa" style="font-size:9.5pt;color:#64748B">
-                    {{ $contrato->doc_tipo }}: {{ $contrato->doc_numero }}
-                </div>
+                <div class="firma-cargo">{{ $contrato->doc_tipo }}: {{ $contrato->doc_numero }}</div>
                 @endif
+            </div>
+            {{-- Columna LA EMPRESA --}}
+            <div class="firma-col">
+                <div class="firma-espacio"></div>
+                <div class="firma-linea"></div>
+                <div class="firma-label">LA EMPRESA</div>
+                <div class="firma-nombre">{{ $empresa_contrato['representante'] }}</div>
+                <div class="firma-cargo">Gerente General</div>
             </div>
         </div>
     </div>
 
 </div>
-
+@if(request('auto') == '1')
+<script>
+    window.addEventListener('load', function() {
+        setTimeout(function() { window.print(); }, 400);
+    });
+</script>
+@endif
 </body>
 </html>

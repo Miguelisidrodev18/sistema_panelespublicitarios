@@ -31,8 +31,13 @@
         </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
-        <a href="{{ route('contratos.imprimir', $contrato) }}" target="_blank" class="btn btn-secondary">
-            <i class="bi bi-printer"></i>Imprimir / PDF
+        <a href="{{ route('contratos.imprimir', $contrato) }}" target="_blank"
+           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;cursor:pointer">
+            <i class="bi bi-printer-fill"></i>Imprimir
+        </a>
+        <a href="{{ route('contratos.pdf', $contrato) }}"
+           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#DC2626;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;cursor:pointer">
+            <i class="bi bi-file-earmark-pdf-fill"></i>Descargar PDF
         </a>
         @if(auth()->user()->esAdmin())
         <a href="{{ route('contratos.edit', $contrato) }}" class="btn btn-warning">

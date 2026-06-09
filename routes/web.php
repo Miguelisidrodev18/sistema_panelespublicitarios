@@ -93,6 +93,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('contratos.elemento.instalacion')->middleware('admin');
     Route::get('/contratos/{contrato}/imprimir', [ContratoController::class, 'imprimir'])
         ->name('contratos.imprimir')->middleware('can-permiso:contratos');
+    Route::get('/contratos/{contrato}/pdf', [ContratoController::class, 'descargarPdf'])
+        ->name('contratos.pdf')->middleware('can-permiso:contratos');
 
     // Control Publicitario
     Route::get('/control-publicitario', [ControlPublicitarioController::class, 'index'])

@@ -99,17 +99,9 @@ class ContratoController extends Controller
         return view('contratos.show', compact('contrato'));
     }
 
-    public function imprimir(Contrato $contrato)
+    private function datosEmpresaContrato(): array
     {
-        $contrato->load(['empresa', 'elementos', 'cobros']);
-
-        foreach ($contrato->elementos as $elem) {
-            if ($elem->panel_id) {
-                $elem->panel = \App\Models\PanelUbicacion::find($elem->panel_id);
-            }
-        }
-
-        $empresa_contrato = [
+        return [
             'nombre'            => 'PORTAL PUBLICITARIO S.A.C.',
             'ruc'               => '20612827801',
             'domicilio'         => 'Av. Ferrocarril #774 - Chilca',
@@ -121,8 +113,34 @@ class ContratoController extends Controller
             'cci'               => '003 – 500 – 003006259715 – 65',
             'cta_detraccion'    => '00 – 381 – 457834',
         ];
+    }
 
+    public function imprimir(Contrato $contrato)
+    {
+        $this->cargarPaneles($contrato);
+        $empresa_contrato = $this->datosEmpresaContrato();
         return view('contratos.print', compact('contrato', 'empresa_contrato'));
+    }
+
+    public function descargarPdf(Contrato $contrato)
+    {
+        $this->cargarPaneles($contrato);
+        $empresa_contrato = $this->datosEmpresaContrato();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('contratos.print-pdf', compact('contrato', 'empresa_contrato'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('Contrato-'.$contrato->numero_contrato.'.pdf');
+    }
+
+    private function cargarPaneles(Contrato $contrato): void
+    {
+        $contrato->load(['empresa', 'elementos', 'cobros']);
+        foreach ($contrato->elementos as $elem) {
+            if ($elem->panel_id) {
+                $elem->panel = \App\Models\PanelUbicacion::find($elem->panel_id);
+            }
+        }
     }
 
     public function edit(Contrato $contrato)

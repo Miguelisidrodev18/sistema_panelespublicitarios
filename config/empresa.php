@@ -20,7 +20,7 @@ return [
 
     // Métodos de pago
     'banco_nombre'   => 'BCP',
-    'banco_cuenta'   => 'XXX-XXXXXXXX-X-XX',
+    'banco_cuenta'   => '003 – 500 – 003006259715 – 65',
     'yape_numero'    => '999 XXX XXX',
     'yape_nombre'    => 'BÚHO Publicidad SAC',
     'deposito_nombre'=> 'BÚHO Publicidad SAC',
