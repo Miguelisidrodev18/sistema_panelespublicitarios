@@ -1209,10 +1209,22 @@
         @endif
         @endif
 
-        @if($user->esAdmin())
+        @if($user->esAdmin() || $user->tienePermiso('almacenes'))
         <div class="nav-section-label">Inventario</div>
         <a href="{{ route('almacenes.index') }}" class="nav-link {{ request()->routeIs('almacenes.*') ? 'active' : '' }}">
             <i class="bi bi-building"></i>Almacenes
+        </a>
+        <a href="{{ route('almacen-items.index') }}" class="nav-link {{ request()->routeIs('almacen-items.*') ? 'active' : '' }}">
+            <i class="bi bi-box-seam"></i>Equipos y Materiales
+        </a>
+        <a href="{{ route('almacen-kardex.index') }}" class="nav-link {{ request()->routeIs('almacen-kardex.index') ? 'active' : '' }}">
+            <i class="bi bi-journal-text"></i>Kardex
+        </a>
+        <a href="{{ route('almacen-kardex.resumen') }}" class="nav-link {{ request()->routeIs('almacen-kardex.resumen') ? 'active' : '' }}">
+            <i class="bi bi-clipboard-data"></i>Stock Actual
+        </a>
+        <a href="{{ route('proveedores.index') }}" class="nav-link {{ request()->routeIs('proveedores.*') ? 'active' : '' }}">
+            <i class="bi bi-truck"></i>Proveedores
         </a>
         @endif
 

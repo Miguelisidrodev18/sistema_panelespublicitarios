@@ -5,21 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Almacen extends Model
+class Proveedor extends Model
 {
-    protected $table = 'almacenes';
+    protected $table = 'proveedores';
 
     protected $fillable = [
-        'nombre', 'codigo', 'direccion', 'telefono', 'responsable', 'estado', 'es_principal',
-    ];
-
-    protected $casts = [
-        'es_principal' => 'boolean',
+        'razon_social', 'ruc', 'direccion', 'telefono', 'email',
+        'contacto', 'rubro', 'observaciones', 'estado',
     ];
 
     public function items(): HasMany
     {
         return $this->hasMany(AlmacenItem::class);
+    }
+
+    public function movimientos(): HasMany
+    {
+        return $this->hasMany(AlmacenMovimiento::class);
     }
 
     public function scopeActivos($query)

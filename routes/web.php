@@ -16,6 +16,9 @@ use App\Http\Controllers\ControlPublicitarioController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\CotizacionController;
 use App\Http\Controllers\AlmacenController;
+use App\Http\Controllers\AlmacenItemController;
+use App\Http\Controllers\AlmacenMovimientoController;
+use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\ParrillaController;
 use App\Http\Controllers\SunatController;
 use App\Http\Controllers\ServicioController;
@@ -147,7 +150,28 @@ Route::middleware(['auth'])->group(function () {
     // Almacenes
     Route::resource('almacenes', AlmacenController::class)
         ->parameters(['almacenes' => 'almacen'])
-        ->middleware('admin');
+        ->middleware('can-permiso:almacenes');
+
+    // Almacén Items (Equipos y Materiales)
+    Route::resource('almacen-items', AlmacenItemController::class)
+        ->parameters(['almacen-items' => 'item'])
+        ->middleware('can-permiso:almacenes');
+
+    // Almacén Kardex (Movimientos)
+    Route::prefix('almacen-kardex')->name('almacen-kardex.')->middleware('can-permiso:almacenes')->group(function () {
+        Route::get('/', [AlmacenMovimientoController::class, 'kardex'])->name('index');
+        Route::post('/', [AlmacenMovimientoController::class, 'store'])->name('store');
+        Route::get('/resumen', [AlmacenMovimientoController::class, 'resumen'])->name('resumen');
+        Route::get('/imprimir', [AlmacenMovimientoController::class, 'imprimirKardex'])->name('imprimir');
+        Route::get('/pdf', [AlmacenMovimientoController::class, 'descargarKardexPdf'])->name('pdf');
+        Route::get('/resumen/imprimir', [AlmacenMovimientoController::class, 'imprimirResumen'])->name('resumen.imprimir');
+        Route::get('/resumen/pdf', [AlmacenMovimientoController::class, 'descargarResumenPdf'])->name('resumen.pdf');
+    });
+
+    // Proveedores
+    Route::resource('proveedores', ProveedorController::class)
+        ->parameters(['proveedores' => 'proveedor'])
+        ->middleware('can-permiso:almacenes');
 
     // Reportes
     Route::prefix('reportes')->name('reportes.')->middleware('can-permiso:reportes')->group(function () {
